@@ -2,7 +2,7 @@ use serde::Deserialize;
 use std::collections::{hash_map, HashMap};
 use std::fmt;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct CommandSet(HashMap<String, CommandDefinition>);
 impl CommandSet {
     pub fn into_iter(self) -> hash_map::IntoIter<String, CommandDefinition> {
@@ -33,6 +33,15 @@ pub struct CommandDefinition {
     pub(crate) doc_flags: Vec<DocFlag>,
     #[serde(default)]
     pub(crate) hints: Vec<String>,
+}
+
+
+impl CommandDefinition {
+    pub(crate) fn accepts_multiple(&self) -> bool {
+        // This currently checks only if any of the top level arguments is marked as multiple
+        // Arguments marked as multiple in
+        self.arguments.iter().any(|arg| arg.multiple)
+    }
 }
 
 #[derive(Debug, Clone, Copy, Deserialize)]
@@ -301,6 +310,7 @@ pub(crate) struct CommandArgument {
     #[serde(default)]
     pub(crate) optional: bool,
 }
+
 
 /// The Argument Type
 ///

@@ -1,49 +1,60 @@
 use super::arguments::Argument;
+use super::GenerationKind;
 use super::COMMAND_NAME_OVERWRITE;
+use crate::commands::ArgType;
 use crate::commands::{CommandArgument, CommandDefinition, CommandGroup};
 use crate::ident::to_snake;
-use crate::commands::ArgType;
 
 /// An abstract type representing a code generation unit for a command
 pub(crate) struct Command {
     name: String,
+    command: String,
     docs: Vec<String>,
     group: CommandGroup,
     args: Vec<Argument>,
 }
 
 impl Command {
-    pub(crate) fn new(name: String, definition: &CommandDefinition) -> Self {
-        let mut kv_index: (u8, u8) = (0, 0);
+    pub(crate) fn new(mut name: String, definition: &CommandDefinition, kind: GenerationKind) -> Self {
+        let command = name.clone();
 
+        let mut kv_index: (u8, u8) = (0, 0);
         let args = definition
             .arguments
             .iter()
-            .filter_map(|x| map_argument(&mut kv_index, x))
+            .filter_map(|x| map_argument(&mut kv_index, x, kind))
             .collect::<Vec<_>>();
 
-        let docs = build_docs(&name, definition);
+        let docs = build_docs(&name, definition, kind);
+
+        name = if let Some(&(_, name)) = COMMAND_NAME_OVERWRITE
+            .iter()
+            .find(|(name, _)| name == name)
+        {
+            name.to_owned()
+        } else {
+            to_snake(&name)
+        };
+
+        if kind == GenerationKind::IgnoreMultiple {
+            name = name + "_single";
+        }
 
         Self {
             name,
+            command,
             docs,
             group: definition.group,
             args,
         }
     }
 
-    pub(crate) fn fn_name(&self) -> String {
-        if let Some(&(_, name)) = COMMAND_NAME_OVERWRITE
-            .iter()
-            .find(|(name, _)| name == &self.name)
-        {
-            return name.to_owned();
-        }
-        to_snake(&self.name)
+    pub(crate) fn fn_name(&self) -> &str {
+        &self.name
     }
 
     pub(crate) fn command(&self) -> &str {
-        &self.name
+        &self.command
     }
 
     pub(crate) fn arguments(&self) -> impl Iterator<Item = &Argument> + ExactSizeIterator {
@@ -60,12 +71,18 @@ impl Command {
 }
 
 // Todo handle key_specs correctly
-fn map_argument((key_id, value_id): &mut (u8, u8), arg: &CommandArgument) -> Option<Argument> {
+fn map_argument(
+    (key_id, value_id): &mut (u8, u8),
+    arg: &CommandArgument,
+    kind: GenerationKind,
+) -> Option<Argument> {
     // TODO Ignore argument until we have proper token handling.
     // We propably want to generate a type for each token that implements ToRedisArgs and expands to the wrapped type and the Token
     if arg.token.is_some() {
         return None;
     }
+
+    let accecpts_multple = arg.multiple && (kind == GenerationKind::Full);
 
     match arg.r#type {
         ArgType::Key { key_spec_index: _ } => {
@@ -74,8 +91,6 @@ fn map_argument((key_id, value_id): &mut (u8, u8), arg: &CommandArgument) -> Opt
 
             let name = to_snake(&arg.name);
 
-
-            
             let r#trait = "ToRedisArgs".to_string();
 
             Some(Argument::new_generic(
@@ -83,11 +98,10 @@ fn map_argument((key_id, value_id): &mut (u8, u8), arg: &CommandArgument) -> Opt
                 format!("K{}", idx),
                 r#trait,
                 arg.optional,
+                accecpts_multple,
             ))
         }
-        ArgType::String
-        | ArgType::Integer
-        | ArgType::Double => {
+        ArgType::String | ArgType::Integer | ArgType::Double => {
             let idx = *value_id;
             *value_id += 1;
 
@@ -107,6 +121,7 @@ fn map_argument((key_id, value_id): &mut (u8, u8), arg: &CommandArgument) -> Opt
                 format!("T{}", idx),
                 r#trait,
                 arg.optional,
+                accecpts_multple,
             ))
         }
         ArgType::Pattern => {
@@ -122,6 +137,7 @@ fn map_argument((key_id, value_id): &mut (u8, u8), arg: &CommandArgument) -> Opt
                 format!("K{}", idx),
                 r#trait,
                 arg.optional,
+                accecpts_multple,
             ))
         }
         // These should be tuples. ToRedisArgs should take care of it
@@ -138,6 +154,7 @@ fn map_argument((key_id, value_id): &mut (u8, u8), arg: &CommandArgument) -> Opt
                 format!("T{}", idx),
                 r#trait,
                 arg.optional,
+                accecpts_multple,
             ))
         }
 
@@ -145,7 +162,7 @@ fn map_argument((key_id, value_id): &mut (u8, u8), arg: &CommandArgument) -> Opt
     }
 }
 
-fn build_docs(command: &str, definition: &CommandDefinition) -> Vec<String> {
+fn build_docs(command: &str, definition: &CommandDefinition, kind: GenerationKind) -> Vec<String> {
     let mut docs = vec![
         command.to_string(),
         String::new(),
@@ -154,6 +171,10 @@ fn build_docs(command: &str, definition: &CommandDefinition) -> Vec<String> {
         format!("Since: Redis {}", definition.since),
         format!("Group: {}", definition.group),
     ];
+    if kind == GenerationKind::IgnoreMultiple {
+        // TODO improve wording here
+        docs[0].push_str(" (Sliceless caller)")
+    }
 
     if let Some(replaced_by) = &definition.replaced_by {
         docs.push(format!("Replaced By: {}", replaced_by))
@@ -165,6 +186,20 @@ fn build_docs(command: &str, definition: &CommandDefinition) -> Vec<String> {
 
     if let Some(replaced_by) = &definition.replaced_by {
         docs.push(format!("Replaced By: {}", replaced_by))
+    }
+
+    if !definition.command_flags.is_empty() {
+        docs.push("CommandFlags:".to_string());
+        for command_flag in &definition.command_flags {
+            docs.push(format!("* {}", command_flag));
+        }
+    }
+
+    if !definition.acl_categories.is_empty() {
+        docs.push("ACL Categories:".to_string());
+        for acl_category in &definition.acl_categories {
+            docs.push(format!("* {}", acl_category));
+        }
     }
 
     docs

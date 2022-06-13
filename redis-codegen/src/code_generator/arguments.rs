@@ -13,15 +13,21 @@ pub(crate) struct Argument {
     pub name: String,
     pub r#type: Type,
     pub optional: bool,
+    pub multiple: bool,
 }
 
 impl Argument {
-    pub(crate) fn new_concrete(name: String, r#type: String, optional: bool) -> Self {
+    pub(crate) fn new_concrete(
+        name: String,
+        r#type: String,
+        optional: bool,
+        multiple: bool,
+    ) -> Self {
         Self {
             name,
             r#type: Type::Concrete(r#type),
-
             optional,
+            multiple,
         }
     }
 
@@ -29,8 +35,8 @@ impl Argument {
         name: String,
         generic_ident: String,
         r#trait: String,
-
         optional: bool,
+        multiple: bool,
     ) -> Self {
         Self {
             name,
@@ -38,8 +44,8 @@ impl Argument {
                 generic_ident,
                 name: r#trait,
             },
-
             optional,
+            multiple,
         }
     }
 
@@ -56,22 +62,18 @@ impl Argument {
 
 impl fmt::Display for Argument {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.optional {
-            match &self.r#type {
-                Type::Concrete(name) => write!(f, "{}: Option<{}>", self.name, name),
-                Type::Trait {
-                    generic_ident,
-                    name: _,
-                } => write!(f, "{}: Option<{}>", self.name, generic_ident),
-            }
-        } else {
-            match &self.r#type {
-                Type::Concrete(name) => write!(f, "{}: {}", self.name, name),
-                Type::Trait {
-                    generic_ident,
-                    name: _,
-                } => write!(f, "{}: {}", self.name, generic_ident),
-            }
+        let (name, r#type) = match &self.r#type {
+            Type::Concrete(name) => (&self.name, name),
+            Type::Trait {
+                generic_ident,
+                name: _,
+            } => (&self.name, generic_ident),
+        };
+        match (self.optional, self.multiple) {
+            (true, false) => write!(f, "{}: Option<{}>", name, r#type),
+            (true, true) => write!(f, "{}: Option<&'a [{}]>", name, r#type),
+            (false, true) => write!(f, "{}: &'a [{}]", name, r#type),
+            (false, false) => write!(f, "{}: {}", name, r#type),
         }
     }
 }

@@ -8,6 +8,13 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: Generic
     /// Complexity: O(N) worst case for collections, where N is the number of nested items. O(1) for string values.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @slow
     fn copy<K0: ToRedisArgs, K1: ToRedisArgs>(source: K0, destination: K1) {
         cmd("COPY").arg(source).arg(destination)
     }
@@ -19,7 +26,30 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(N) where N is the number of keys that will be removed. When a key to remove holds a value other than a string, the individual complexity for this key is O(M) where M is the number of elements in the list, set, sorted set or hash. Removing a single key that holds a string value is O(1).
-    fn del<K0: ToRedisArgs>(key: K0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @slow
+    fn del<K0: ToRedisArgs>(key: &'a [K0]) {
+        cmd("DEL").arg(key)
+    }
+
+    /// DEL (Sliceless caller)
+    /// 
+    /// Delete a key
+    /// 
+    /// Since: Redis 1.0.0
+    /// Group: Generic
+    /// Complexity: O(N) where N is the number of keys that will be removed. When a key to remove holds a value other than a string, the individual complexity for this key is O(M) where M is the number of elements in the list, set, sorted set or hash. Removing a single key that holds a string value is O(1).
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @slow
+    fn del_single<K0: ToRedisArgs>(key: K0) {
         cmd("DEL").arg(key)
     }
 
@@ -30,6 +60,12 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Generic
     /// Complexity: O(1) to access the key and additional O(N*M) to serialize it, where N is the number of Redis objects composing the value and M their average size. For small string values the time complexity is thus O(1)+O(1*M) where M is small, so simply O(1).
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @slow
     fn dump<K0: ToRedisArgs>(key: K0) {
         cmd("DUMP").arg(key)
     }
@@ -41,7 +77,32 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(N) where N is the number of keys to check.
-    fn exists<K0: ToRedisArgs>(key: K0) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @fast
+    fn exists<K0: ToRedisArgs>(key: &'a [K0]) {
+        cmd("EXISTS").arg(key)
+    }
+
+    /// EXISTS (Sliceless caller)
+    /// 
+    /// Determine if a key exists
+    /// 
+    /// Since: Redis 1.0.0
+    /// Group: Generic
+    /// Complexity: O(N) where N is the number of keys to check.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @fast
+    fn exists_single<K0: ToRedisArgs>(key: K0) {
         cmd("EXISTS").arg(key)
     }
 
@@ -52,6 +113,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @fast
     fn expire<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, seconds: T0) {
         cmd("EXPIRE").arg(key).arg(seconds)
     }
@@ -63,6 +131,13 @@ implement_commands! {
     /// Since: Redis 1.2.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @fast
     fn expireat<K0: ToRedisArgs>(key: K0) {
         cmd("EXPIREAT").arg(key)
     }
@@ -74,6 +149,13 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @fast
     fn expiretime<K0: ToRedisArgs>(key: K0) {
         cmd("EXPIRETIME").arg(key)
     }
@@ -85,6 +167,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(N) with N being the number of keys in the database, under the assumption that the key names in the database and the given pattern have limited length.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @slow
+    /// * @dangerous
     fn keys<K0: ToRedisArgs>(pattern: K0) {
         cmd("KEYS").arg(pattern)
     }
@@ -96,7 +185,34 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Generic
     /// Complexity: This command actually executes a DUMP+DEL in the source instance, and a RESTORE in the target instance. See the pages of these commands for time complexity. Also an O(N) data transfer between the two instances is performed.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @slow
+    /// * @dangerous
     fn migrate<T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(host: T0, port: T1, destination_db: T2, timeout: T3) {
+        cmd("MIGRATE").arg(host).arg(port).arg(destination_db).arg(timeout)
+    }
+
+    /// MIGRATE (Sliceless caller)
+    /// 
+    /// Atomically transfer a key from a Redis instance to another one.
+    /// 
+    /// Since: Redis 2.6.0
+    /// Group: Generic
+    /// Complexity: This command actually executes a DUMP+DEL in the source instance, and a RESTORE in the target instance. See the pages of these commands for time complexity. Also an O(N) data transfer between the two instances is performed.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @slow
+    /// * @dangerous
+    fn migrate_single<T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(host: T0, port: T1, destination_db: T2, timeout: T3) {
         cmd("MIGRATE").arg(host).arg(port).arg(destination_db).arg(timeout)
     }
 
@@ -107,6 +223,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @fast
     fn r#move<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, db: T0) {
         cmd("MOVE").arg(key).arg(db)
     }
@@ -118,6 +241,8 @@ implement_commands! {
     /// Since: Redis 2.2.3
     /// Group: Generic
     /// Complexity: Depends on subcommand.
+    /// ACL Categories:
+    /// * @slow
     fn object<>() {
         cmd("OBJECT").as_mut()
     }
@@ -129,6 +254,12 @@ implement_commands! {
     /// Since: Redis 2.2.3
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @slow
     fn object_encoding<K0: ToRedisArgs>(key: K0) {
         cmd("OBJECT ENCODING").arg(key)
     }
@@ -140,6 +271,12 @@ implement_commands! {
     /// Since: Redis 4.0.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @slow
     fn object_freq<K0: ToRedisArgs>(key: K0) {
         cmd("OBJECT FREQ").arg(key)
     }
@@ -151,6 +288,12 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @slow
     fn object_help<>() {
         cmd("OBJECT HELP").as_mut()
     }
@@ -162,6 +305,12 @@ implement_commands! {
     /// Since: Redis 2.2.3
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @slow
     fn object_idletime<K0: ToRedisArgs>(key: K0) {
         cmd("OBJECT IDLETIME").arg(key)
     }
@@ -173,6 +322,12 @@ implement_commands! {
     /// Since: Redis 2.2.3
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @slow
     fn object_refcount<K0: ToRedisArgs>(key: K0) {
         cmd("OBJECT REFCOUNT").arg(key)
     }
@@ -184,6 +339,13 @@ implement_commands! {
     /// Since: Redis 2.2.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @fast
     fn persist<K0: ToRedisArgs>(key: K0) {
         cmd("PERSIST").arg(key)
     }
@@ -195,6 +357,13 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @fast
     fn pexpire<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, milliseconds: T0) {
         cmd("PEXPIRE").arg(key).arg(milliseconds)
     }
@@ -206,6 +375,13 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @fast
     fn pexpireat<K0: ToRedisArgs>(key: K0) {
         cmd("PEXPIREAT").arg(key)
     }
@@ -217,6 +393,13 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @fast
     fn pexpiretime<K0: ToRedisArgs>(key: K0) {
         cmd("PEXPIRETIME").arg(key)
     }
@@ -228,6 +411,13 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @fast
     fn pttl<K0: ToRedisArgs>(key: K0) {
         cmd("PTTL").arg(key)
     }
@@ -239,6 +429,12 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @slow
     fn randomkey<>() {
         cmd("RANDOMKEY").as_mut()
     }
@@ -250,6 +446,12 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @slow
     fn rename<K0: ToRedisArgs, K1: ToRedisArgs>(key: K0, newkey: K1) {
         cmd("RENAME").arg(key).arg(newkey)
     }
@@ -261,6 +463,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @fast
     fn renamenx<K0: ToRedisArgs, K1: ToRedisArgs>(key: K0, newkey: K1) {
         cmd("RENAMENX").arg(key).arg(newkey)
     }
@@ -272,6 +481,14 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Generic
     /// Complexity: O(1) to create the new key and additional O(N*M) to reconstruct the serialized value, where N is the number of Redis objects composing the value and M their average size. For small string values the time complexity is thus O(1)+O(1*M) where M is small, so simply O(1). However for sorted set values the complexity is O(N*M*log(N)) because inserting values into sorted sets is O(log(N)).
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @slow
+    /// * @dangerous
     fn restore<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, ttl: T0, serialized_value: T1) {
         cmd("RESTORE").arg(key).arg(ttl).arg(serialized_value)
     }
@@ -283,7 +500,40 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(N+M*log(M)) where N is the number of elements in the list or set to sort, and M the number of returned elements. When the elements are not sorted, complexity is O(N).
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @set
+    /// * @sortedset
+    /// * @list
+    /// * @slow
+    /// * @dangerous
     fn sort<K0: ToRedisArgs>(key: K0) {
+        cmd("SORT").arg(key)
+    }
+
+    /// SORT (Sliceless caller)
+    /// 
+    /// Sort the elements in a list, set or sorted set
+    /// 
+    /// Since: Redis 1.0.0
+    /// Group: Generic
+    /// Complexity: O(N+M*log(M)) where N is the number of elements in the list or set to sort, and M the number of returned elements. When the elements are not sorted, complexity is O(N).
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @set
+    /// * @sortedset
+    /// * @list
+    /// * @slow
+    /// * @dangerous
+    fn sort_single<K0: ToRedisArgs>(key: K0) {
         cmd("SORT").arg(key)
     }
 
@@ -294,7 +544,38 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Generic
     /// Complexity: O(N+M*log(M)) where N is the number of elements in the list or set to sort, and M the number of returned elements. When the elements are not sorted, complexity is O(N).
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @sortedset
+    /// * @list
+    /// * @slow
+    /// * @dangerous
     fn sort_ro<K0: ToRedisArgs>(key: K0) {
+        cmd("SORT_RO").arg(key)
+    }
+
+    /// SORT_RO (Sliceless caller)
+    /// 
+    /// Sort the elements in a list, set or sorted set. Read-only variant of SORT.
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: Generic
+    /// Complexity: O(N+M*log(M)) where N is the number of elements in the list or set to sort, and M the number of returned elements. When the elements are not sorted, complexity is O(N).
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @sortedset
+    /// * @list
+    /// * @slow
+    /// * @dangerous
+    fn sort_ro_single<K0: ToRedisArgs>(key: K0) {
         cmd("SORT_RO").arg(key)
     }
 
@@ -305,7 +586,32 @@ implement_commands! {
     /// Since: Redis 3.2.1
     /// Group: Generic
     /// Complexity: O(N) where N is the number of keys that will be touched.
-    fn touch<K0: ToRedisArgs>(key: K0) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @fast
+    fn touch<K0: ToRedisArgs>(key: &'a [K0]) {
+        cmd("TOUCH").arg(key)
+    }
+
+    /// TOUCH (Sliceless caller)
+    /// 
+    /// Alters the last access time of a key(s). Returns the number of existing keys specified.
+    /// 
+    /// Since: Redis 3.2.1
+    /// Group: Generic
+    /// Complexity: O(N) where N is the number of keys that will be touched.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @fast
+    fn touch_single<K0: ToRedisArgs>(key: K0) {
         cmd("TOUCH").arg(key)
     }
 
@@ -316,6 +622,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @fast
     fn ttl<K0: ToRedisArgs>(key: K0) {
         cmd("TTL").arg(key)
     }
@@ -327,6 +640,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @fast
     fn r#type<K0: ToRedisArgs>(key: K0) {
         cmd("TYPE").arg(key)
     }
@@ -338,7 +658,32 @@ implement_commands! {
     /// Since: Redis 4.0.0
     /// Group: Generic
     /// Complexity: O(1) for each key removed regardless of its size. Then the command does O(N) work in a different thread in order to reclaim memory, where N is the number of allocations the deleted objects where composed of.
-    fn unlink<K0: ToRedisArgs>(key: K0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @fast
+    fn unlink<K0: ToRedisArgs>(key: &'a [K0]) {
+        cmd("UNLINK").arg(key)
+    }
+
+    /// UNLINK (Sliceless caller)
+    /// 
+    /// Delete a key asynchronously in another thread. Otherwise it is just as DEL, but non blocking.
+    /// 
+    /// Since: Redis 4.0.0
+    /// Group: Generic
+    /// Complexity: O(1) for each key removed regardless of its size. Then the command does O(N) work in a different thread in order to reclaim memory, where N is the number of allocations the deleted objects where composed of.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @fast
+    fn unlink_single<K0: ToRedisArgs>(key: K0) {
         cmd("UNLINK").arg(key)
     }
 
@@ -349,6 +694,11 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Generic
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn wait<T0: ToRedisArgs, T1: ToRedisArgs>(numreplicas: T0, timeout: T1) {
         cmd("WAIT").arg(numreplicas).arg(timeout)
     }
@@ -360,6 +710,14 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: String
     /// Complexity: O(1). The amortized time complexity is O(1) assuming the appended value is small and the already present value is of any size, since the dynamic string library used by Redis will double the free space available on every reallocation.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @fast
     fn append<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, value: T0) {
         cmd("APPEND").arg(key).arg(value)
     }
@@ -371,6 +729,14 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: String
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @fast
     fn decr<K0: ToRedisArgs>(key: K0) {
         cmd("DECR").arg(key)
     }
@@ -382,6 +748,14 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: String
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @fast
     fn decrby<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, decrement: T0) {
         cmd("DECRBY").arg(key).arg(decrement)
     }
@@ -393,6 +767,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: String
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @string
+    /// * @fast
     fn get<K0: ToRedisArgs>(key: K0) {
         cmd("GET").arg(key)
     }
@@ -404,6 +785,13 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: String
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @fast
     fn getdel<K0: ToRedisArgs>(key: K0) {
         cmd("GETDEL").arg(key)
     }
@@ -415,6 +803,13 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: String
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @fast
     fn get_del<K0: ToRedisArgs>(key: K0) {
         cmd("GET_DEL").arg(key)
     }
@@ -426,6 +821,13 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: String
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @fast
     fn getex<K0: ToRedisArgs>(key: K0) {
         cmd("GETEX").arg(key)
     }
@@ -437,6 +839,12 @@ implement_commands! {
     /// Since: Redis 2.4.0
     /// Group: String
     /// Complexity: O(N) where N is the length of the returned string. The complexity is ultimately determined by the returned length, but because creating a substring from an existing string is very cheap, it can be considered O(1) for small strings.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @string
+    /// * @slow
     fn getrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, start: T0, end: T1) {
         cmd("GETRANGE").arg(key).arg(start).arg(end)
     }
@@ -450,6 +858,14 @@ implement_commands! {
     /// Replaced By: `SET` with the `!GET` argument
     /// Complexity: O(1)
     /// Replaced By: `SET` with the `!GET` argument
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @fast
     #[deprecated]    fn getset<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, value: T0) {
         cmd("GETSET").arg(key).arg(value)
     }
@@ -461,6 +877,14 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: String
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @fast
     fn incr<K0: ToRedisArgs>(key: K0) {
         cmd("INCR").arg(key)
     }
@@ -472,6 +896,14 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: String
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @fast
     fn incrby<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, increment: T0) {
         cmd("INCRBY").arg(key).arg(increment)
     }
@@ -483,6 +915,14 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: String
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @fast
     fn incrbyfloat<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, increment: T0) {
         cmd("INCRBYFLOAT").arg(key).arg(increment)
     }
@@ -494,6 +934,12 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: String
     /// Complexity: O(N*M) where N and M are the lengths of s1 and s2, respectively
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @string
+    /// * @slow
     fn lcs<K0: ToRedisArgs, K1: ToRedisArgs>(key1: K0, key2: K1) {
         cmd("LCS").arg(key1).arg(key2)
     }
@@ -505,7 +951,32 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: String
     /// Complexity: O(N) where N is the number of keys to retrieve.
-    fn mget<K0: ToRedisArgs>(key: K0) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @string
+    /// * @fast
+    fn mget<K0: ToRedisArgs>(key: &'a [K0]) {
+        cmd("MGET").arg(key)
+    }
+
+    /// MGET (Sliceless caller)
+    /// 
+    /// Get the values of all the given keys
+    /// 
+    /// Since: Redis 1.0.0
+    /// Group: String
+    /// Complexity: O(N) where N is the number of keys to retrieve.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @string
+    /// * @fast
+    fn mget_single<K0: ToRedisArgs>(key: K0) {
         cmd("MGET").arg(key)
     }
 
@@ -516,7 +987,32 @@ implement_commands! {
     /// Since: Redis 1.0.1
     /// Group: String
     /// Complexity: O(N) where N is the number of keys to set.
-    fn mset<T0: ToRedisArgs>(key_value: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @slow
+    fn mset<T0: ToRedisArgs>(key_value: &'a [T0]) {
+        cmd("MSET").arg(key_value)
+    }
+
+    /// MSET (Sliceless caller)
+    /// 
+    /// Set multiple keys to multiple values
+    /// 
+    /// Since: Redis 1.0.1
+    /// Group: String
+    /// Complexity: O(N) where N is the number of keys to set.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @slow
+    fn mset_single<T0: ToRedisArgs>(key_value: T0) {
         cmd("MSET").arg(key_value)
     }
 
@@ -527,7 +1023,32 @@ implement_commands! {
     /// Since: Redis 1.0.1
     /// Group: String
     /// Complexity: O(N) where N is the number of keys to set.
-    fn msetnx<T0: ToRedisArgs>(key_value: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @slow
+    fn msetnx<T0: ToRedisArgs>(key_value: &'a [T0]) {
+        cmd("MSETNX").arg(key_value)
+    }
+
+    /// MSETNX (Sliceless caller)
+    /// 
+    /// Set multiple keys to multiple values, only if none of the keys exist
+    /// 
+    /// Since: Redis 1.0.1
+    /// Group: String
+    /// Complexity: O(N) where N is the number of keys to set.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @slow
+    fn msetnx_single<T0: ToRedisArgs>(key_value: T0) {
         cmd("MSETNX").arg(key_value)
     }
 
@@ -538,6 +1059,13 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: String
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @slow
     fn psetex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, milliseconds: T0, value: T1) {
         cmd("PSETEX").arg(key).arg(milliseconds).arg(value)
     }
@@ -549,6 +1077,14 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: String
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @slow
     fn set<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, value: T0) {
         cmd("SET").arg(key).arg(value)
     }
@@ -560,6 +1096,13 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: String
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @slow
     fn setex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, seconds: T0, value: T1) {
         cmd("SETEX").arg(key).arg(seconds).arg(value)
     }
@@ -571,6 +1114,14 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: String
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @fast
     fn setnx<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, value: T0) {
         cmd("SETNX").arg(key).arg(value)
     }
@@ -582,6 +1133,13 @@ implement_commands! {
     /// Since: Redis 2.2.0
     /// Group: String
     /// Complexity: O(1), not counting the time taken to copy the new string in place. Usually, this string is very small so the amortized complexity is O(1). Otherwise, complexity is O(M) with M being the length of the value argument.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @string
+    /// * @slow
     fn setrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, offset: T0, value: T1) {
         cmd("SETRANGE").arg(key).arg(offset).arg(value)
     }
@@ -593,6 +1151,13 @@ implement_commands! {
     /// Since: Redis 2.2.0
     /// Group: String
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @string
+    /// * @fast
     fn strlen<K0: ToRedisArgs>(key: K0) {
         cmd("STRLEN").arg(key)
     }
@@ -606,6 +1171,12 @@ implement_commands! {
     /// Replaced By: `GETRANGE`
     /// Complexity: O(N) where N is the length of the returned string. The complexity is ultimately determined by the returned length, but because creating a substring from an existing string is very cheap, it can be considered O(1) for small strings.
     /// Replaced By: `GETRANGE`
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @string
+    /// * @slow
     #[deprecated]    fn substr<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, start: T0, end: T1) {
         cmd("SUBSTR").arg(key).arg(start).arg(end)
     }
@@ -617,6 +1188,16 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: List
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Blocking: This command may block the requesting client.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @slow
+    /// * @blocking
     fn blmove<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs>(source: K0, destination: K1, timeout: T0) {
         cmd("BLMOVE").arg(source).arg(destination).arg(timeout)
     }
@@ -628,7 +1209,36 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: List
     /// Complexity: O(N+M) where N is the number of provided keys and M is the number of elements returned.
-    fn blmpop<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs>(timeout: T0, numkeys: T1, key: K0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Blocking: This command may block the requesting client.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @slow
+    /// * @blocking
+    fn blmpop<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs>(timeout: T0, numkeys: T1, key: &'a [K0]) {
+        cmd("BLMPOP").arg(timeout).arg(numkeys).arg(key)
+    }
+
+    /// BLMPOP (Sliceless caller)
+    /// 
+    /// Pop elements from a list, or block until one is available
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: List
+    /// Complexity: O(N+M) where N is the number of provided keys and M is the number of elements returned.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Blocking: This command may block the requesting client.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @slow
+    /// * @blocking
+    fn blmpop_single<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs>(timeout: T0, numkeys: T1, key: K0) {
         cmd("BLMPOP").arg(timeout).arg(numkeys).arg(key)
     }
 
@@ -639,7 +1249,36 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: List
     /// Complexity: O(N) where N is the number of provided keys.
-    fn blpop<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, timeout: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Blocking: This command may block the requesting client.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @slow
+    /// * @blocking
+    fn blpop<K0: ToRedisArgs, T0: ToRedisArgs>(key: &'a [K0], timeout: T0) {
+        cmd("BLPOP").arg(key).arg(timeout)
+    }
+
+    /// BLPOP (Sliceless caller)
+    /// 
+    /// Remove and get the first element in a list, or block until one is available
+    /// 
+    /// Since: Redis 2.0.0
+    /// Group: List
+    /// Complexity: O(N) where N is the number of provided keys.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Blocking: This command may block the requesting client.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @slow
+    /// * @blocking
+    fn blpop_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, timeout: T0) {
         cmd("BLPOP").arg(key).arg(timeout)
     }
 
@@ -650,7 +1289,36 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: List
     /// Complexity: O(N) where N is the number of provided keys.
-    fn brpop<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, timeout: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Blocking: This command may block the requesting client.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @slow
+    /// * @blocking
+    fn brpop<K0: ToRedisArgs, T0: ToRedisArgs>(key: &'a [K0], timeout: T0) {
+        cmd("BRPOP").arg(key).arg(timeout)
+    }
+
+    /// BRPOP (Sliceless caller)
+    /// 
+    /// Remove and get the last element in a list, or block until one is available
+    /// 
+    /// Since: Redis 2.0.0
+    /// Group: List
+    /// Complexity: O(N) where N is the number of provided keys.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Blocking: This command may block the requesting client.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @slow
+    /// * @blocking
+    fn brpop_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, timeout: T0) {
         cmd("BRPOP").arg(key).arg(timeout)
     }
 
@@ -663,6 +1331,16 @@ implement_commands! {
     /// Replaced By: `BLMOVE` with the `RIGHT` and `LEFT` arguments
     /// Complexity: O(1)
     /// Replaced By: `BLMOVE` with the `RIGHT` and `LEFT` arguments
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Blocking: This command may block the requesting client.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @slow
+    /// * @blocking
     #[deprecated]    fn brpoplpush<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs>(source: K0, destination: K1, timeout: T0) {
         cmd("BRPOPLPUSH").arg(source).arg(destination).arg(timeout)
     }
@@ -674,6 +1352,12 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(N) where N is the number of elements to traverse to get to the element at index. This makes asking for the first or the last element of the list O(1).
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @list
+    /// * @slow
     fn lindex<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, index: T0) {
         cmd("LINDEX").arg(key).arg(index)
     }
@@ -685,6 +1369,13 @@ implement_commands! {
     /// Since: Redis 2.2.0
     /// Group: List
     /// Complexity: O(N) where N is the number of elements to traverse before seeing the value pivot. This means that inserting somewhere on the left end on the list (head) can be considered O(1) and inserting somewhere on the right end (tail) is O(N).
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @slow
     fn linsert<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, pivot: T0, element: T1) {
         cmd("LINSERT").arg(key).arg(pivot).arg(element)
     }
@@ -696,6 +1387,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @list
+    /// * @fast
     fn llen<K0: ToRedisArgs>(key: K0) {
         cmd("LLEN").arg(key)
     }
@@ -707,6 +1405,13 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: List
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @slow
     fn lmove<K0: ToRedisArgs, K1: ToRedisArgs>(source: K0, destination: K1) {
         cmd("LMOVE").arg(source).arg(destination)
     }
@@ -718,7 +1423,32 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: List
     /// Complexity: O(N+M) where N is the number of provided keys and M is the number of elements returned.
-    fn lmpop<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: K0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @slow
+    fn lmpop<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: &'a [K0]) {
+        cmd("LMPOP").arg(numkeys).arg(key)
+    }
+
+    /// LMPOP (Sliceless caller)
+    /// 
+    /// Pop elements from a list
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: List
+    /// Complexity: O(N+M) where N is the number of provided keys and M is the number of elements returned.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @slow
+    fn lmpop_single<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: K0) {
         cmd("LMPOP").arg(numkeys).arg(key)
     }
 
@@ -729,6 +1459,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(N) where N is the number of elements returned
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @fast
     fn lpop<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, count: Option<T0>) {
         cmd("LPOP").arg(key).arg(count)
     }
@@ -740,6 +1477,12 @@ implement_commands! {
     /// Since: Redis 6.0.6
     /// Group: List
     /// Complexity: O(N) where N is the number of elements in the list, for the average case. When searching for elements near the head or the tail of the list, or when the MAXLEN option is provided, the command may run in constant time.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @list
+    /// * @slow
     fn lpos<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: T0) {
         cmd("LPOS").arg(key).arg(element)
     }
@@ -751,7 +1494,34 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.
-    fn lpush<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @fast
+    fn lpush<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: &'a [T0]) {
+        cmd("LPUSH").arg(key).arg(element)
+    }
+
+    /// LPUSH (Sliceless caller)
+    /// 
+    /// Prepend one or multiple elements to a list
+    /// 
+    /// Since: Redis 1.0.0
+    /// Group: List
+    /// Complexity: O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @fast
+    fn lpush_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: T0) {
         cmd("LPUSH").arg(key).arg(element)
     }
 
@@ -762,7 +1532,34 @@ implement_commands! {
     /// Since: Redis 2.2.0
     /// Group: List
     /// Complexity: O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.
-    fn lpushx<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @fast
+    fn lpushx<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: &'a [T0]) {
+        cmd("LPUSHX").arg(key).arg(element)
+    }
+
+    /// LPUSHX (Sliceless caller)
+    /// 
+    /// Prepend an element to a list, only if the list exists
+    /// 
+    /// Since: Redis 2.2.0
+    /// Group: List
+    /// Complexity: O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @fast
+    fn lpushx_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: T0) {
         cmd("LPUSHX").arg(key).arg(element)
     }
 
@@ -773,6 +1570,12 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(S+N) where S is the distance of start offset from HEAD for small lists, from nearest end (HEAD or TAIL) for large lists; and N is the number of elements in the specified range.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @list
+    /// * @slow
     fn lrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, start: T0, stop: T1) {
         cmd("LRANGE").arg(key).arg(start).arg(stop)
     }
@@ -784,6 +1587,12 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(N+M) where N is the length of the list and M is the number of elements removed.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @slow
     fn lrem<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, count: T0, element: T1) {
         cmd("LREM").arg(key).arg(count).arg(element)
     }
@@ -795,6 +1604,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(N) where N is the length of the list. Setting either the first or the last element of the list is O(1).
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @slow
     fn lset<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, index: T0, element: T1) {
         cmd("LSET").arg(key).arg(index).arg(element)
     }
@@ -806,6 +1622,12 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(N) where N is the number of elements to be removed by the operation.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @slow
     fn ltrim<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, start: T0, stop: T1) {
         cmd("LTRIM").arg(key).arg(start).arg(stop)
     }
@@ -817,6 +1639,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(N) where N is the number of elements returned
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @fast
     fn rpop<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, count: Option<T0>) {
         cmd("RPOP").arg(key).arg(count)
     }
@@ -830,6 +1659,13 @@ implement_commands! {
     /// Replaced By: `LMOVE` with the `RIGHT` and `LEFT` arguments
     /// Complexity: O(1)
     /// Replaced By: `LMOVE` with the `RIGHT` and `LEFT` arguments
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @slow
     #[deprecated]    fn rpoplpush<K0: ToRedisArgs, K1: ToRedisArgs>(source: K0, destination: K1) {
         cmd("RPOPLPUSH").arg(source).arg(destination)
     }
@@ -841,7 +1677,34 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.
-    fn rpush<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @fast
+    fn rpush<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: &'a [T0]) {
+        cmd("RPUSH").arg(key).arg(element)
+    }
+
+    /// RPUSH (Sliceless caller)
+    /// 
+    /// Append one or multiple elements to a list
+    /// 
+    /// Since: Redis 1.0.0
+    /// Group: List
+    /// Complexity: O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @fast
+    fn rpush_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: T0) {
         cmd("RPUSH").arg(key).arg(element)
     }
 
@@ -852,7 +1715,34 @@ implement_commands! {
     /// Since: Redis 2.2.0
     /// Group: List
     /// Complexity: O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.
-    fn rpushx<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @fast
+    fn rpushx<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: &'a [T0]) {
+        cmd("RPUSHX").arg(key).arg(element)
+    }
+
+    /// RPUSHX (Sliceless caller)
+    /// 
+    /// Append an element to a list, only if the list exists
+    /// 
+    /// Since: Redis 2.2.0
+    /// Group: List
+    /// Complexity: O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @list
+    /// * @fast
+    fn rpushx_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: T0) {
         cmd("RPUSHX").arg(key).arg(element)
     }
 
@@ -863,7 +1753,34 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.
-    fn sadd<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @set
+    /// * @fast
+    fn sadd<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: &'a [T0]) {
+        cmd("SADD").arg(key).arg(member)
+    }
+
+    /// SADD (Sliceless caller)
+    /// 
+    /// Add one or more members to a set
+    /// 
+    /// Since: Redis 1.0.0
+    /// Group: Set
+    /// Complexity: O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @set
+    /// * @fast
+    fn sadd_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
         cmd("SADD").arg(key).arg(member)
     }
 
@@ -874,6 +1791,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @fast
     fn scard<K0: ToRedisArgs>(key: K0) {
         cmd("SCARD").arg(key)
     }
@@ -885,7 +1809,30 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(N) where N is the total number of elements in all given sets.
-    fn sdiff<K0: ToRedisArgs>(key: K0) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @slow
+    fn sdiff<K0: ToRedisArgs>(key: &'a [K0]) {
+        cmd("SDIFF").arg(key)
+    }
+
+    /// SDIFF (Sliceless caller)
+    /// 
+    /// Subtract multiple sets
+    /// 
+    /// Since: Redis 1.0.0
+    /// Group: Set
+    /// Complexity: O(N) where N is the total number of elements in all given sets.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @slow
+    fn sdiff_single<K0: ToRedisArgs>(key: K0) {
         cmd("SDIFF").arg(key)
     }
 
@@ -896,7 +1843,32 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(N) where N is the total number of elements in all given sets.
-    fn sdiffstore<K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, key: K1) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @set
+    /// * @slow
+    fn sdiffstore<K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, key: &'a [K1]) {
+        cmd("SDIFFSTORE").arg(destination).arg(key)
+    }
+
+    /// SDIFFSTORE (Sliceless caller)
+    /// 
+    /// Subtract multiple sets and store the resulting set in a key
+    /// 
+    /// Since: Redis 1.0.0
+    /// Group: Set
+    /// Complexity: O(N) where N is the total number of elements in all given sets.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @set
+    /// * @slow
+    fn sdiffstore_single<K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, key: K1) {
         cmd("SDIFFSTORE").arg(destination).arg(key)
     }
 
@@ -907,7 +1879,30 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(N*M) worst case where N is the cardinality of the smallest set and M is the number of sets.
-    fn sinter<K0: ToRedisArgs>(key: K0) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @slow
+    fn sinter<K0: ToRedisArgs>(key: &'a [K0]) {
+        cmd("SINTER").arg(key)
+    }
+
+    /// SINTER (Sliceless caller)
+    /// 
+    /// Intersect multiple sets
+    /// 
+    /// Since: Redis 1.0.0
+    /// Group: Set
+    /// Complexity: O(N*M) worst case where N is the cardinality of the smallest set and M is the number of sets.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @slow
+    fn sinter_single<K0: ToRedisArgs>(key: K0) {
         cmd("SINTER").arg(key)
     }
 
@@ -918,7 +1913,32 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Set
     /// Complexity: O(N*M) worst case where N is the cardinality of the smallest set and M is the number of sets.
-    fn sintercard<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: K0) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @slow
+    fn sintercard<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: &'a [K0]) {
+        cmd("SINTERCARD").arg(numkeys).arg(key)
+    }
+
+    /// SINTERCARD (Sliceless caller)
+    /// 
+    /// Intersect multiple sets and return the cardinality of the result
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: Set
+    /// Complexity: O(N*M) worst case where N is the cardinality of the smallest set and M is the number of sets.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @slow
+    fn sintercard_single<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: K0) {
         cmd("SINTERCARD").arg(numkeys).arg(key)
     }
 
@@ -929,7 +1949,32 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(N*M) worst case where N is the cardinality of the smallest set and M is the number of sets.
-    fn sinterstore<K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, key: K1) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @set
+    /// * @slow
+    fn sinterstore<K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, key: &'a [K1]) {
+        cmd("SINTERSTORE").arg(destination).arg(key)
+    }
+
+    /// SINTERSTORE (Sliceless caller)
+    /// 
+    /// Intersect multiple sets and store the resulting set in a key
+    /// 
+    /// Since: Redis 1.0.0
+    /// Group: Set
+    /// Complexity: O(N*M) worst case where N is the cardinality of the smallest set and M is the number of sets.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @set
+    /// * @slow
+    fn sinterstore_single<K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, key: K1) {
         cmd("SINTERSTORE").arg(destination).arg(key)
     }
 
@@ -940,6 +1985,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @fast
     fn sismember<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
         cmd("SISMEMBER").arg(key).arg(member)
     }
@@ -951,6 +2003,12 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(N) where N is the set cardinality.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @slow
     fn smembers<K0: ToRedisArgs>(key: K0) {
         cmd("SMEMBERS").arg(key)
     }
@@ -962,7 +2020,32 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: Set
     /// Complexity: O(N) where N is the number of elements being checked for membership
-    fn smismember<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @fast
+    fn smismember<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: &'a [T0]) {
+        cmd("SMISMEMBER").arg(key).arg(member)
+    }
+
+    /// SMISMEMBER (Sliceless caller)
+    /// 
+    /// Returns the membership associated with the given elements for a set
+    /// 
+    /// Since: Redis 6.2.0
+    /// Group: Set
+    /// Complexity: O(N) where N is the number of elements being checked for membership
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @fast
+    fn smismember_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
         cmd("SMISMEMBER").arg(key).arg(member)
     }
 
@@ -973,6 +2056,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @set
+    /// * @fast
     fn smove<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs>(source: K0, destination: K1, member: T0) {
         cmd("SMOVE").arg(source).arg(destination).arg(member)
     }
@@ -984,6 +2074,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: Without the count argument O(1), otherwise O(N) where N is the value of the passed count.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @set
+    /// * @fast
     fn spop<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, count: Option<T0>) {
         cmd("SPOP").arg(key).arg(count)
     }
@@ -995,6 +2092,12 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: Without the count argument O(1), otherwise O(N) where N is the absolute value of the passed count.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @slow
     fn srandmember<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, count: Option<T0>) {
         cmd("SRANDMEMBER").arg(key).arg(count)
     }
@@ -1006,7 +2109,32 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(N) where N is the number of members to be removed.
-    fn srem<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @set
+    /// * @fast
+    fn srem<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: &'a [T0]) {
+        cmd("SREM").arg(key).arg(member)
+    }
+
+    /// SREM (Sliceless caller)
+    /// 
+    /// Remove one or more members from a set
+    /// 
+    /// Since: Redis 1.0.0
+    /// Group: Set
+    /// Complexity: O(N) where N is the number of members to be removed.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @set
+    /// * @fast
+    fn srem_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
         cmd("SREM").arg(key).arg(member)
     }
 
@@ -1017,7 +2145,30 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(N) where N is the total number of elements in all given sets.
-    fn sunion<K0: ToRedisArgs>(key: K0) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @slow
+    fn sunion<K0: ToRedisArgs>(key: &'a [K0]) {
+        cmd("SUNION").arg(key)
+    }
+
+    /// SUNION (Sliceless caller)
+    /// 
+    /// Add multiple sets
+    /// 
+    /// Since: Redis 1.0.0
+    /// Group: Set
+    /// Complexity: O(N) where N is the total number of elements in all given sets.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @slow
+    fn sunion_single<K0: ToRedisArgs>(key: K0) {
         cmd("SUNION").arg(key)
     }
 
@@ -1028,7 +2179,32 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(N) where N is the total number of elements in all given sets.
-    fn sunionstore<K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, key: K1) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @set
+    /// * @slow
+    fn sunionstore<K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, key: &'a [K1]) {
+        cmd("SUNIONSTORE").arg(destination).arg(key)
+    }
+
+    /// SUNIONSTORE (Sliceless caller)
+    /// 
+    /// Add multiple sets and store the resulting set in a key
+    /// 
+    /// Since: Redis 1.0.0
+    /// Group: Set
+    /// Complexity: O(N) where N is the total number of elements in all given sets.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @set
+    /// * @slow
+    fn sunionstore_single<K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, key: K1) {
         cmd("SUNIONSTORE").arg(destination).arg(key)
     }
 
@@ -1039,7 +2215,36 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: SortedSet
     /// Complexity: O(K) + O(N*log(M)) where K is the number of provided keys, N being the number of elements in the sorted set, and M being the number of elements popped.
-    fn bzmpop<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs>(timeout: T0, numkeys: T1, key: K0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Blocking: This command may block the requesting client.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @slow
+    /// * @blocking
+    fn bzmpop<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs>(timeout: T0, numkeys: T1, key: &'a [K0]) {
+        cmd("BZMPOP").arg(timeout).arg(numkeys).arg(key)
+    }
+
+    /// BZMPOP (Sliceless caller)
+    /// 
+    /// Remove and return members with scores in a sorted set or block until one is available
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: SortedSet
+    /// Complexity: O(K) + O(N*log(M)) where K is the number of provided keys, N being the number of elements in the sorted set, and M being the number of elements popped.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Blocking: This command may block the requesting client.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @slow
+    /// * @blocking
+    fn bzmpop_single<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs>(timeout: T0, numkeys: T1, key: K0) {
         cmd("BZMPOP").arg(timeout).arg(numkeys).arg(key)
     }
 
@@ -1050,7 +2255,38 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: SortedSet
     /// Complexity: O(log(N)) with N being the number of elements in the sorted set.
-    fn bzpopmax<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, timeout: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Blocking: This command may block the requesting client.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @fast
+    /// * @blocking
+    fn bzpopmax<K0: ToRedisArgs, T0: ToRedisArgs>(key: &'a [K0], timeout: T0) {
+        cmd("BZPOPMAX").arg(key).arg(timeout)
+    }
+
+    /// BZPOPMAX (Sliceless caller)
+    /// 
+    /// Remove and return the member with the highest score from one or more sorted sets, or block until one is available
+    /// 
+    /// Since: Redis 5.0.0
+    /// Group: SortedSet
+    /// Complexity: O(log(N)) with N being the number of elements in the sorted set.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Blocking: This command may block the requesting client.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @fast
+    /// * @blocking
+    fn bzpopmax_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, timeout: T0) {
         cmd("BZPOPMAX").arg(key).arg(timeout)
     }
 
@@ -1061,7 +2297,38 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: SortedSet
     /// Complexity: O(log(N)) with N being the number of elements in the sorted set.
-    fn bzpopmin<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, timeout: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Blocking: This command may block the requesting client.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @fast
+    /// * @blocking
+    fn bzpopmin<K0: ToRedisArgs, T0: ToRedisArgs>(key: &'a [K0], timeout: T0) {
+        cmd("BZPOPMIN").arg(key).arg(timeout)
+    }
+
+    /// BZPOPMIN (Sliceless caller)
+    /// 
+    /// Remove and return the member with the lowest score from one or more sorted sets, or block until one is available
+    /// 
+    /// Since: Redis 5.0.0
+    /// Group: SortedSet
+    /// Complexity: O(log(N)) with N being the number of elements in the sorted set.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Blocking: This command may block the requesting client.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @fast
+    /// * @blocking
+    fn bzpopmin_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, timeout: T0) {
         cmd("BZPOPMIN").arg(key).arg(timeout)
     }
 
@@ -1072,7 +2339,34 @@ implement_commands! {
     /// Since: Redis 1.2.0
     /// Group: SortedSet
     /// Complexity: O(log(N)) for each item added, where N is the number of elements in the sorted set.
-    fn zadd<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, score_member: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @fast
+    fn zadd<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, score_member: &'a [T0]) {
+        cmd("ZADD").arg(key).arg(score_member)
+    }
+
+    /// ZADD (Sliceless caller)
+    /// 
+    /// Add one or more members to a sorted set, or update its score if it already exists
+    /// 
+    /// Since: Redis 1.2.0
+    /// Group: SortedSet
+    /// Complexity: O(log(N)) for each item added, where N is the number of elements in the sorted set.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @fast
+    fn zadd_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, score_member: T0) {
         cmd("ZADD").arg(key).arg(score_member)
     }
 
@@ -1083,6 +2377,13 @@ implement_commands! {
     /// Since: Redis 1.2.0
     /// Group: SortedSet
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @fast
     fn zcard<K0: ToRedisArgs>(key: K0) {
         cmd("ZCARD").arg(key)
     }
@@ -1094,6 +2395,13 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: SortedSet
     /// Complexity: O(log(N)) with N being the number of elements in the sorted set.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @fast
     fn zcount<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1) {
         cmd("ZCOUNT").arg(key).arg(min).arg(max)
     }
@@ -1105,7 +2413,32 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: SortedSet
     /// Complexity: O(L + (N-K)log(N)) worst case where L is the total number of elements in all the sets, N is the size of the first set, and K is the size of the result set.
-    fn zdiff<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: K0) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
+    fn zdiff<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: &'a [K0]) {
+        cmd("ZDIFF").arg(numkeys).arg(key)
+    }
+
+    /// ZDIFF (Sliceless caller)
+    /// 
+    /// Subtract multiple sorted sets
+    /// 
+    /// Since: Redis 6.2.0
+    /// Group: SortedSet
+    /// Complexity: O(L + (N-K)log(N)) worst case where L is the total number of elements in all the sets, N is the size of the first set, and K is the size of the result set.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
+    fn zdiff_single<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: K0) {
         cmd("ZDIFF").arg(numkeys).arg(key)
     }
 
@@ -1116,7 +2449,34 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: SortedSet
     /// Complexity: O(L + (N-K)log(N)) worst case where L is the total number of elements in all the sets, N is the size of the first set, and K is the size of the result set.
-    fn zdiffstore<K0: ToRedisArgs, T0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, numkeys: T0, key: K1) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @slow
+    fn zdiffstore<K0: ToRedisArgs, T0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, numkeys: T0, key: &'a [K1]) {
+        cmd("ZDIFFSTORE").arg(destination).arg(numkeys).arg(key)
+    }
+
+    /// ZDIFFSTORE (Sliceless caller)
+    /// 
+    /// Subtract multiple sorted sets and store the resulting sorted set in a new key
+    /// 
+    /// Since: Redis 6.2.0
+    /// Group: SortedSet
+    /// Complexity: O(L + (N-K)log(N)) worst case where L is the total number of elements in all the sets, N is the size of the first set, and K is the size of the result set.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @slow
+    fn zdiffstore_single<K0: ToRedisArgs, T0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, numkeys: T0, key: K1) {
         cmd("ZDIFFSTORE").arg(destination).arg(numkeys).arg(key)
     }
 
@@ -1127,6 +2487,14 @@ implement_commands! {
     /// Since: Redis 1.2.0
     /// Group: SortedSet
     /// Complexity: O(log(N)) where N is the number of elements in the sorted set.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @fast
     fn zincrby<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, increment: T0, member: T1) {
         cmd("ZINCRBY").arg(key).arg(increment).arg(member)
     }
@@ -1138,7 +2506,32 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: SortedSet
     /// Complexity: O(N*K)+O(M*log(M)) worst case with N being the smallest input sorted set, K being the number of input sorted sets and M being the number of elements in the resulting sorted set.
-    fn zinter<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: K0) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
+    fn zinter<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: &'a [K0]) {
+        cmd("ZINTER").arg(numkeys).arg(key)
+    }
+
+    /// ZINTER (Sliceless caller)
+    /// 
+    /// Intersect multiple sorted sets
+    /// 
+    /// Since: Redis 6.2.0
+    /// Group: SortedSet
+    /// Complexity: O(N*K)+O(M*log(M)) worst case with N being the smallest input sorted set, K being the number of input sorted sets and M being the number of elements in the resulting sorted set.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
+    fn zinter_single<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: K0) {
         cmd("ZINTER").arg(numkeys).arg(key)
     }
 
@@ -1149,7 +2542,32 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: SortedSet
     /// Complexity: O(N*K) worst case with N being the smallest input sorted set, K being the number of input sorted sets.
-    fn zintercard<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: K0) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
+    fn zintercard<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: &'a [K0]) {
+        cmd("ZINTERCARD").arg(numkeys).arg(key)
+    }
+
+    /// ZINTERCARD (Sliceless caller)
+    /// 
+    /// Intersect multiple sorted sets and return the cardinality of the result
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: SortedSet
+    /// Complexity: O(N*K) worst case with N being the smallest input sorted set, K being the number of input sorted sets.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
+    fn zintercard_single<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: K0) {
         cmd("ZINTERCARD").arg(numkeys).arg(key)
     }
 
@@ -1160,7 +2578,34 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: SortedSet
     /// Complexity: O(N*K)+O(M*log(M)) worst case with N being the smallest input sorted set, K being the number of input sorted sets and M being the number of elements in the resulting sorted set.
-    fn zinterstore<K0: ToRedisArgs, T0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, numkeys: T0, key: K1) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @slow
+    fn zinterstore<K0: ToRedisArgs, T0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, numkeys: T0, key: &'a [K1]) {
+        cmd("ZINTERSTORE").arg(destination).arg(numkeys).arg(key)
+    }
+
+    /// ZINTERSTORE (Sliceless caller)
+    /// 
+    /// Intersect multiple sorted sets and store the resulting sorted set in a new key
+    /// 
+    /// Since: Redis 2.0.0
+    /// Group: SortedSet
+    /// Complexity: O(N*K)+O(M*log(M)) worst case with N being the smallest input sorted set, K being the number of input sorted sets and M being the number of elements in the resulting sorted set.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @slow
+    fn zinterstore_single<K0: ToRedisArgs, T0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, numkeys: T0, key: K1) {
         cmd("ZINTERSTORE").arg(destination).arg(numkeys).arg(key)
     }
 
@@ -1171,6 +2616,13 @@ implement_commands! {
     /// Since: Redis 2.8.9
     /// Group: SortedSet
     /// Complexity: O(log(N)) with N being the number of elements in the sorted set.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @fast
     fn zlexcount<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1) {
         cmd("ZLEXCOUNT").arg(key).arg(min).arg(max)
     }
@@ -1182,7 +2634,32 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: SortedSet
     /// Complexity: O(K) + O(N*log(M)) where K is the number of provided keys, N being the number of elements in the sorted set, and M being the number of elements popped.
-    fn zmpop<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: K0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @slow
+    fn zmpop<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: &'a [K0]) {
+        cmd("ZMPOP").arg(numkeys).arg(key)
+    }
+
+    /// ZMPOP (Sliceless caller)
+    /// 
+    /// Remove and return members with scores in a sorted set
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: SortedSet
+    /// Complexity: O(K) + O(N*log(M)) where K is the number of provided keys, N being the number of elements in the sorted set, and M being the number of elements popped.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @slow
+    fn zmpop_single<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: K0) {
         cmd("ZMPOP").arg(numkeys).arg(key)
     }
 
@@ -1193,7 +2670,32 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: SortedSet
     /// Complexity: O(N) where N is the number of members being requested.
-    fn zmscore<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @fast
+    fn zmscore<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: &'a [T0]) {
+        cmd("ZMSCORE").arg(key).arg(member)
+    }
+
+    /// ZMSCORE (Sliceless caller)
+    /// 
+    /// Get the score associated with the given members in a sorted set
+    /// 
+    /// Since: Redis 6.2.0
+    /// Group: SortedSet
+    /// Complexity: O(N) where N is the number of members being requested.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @fast
+    fn zmscore_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
         cmd("ZMSCORE").arg(key).arg(member)
     }
 
@@ -1204,6 +2706,13 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: SortedSet
     /// Complexity: O(log(N)*M) with N being the number of elements in the sorted set, and M being the number of elements popped.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @fast
     fn zpopmax<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, count: Option<T0>) {
         cmd("ZPOPMAX").arg(key).arg(count)
     }
@@ -1215,6 +2724,13 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: SortedSet
     /// Complexity: O(log(N)*M) with N being the number of elements in the sorted set, and M being the number of elements popped.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @fast
     fn zpopmin<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, count: Option<T0>) {
         cmd("ZPOPMIN").arg(key).arg(count)
     }
@@ -1226,6 +2742,12 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: SortedSet
     /// Complexity: O(N) where N is the number of elements returned
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
     fn zrandmember<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, options: Option<T0>) {
         cmd("ZRANDMEMBER").arg(key).arg(options)
     }
@@ -1237,6 +2759,12 @@ implement_commands! {
     /// Since: Redis 1.2.0
     /// Group: SortedSet
     /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements returned.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
     fn zrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1) {
         cmd("ZRANGE").arg(key).arg(min).arg(max)
     }
@@ -1250,6 +2778,12 @@ implement_commands! {
     /// Replaced By: `ZRANGE` with the `BYLEX` argument
     /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements being returned. If M is constant (e.g. always asking for the first 10 elements with LIMIT), you can consider it O(log(N)).
     /// Replaced By: `ZRANGE` with the `BYLEX` argument
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
     #[deprecated]    fn zrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1) {
         cmd("ZRANGEBYLEX").arg(key).arg(min).arg(max)
     }
@@ -1263,6 +2797,12 @@ implement_commands! {
     /// Replaced By: `ZRANGE` with the `BYSCORE` argument
     /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements being returned. If M is constant (e.g. always asking for the first 10 elements with LIMIT), you can consider it O(log(N)).
     /// Replaced By: `ZRANGE` with the `BYSCORE` argument
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
     #[deprecated]    fn zrangebyscore<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1) {
         cmd("ZRANGEBYSCORE").arg(key).arg(min).arg(max)
     }
@@ -1274,6 +2814,13 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: SortedSet
     /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements stored into the destination key.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @slow
     fn zrangestore<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(dst: K0, src: K1, min: T0, max: T1) {
         cmd("ZRANGESTORE").arg(dst).arg(src).arg(min).arg(max)
     }
@@ -1285,6 +2832,13 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: SortedSet
     /// Complexity: O(log(N))
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @fast
     fn zrank<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
         cmd("ZRANK").arg(key).arg(member)
     }
@@ -1296,7 +2850,32 @@ implement_commands! {
     /// Since: Redis 1.2.0
     /// Group: SortedSet
     /// Complexity: O(M*log(N)) with N being the number of elements in the sorted set and M the number of elements to be removed.
-    fn zrem<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @fast
+    fn zrem<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: &'a [T0]) {
+        cmd("ZREM").arg(key).arg(member)
+    }
+
+    /// ZREM (Sliceless caller)
+    /// 
+    /// Remove one or more members from a sorted set
+    /// 
+    /// Since: Redis 1.2.0
+    /// Group: SortedSet
+    /// Complexity: O(M*log(N)) with N being the number of elements in the sorted set and M the number of elements to be removed.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @fast
+    fn zrem_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
         cmd("ZREM").arg(key).arg(member)
     }
 
@@ -1307,8 +2886,31 @@ implement_commands! {
     /// Since: Redis 2.8.9
     /// Group: SortedSet
     /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements removed by the operation.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @slow
     fn zremrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1) {
         cmd("ZREMRANGEBYLEX").arg(key).arg(min).arg(max)
+    }
+
+    /// ZREMBYLEX
+    /// 
+    /// Remove all members in a sorted set between the given lexicographical range
+    /// 
+    /// Since: Redis 2.8.9
+    /// Group: SortedSet
+    /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements removed by the operation.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @slow
+    fn zrembylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1) {
+        cmd("ZREMBYLEX").arg(key).arg(min).arg(max)
     }
 
     /// ZREMRANGEBYRANK
@@ -1318,6 +2920,12 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: SortedSet
     /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements removed by the operation.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @slow
     fn zremrangebyrank<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, start: T0, stop: T1) {
         cmd("ZREMRANGEBYRANK").arg(key).arg(start).arg(stop)
     }
@@ -1329,6 +2937,12 @@ implement_commands! {
     /// Since: Redis 1.2.0
     /// Group: SortedSet
     /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements removed by the operation.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @slow
     fn zremrangebyscore<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1) {
         cmd("ZREMRANGEBYSCORE").arg(key).arg(min).arg(max)
     }
@@ -1342,6 +2956,12 @@ implement_commands! {
     /// Replaced By: `ZRANGE` with the `REV` argument
     /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements returned.
     /// Replaced By: `ZRANGE` with the `REV` argument
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
     #[deprecated]    fn zrevrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, start: T0, stop: T1) {
         cmd("ZREVRANGE").arg(key).arg(start).arg(stop)
     }
@@ -1355,6 +2975,12 @@ implement_commands! {
     /// Replaced By: `ZRANGE` with the `REV` and `BYLEX` arguments
     /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements being returned. If M is constant (e.g. always asking for the first 10 elements with LIMIT), you can consider it O(log(N)).
     /// Replaced By: `ZRANGE` with the `REV` and `BYLEX` arguments
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
     #[deprecated]    fn zrevrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, max: T0, min: T1) {
         cmd("ZREVRANGEBYLEX").arg(key).arg(max).arg(min)
     }
@@ -1368,6 +2994,12 @@ implement_commands! {
     /// Replaced By: `ZRANGE` with the `REV` and `BYSCORE` arguments
     /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements being returned. If M is constant (e.g. always asking for the first 10 elements with LIMIT), you can consider it O(log(N)).
     /// Replaced By: `ZRANGE` with the `REV` and `BYSCORE` arguments
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
     #[deprecated]    fn zrevrangebyscore<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, max: T0, min: T1) {
         cmd("ZREVRANGEBYSCORE").arg(key).arg(max).arg(min)
     }
@@ -1379,6 +3011,13 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: SortedSet
     /// Complexity: O(log(N))
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @fast
     fn zrevrank<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
         cmd("ZREVRANK").arg(key).arg(member)
     }
@@ -1390,6 +3029,13 @@ implement_commands! {
     /// Since: Redis 1.2.0
     /// Group: SortedSet
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @fast
     fn zscore<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
         cmd("ZSCORE").arg(key).arg(member)
     }
@@ -1401,7 +3047,32 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: SortedSet
     /// Complexity: O(N)+O(M*log(M)) with N being the sum of the sizes of the input sorted sets, and M being the number of elements in the resulting sorted set.
-    fn zunion<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: K0) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
+    fn zunion<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: &'a [K0]) {
+        cmd("ZUNION").arg(numkeys).arg(key)
+    }
+
+    /// ZUNION (Sliceless caller)
+    /// 
+    /// Add multiple sorted sets
+    /// 
+    /// Since: Redis 6.2.0
+    /// Group: SortedSet
+    /// Complexity: O(N)+O(M*log(M)) with N being the sum of the sizes of the input sorted sets, and M being the number of elements in the resulting sorted set.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
+    fn zunion_single<T0: ToRedisArgs, K0: ToRedisArgs>(numkeys: T0, key: K0) {
         cmd("ZUNION").arg(numkeys).arg(key)
     }
 
@@ -1412,7 +3083,34 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: SortedSet
     /// Complexity: O(N)+O(M log(M)) with N being the sum of the sizes of the input sorted sets, and M being the number of elements in the resulting sorted set.
-    fn zunionstore<K0: ToRedisArgs, T0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, numkeys: T0, key: K1) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @slow
+    fn zunionstore<K0: ToRedisArgs, T0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, numkeys: T0, key: &'a [K1]) {
+        cmd("ZUNIONSTORE").arg(destination).arg(numkeys).arg(key)
+    }
+
+    /// ZUNIONSTORE (Sliceless caller)
+    /// 
+    /// Add multiple sorted sets and store the resulting sorted set in a new key
+    /// 
+    /// Since: Redis 2.0.0
+    /// Group: SortedSet
+    /// Complexity: O(N)+O(M log(M)) with N being the sum of the sizes of the input sorted sets, and M being the number of elements in the resulting sorted set.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @sortedset
+    /// * @slow
+    fn zunionstore_single<K0: ToRedisArgs, T0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, numkeys: T0, key: K1) {
         cmd("ZUNIONSTORE").arg(destination).arg(numkeys).arg(key)
     }
 
@@ -1423,7 +3121,32 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(N) where N is the number of fields to be removed.
-    fn hdel<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @hash
+    /// * @fast
+    fn hdel<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field: &'a [T0]) {
+        cmd("HDEL").arg(key).arg(field)
+    }
+
+    /// HDEL (Sliceless caller)
+    /// 
+    /// Delete one or more hash fields
+    /// 
+    /// Since: Redis 2.0.0
+    /// Group: Hash
+    /// Complexity: O(N) where N is the number of fields to be removed.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @hash
+    /// * @fast
+    fn hdel_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field: T0) {
         cmd("HDEL").arg(key).arg(field)
     }
 
@@ -1434,6 +3157,13 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @hash
+    /// * @fast
     fn hexists<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field: T0) {
         cmd("HEXISTS").arg(key).arg(field)
     }
@@ -1445,6 +3175,13 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @hash
+    /// * @fast
     fn hget<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field: T0) {
         cmd("HGET").arg(key).arg(field)
     }
@@ -1456,6 +3193,12 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(N) where N is the size of the hash.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @hash
+    /// * @slow
     fn hgetall<K0: ToRedisArgs>(key: K0) {
         cmd("HGETALL").arg(key)
     }
@@ -1467,6 +3210,14 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @hash
+    /// * @fast
     fn hincrby<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, field: T0, increment: T1) {
         cmd("HINCRBY").arg(key).arg(field).arg(increment)
     }
@@ -1478,6 +3229,14 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Hash
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @hash
+    /// * @fast
     fn hincrbyfloat<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, field: T0, increment: T1) {
         cmd("HINCRBYFLOAT").arg(key).arg(field).arg(increment)
     }
@@ -1489,6 +3248,12 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(N) where N is the size of the hash.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @hash
+    /// * @slow
     fn hkeys<K0: ToRedisArgs>(key: K0) {
         cmd("HKEYS").arg(key)
     }
@@ -1500,6 +3265,13 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @hash
+    /// * @fast
     fn hlen<K0: ToRedisArgs>(key: K0) {
         cmd("HLEN").arg(key)
     }
@@ -1511,7 +3283,32 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(N) where N is the number of fields being requested.
-    fn hmget<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field: T0) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @hash
+    /// * @fast
+    fn hmget<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field: &'a [T0]) {
+        cmd("HMGET").arg(key).arg(field)
+    }
+
+    /// HMGET (Sliceless caller)
+    /// 
+    /// Get the values of all the given hash fields
+    /// 
+    /// Since: Redis 2.0.0
+    /// Group: Hash
+    /// Complexity: O(N) where N is the number of fields being requested.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @hash
+    /// * @fast
+    fn hmget_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field: T0) {
         cmd("HMGET").arg(key).arg(field)
     }
 
@@ -1524,7 +3321,36 @@ implement_commands! {
     /// Replaced By: `HSET` with multiple field-value pairs
     /// Complexity: O(N) where N is the number of fields being set.
     /// Replaced By: `HSET` with multiple field-value pairs
-    #[deprecated]    fn hmset<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field_value: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @hash
+    /// * @fast
+    #[deprecated]    fn hmset<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field_value: &'a [T0]) {
+        cmd("HMSET").arg(key).arg(field_value)
+    }
+
+    /// HMSET (Sliceless caller)
+    /// 
+    /// Set multiple hash fields to multiple values
+    /// 
+    /// Since: Redis 2.0.0
+    /// Group: Hash
+    /// Replaced By: `HSET` with multiple field-value pairs
+    /// Complexity: O(N) where N is the number of fields being set.
+    /// Replaced By: `HSET` with multiple field-value pairs
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @hash
+    /// * @fast
+    #[deprecated]    fn hmset_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field_value: T0) {
         cmd("HMSET").arg(key).arg(field_value)
     }
 
@@ -1535,6 +3361,12 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: Hash
     /// Complexity: O(N) where N is the number of fields returned
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @hash
+    /// * @slow
     fn hrandfield<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, options: Option<T0>) {
         cmd("HRANDFIELD").arg(key).arg(options)
     }
@@ -1546,7 +3378,34 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(1) for each field/value pair added, so O(N) to add N field/value pairs when the command is called with multiple field/value pairs.
-    fn hset<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field_value: T0) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @hash
+    /// * @fast
+    fn hset<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field_value: &'a [T0]) {
+        cmd("HSET").arg(key).arg(field_value)
+    }
+
+    /// HSET (Sliceless caller)
+    /// 
+    /// Set the string value of a hash field
+    /// 
+    /// Since: Redis 2.0.0
+    /// Group: Hash
+    /// Complexity: O(1) for each field/value pair added, so O(N) to add N field/value pairs when the command is called with multiple field/value pairs.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @hash
+    /// * @fast
+    fn hset_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field_value: T0) {
         cmd("HSET").arg(key).arg(field_value)
     }
 
@@ -1557,6 +3416,14 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @hash
+    /// * @fast
     fn hsetnx<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, field: T0, value: T1) {
         cmd("HSETNX").arg(key).arg(field).arg(value)
     }
@@ -1568,6 +3435,13 @@ implement_commands! {
     /// Since: Redis 3.2.0
     /// Group: Hash
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @hash
+    /// * @fast
     fn hstrlen<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field: T0) {
         cmd("HSTRLEN").arg(key).arg(field)
     }
@@ -1579,6 +3453,12 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(N) where N is the size of the hash.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @hash
+    /// * @slow
     fn hvals<K0: ToRedisArgs>(key: K0) {
         cmd("HVALS").arg(key)
     }
@@ -1590,7 +3470,34 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Pubsub
     /// Complexity: O(N) where N is the number of patterns the client is already subscribed to.
-    fn psubscribe<T0: ToRedisArgs>(pattern: T0) {
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
+    fn psubscribe<T0: ToRedisArgs>(pattern: &'a [T0]) {
+        cmd("PSUBSCRIBE").arg(pattern)
+    }
+
+    /// PSUBSCRIBE (Sliceless caller)
+    /// 
+    /// Listen for messages published to channels matching the given patterns
+    /// 
+    /// Since: Redis 2.0.0
+    /// Group: Pubsub
+    /// Complexity: O(N) where N is the number of patterns the client is already subscribed to.
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
+    fn psubscribe_single<T0: ToRedisArgs>(pattern: T0) {
         cmd("PSUBSCRIBE").arg(pattern)
     }
 
@@ -1601,6 +3508,14 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Pubsub
     /// Complexity: O(N+M) where N is the number of clients subscribed to the receiving channel and M is the total number of subscribed patterns (by any client).
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @fast
     fn publish<T0: ToRedisArgs, T1: ToRedisArgs>(channel: T0, message: T1) {
         cmd("PUBLISH").arg(channel).arg(message)
     }
@@ -1612,6 +3527,8 @@ implement_commands! {
     /// Since: Redis 2.8.0
     /// Group: Pubsub
     /// Complexity: Depends on subcommand.
+    /// ACL Categories:
+    /// * @slow
     fn pubsub<>() {
         cmd("PUBSUB").as_mut()
     }
@@ -1623,6 +3540,13 @@ implement_commands! {
     /// Since: Redis 2.8.0
     /// Group: Pubsub
     /// Complexity: O(N) where N is the number of active channels, and assuming constant time pattern matching (relatively short channels and patterns)
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
     fn pubsub_channels<K0: ToRedisArgs>(pattern: Option<K0>) {
         cmd("PUBSUB CHANNELS").arg(pattern)
     }
@@ -1634,6 +3558,11 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: Pubsub
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     fn pubsub_help<>() {
         cmd("PUBSUB HELP").as_mut()
     }
@@ -1645,6 +3574,13 @@ implement_commands! {
     /// Since: Redis 2.8.0
     /// Group: Pubsub
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
     fn pubsub_numpat<>() {
         cmd("PUBSUB NUMPAT").as_mut()
     }
@@ -1656,7 +3592,32 @@ implement_commands! {
     /// Since: Redis 2.8.0
     /// Group: Pubsub
     /// Complexity: O(N) for the NUMSUB subcommand, where N is the number of requested channels
-    fn pubsub_numsub<T0: ToRedisArgs>(channel: Option<T0>) {
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
+    fn pubsub_numsub<T0: ToRedisArgs>(channel: Option<&'a [T0]>) {
+        cmd("PUBSUB NUMSUB").arg(channel)
+    }
+
+    /// PUBSUB NUMSUB (Sliceless caller)
+    /// 
+    /// Get the count of subscribers for channels
+    /// 
+    /// Since: Redis 2.8.0
+    /// Group: Pubsub
+    /// Complexity: O(N) for the NUMSUB subcommand, where N is the number of requested channels
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
+    fn pubsub_numsub_single<T0: ToRedisArgs>(channel: Option<T0>) {
         cmd("PUBSUB NUMSUB").arg(channel)
     }
 
@@ -1667,6 +3628,13 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Pubsub
     /// Complexity: O(N) where N is the number of active shard channels, and assuming constant time pattern matching (relatively short shard channels).
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
     fn pubsub_shardchannels<K0: ToRedisArgs>(pattern: Option<K0>) {
         cmd("PUBSUB SHARDCHANNELS").arg(pattern)
     }
@@ -1678,7 +3646,32 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Pubsub
     /// Complexity: O(N) for the SHARDNUMSUB subcommand, where N is the number of requested shard channels
-    fn pubsub_shardnumsub<T0: ToRedisArgs>(shardchannel: Option<T0>) {
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
+    fn pubsub_shardnumsub<T0: ToRedisArgs>(shardchannel: Option<&'a [T0]>) {
+        cmd("PUBSUB SHARDNUMSUB").arg(shardchannel)
+    }
+
+    /// PUBSUB SHARDNUMSUB (Sliceless caller)
+    /// 
+    /// Get the count of subscribers for shard channels
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: Pubsub
+    /// Complexity: O(N) for the SHARDNUMSUB subcommand, where N is the number of requested shard channels
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
+    fn pubsub_shardnumsub_single<T0: ToRedisArgs>(shardchannel: Option<T0>) {
         cmd("PUBSUB SHARDNUMSUB").arg(shardchannel)
     }
 
@@ -1689,7 +3682,34 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Pubsub
     /// Complexity: O(N+M) where N is the number of patterns the client is already subscribed and M is the number of total patterns subscribed in the system (by any client).
-    fn punsubscribe<K0: ToRedisArgs>(pattern: Option<K0>) {
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
+    fn punsubscribe<K0: ToRedisArgs>(pattern: Option<&'a [K0]>) {
+        cmd("PUNSUBSCRIBE").arg(pattern)
+    }
+
+    /// PUNSUBSCRIBE (Sliceless caller)
+    /// 
+    /// Stop listening for messages posted to channels matching the given patterns
+    /// 
+    /// Since: Redis 2.0.0
+    /// Group: Pubsub
+    /// Complexity: O(N+M) where N is the number of patterns the client is already subscribed and M is the number of total patterns subscribed in the system (by any client).
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
+    fn punsubscribe_single<K0: ToRedisArgs>(pattern: Option<K0>) {
         cmd("PUNSUBSCRIBE").arg(pattern)
     }
 
@@ -1700,6 +3720,14 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Pubsub
     /// Complexity: O(N) where N is the number of clients subscribed to the receiving shard channel.
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @fast
     fn spublish<T0: ToRedisArgs, T1: ToRedisArgs>(shardchannel: T0, message: T1) {
         cmd("SPUBLISH").arg(shardchannel).arg(message)
     }
@@ -1711,7 +3739,34 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Pubsub
     /// Complexity: O(N) where N is the number of shard channels to subscribe to.
-    fn ssubscribe<T0: ToRedisArgs>(shardchannel: T0) {
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
+    fn ssubscribe<T0: ToRedisArgs>(shardchannel: &'a [T0]) {
+        cmd("SSUBSCRIBE").arg(shardchannel)
+    }
+
+    /// SSUBSCRIBE (Sliceless caller)
+    /// 
+    /// Listen for messages published to the given shard channels
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: Pubsub
+    /// Complexity: O(N) where N is the number of shard channels to subscribe to.
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
+    fn ssubscribe_single<T0: ToRedisArgs>(shardchannel: T0) {
         cmd("SSUBSCRIBE").arg(shardchannel)
     }
 
@@ -1722,7 +3777,34 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Pubsub
     /// Complexity: O(N) where N is the number of channels to subscribe to.
-    fn subscribe<T0: ToRedisArgs>(channel: T0) {
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
+    fn subscribe<T0: ToRedisArgs>(channel: &'a [T0]) {
+        cmd("SUBSCRIBE").arg(channel)
+    }
+
+    /// SUBSCRIBE (Sliceless caller)
+    /// 
+    /// Listen for messages published to the given channels
+    /// 
+    /// Since: Redis 2.0.0
+    /// Group: Pubsub
+    /// Complexity: O(N) where N is the number of channels to subscribe to.
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
+    fn subscribe_single<T0: ToRedisArgs>(channel: T0) {
         cmd("SUBSCRIBE").arg(channel)
     }
 
@@ -1733,7 +3815,34 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Pubsub
     /// Complexity: O(N) where N is the number of clients already subscribed to a shard channel.
-    fn sunsubscribe<T0: ToRedisArgs>(shardchannel: Option<T0>) {
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
+    fn sunsubscribe<T0: ToRedisArgs>(shardchannel: Option<&'a [T0]>) {
+        cmd("SUNSUBSCRIBE").arg(shardchannel)
+    }
+
+    /// SUNSUBSCRIBE (Sliceless caller)
+    /// 
+    /// Stop listening for messages posted to the given shard channels
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: Pubsub
+    /// Complexity: O(N) where N is the number of clients already subscribed to a shard channel.
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
+    fn sunsubscribe_single<T0: ToRedisArgs>(shardchannel: Option<T0>) {
         cmd("SUNSUBSCRIBE").arg(shardchannel)
     }
 
@@ -1744,7 +3853,34 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Pubsub
     /// Complexity: O(N) where N is the number of clients already subscribed to a channel.
-    fn unsubscribe<T0: ToRedisArgs>(channel: Option<T0>) {
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
+    fn unsubscribe<T0: ToRedisArgs>(channel: Option<&'a [T0]>) {
+        cmd("UNSUBSCRIBE").arg(channel)
+    }
+
+    /// UNSUBSCRIBE (Sliceless caller)
+    /// 
+    /// Stop listening for messages posted to the given channels
+    /// 
+    /// Since: Redis 2.0.0
+    /// Group: Pubsub
+    /// Complexity: O(N) where N is the number of clients already subscribed to a channel.
+    /// CommandFlags:
+    /// * Pubsub: This command is related to Redis Pub/Sub.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @pubsub
+    /// * @slow
+    fn unsubscribe_single<T0: ToRedisArgs>(channel: Option<T0>) {
         cmd("UNSUBSCRIBE").arg(channel)
     }
 
@@ -1755,6 +3891,15 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Transactions
     /// Complexity: O(N), when N is the number of queued commands
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// * AllowBusy: From https://redis.io/docs/reference/modules/modules-api-ref/: Permit the command while the server is blocked either by a script or by a slow module command, see RM_Yield.
+    /// ACL Categories:
+    /// * @fast
+    /// * @transaction
     fn discard<>() {
         cmd("DISCARD").as_mut()
     }
@@ -1766,6 +3911,14 @@ implement_commands! {
     /// Since: Redis 1.2.0
     /// Group: Transactions
     /// Complexity: Depends on commands in the transaction
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * SkipSlowlog: This command is not shown in SLOWLOG's output. As of Redis 7.0, this flag is a command tip.
+    /// ACL Categories:
+    /// * @slow
+    /// * @transaction
     fn exec<>() {
         cmd("EXEC").as_mut()
     }
@@ -1777,6 +3930,15 @@ implement_commands! {
     /// Since: Redis 1.2.0
     /// Group: Transactions
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// * AllowBusy: From https://redis.io/docs/reference/modules/modules-api-ref/: Permit the command while the server is blocked either by a script or by a slow module command, see RM_Yield.
+    /// ACL Categories:
+    /// * @fast
+    /// * @transaction
     fn multi<>() {
         cmd("MULTI").as_mut()
     }
@@ -1788,6 +3950,15 @@ implement_commands! {
     /// Since: Redis 2.2.0
     /// Group: Transactions
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// * AllowBusy: From https://redis.io/docs/reference/modules/modules-api-ref/: Permit the command while the server is blocked either by a script or by a slow module command, see RM_Yield.
+    /// ACL Categories:
+    /// * @fast
+    /// * @transaction
     fn unwatch<>() {
         cmd("UNWATCH").as_mut()
     }
@@ -1799,7 +3970,36 @@ implement_commands! {
     /// Since: Redis 2.2.0
     /// Group: Transactions
     /// Complexity: O(1) for every key.
-    fn watch<K0: ToRedisArgs>(key: K0) {
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// * AllowBusy: From https://redis.io/docs/reference/modules/modules-api-ref/: Permit the command while the server is blocked either by a script or by a slow module command, see RM_Yield.
+    /// ACL Categories:
+    /// * @fast
+    /// * @transaction
+    fn watch<K0: ToRedisArgs>(key: &'a [K0]) {
+        cmd("WATCH").arg(key)
+    }
+
+    /// WATCH (Sliceless caller)
+    /// 
+    /// Watch the given keys to determine execution of the MULTI/EXEC block
+    /// 
+    /// Since: Redis 2.2.0
+    /// Group: Transactions
+    /// Complexity: O(1) for every key.
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// * AllowBusy: From https://redis.io/docs/reference/modules/modules-api-ref/: Permit the command while the server is blocked either by a script or by a slow module command, see RM_Yield.
+    /// ACL Categories:
+    /// * @fast
+    /// * @transaction
+    fn watch_single<K0: ToRedisArgs>(key: K0) {
         cmd("WATCH").arg(key)
     }
 
@@ -1810,6 +4010,16 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Connection
     /// Complexity: O(N) where N is the number of passwords defined for the user
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// * NoAuth: Thiscuting the command doesn't require authentication.
+    /// * AllowBusy: From https://redis.io/docs/reference/modules/modules-api-ref/: Permit the command while the server is blocked either by a script or by a slow module command, see RM_Yield.
+    /// ACL Categories:
+    /// * @fast
+    /// * @connection
     fn auth<T0: ToRedisArgs, T1: ToRedisArgs>(username: Option<T0>, password: T1) {
         cmd("AUTH").arg(username).arg(password)
     }
@@ -1821,6 +4031,8 @@ implement_commands! {
     /// Since: Redis 2.4.0
     /// Group: Connection
     /// Complexity: Depends on subcommand.
+    /// ACL Categories:
+    /// * @slow
     fn client<>() {
         cmd("CLIENT").as_mut()
     }
@@ -1832,6 +4044,13 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn client_caching<>() {
         cmd("CLIENT CACHING").as_mut()
     }
@@ -1843,6 +4062,13 @@ implement_commands! {
     /// Since: Redis 2.6.9
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn client_getname<>() {
         cmd("CLIENT GETNAME").as_mut()
     }
@@ -1854,6 +4080,13 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn client_getredir<>() {
         cmd("CLIENT GETREDIR").as_mut()
     }
@@ -1865,6 +4098,12 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn client_help<>() {
         cmd("CLIENT HELP").as_mut()
     }
@@ -1876,6 +4115,13 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn client_id<>() {
         cmd("CLIENT ID").as_mut()
     }
@@ -1887,6 +4133,13 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn client_info<>() {
         cmd("CLIENT INFO").as_mut()
     }
@@ -1898,6 +4151,16 @@ implement_commands! {
     /// Since: Redis 2.4.0
     /// Group: Connection
     /// Complexity: O(N) where N is the number of client connections
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    /// * @connection
     fn client_list<>() {
         cmd("CLIENT LIST").as_mut()
     }
@@ -1909,6 +4172,16 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    /// * @connection
     fn client_no_evict<>() {
         cmd("CLIENT NO-EVICT").as_mut()
     }
@@ -1920,6 +4193,16 @@ implement_commands! {
     /// Since: Redis 2.9.50
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    /// * @connection
     fn client_pause<T0: ToRedisArgs>(timeout: T0) {
         cmd("CLIENT PAUSE").arg(timeout)
     }
@@ -1931,6 +4214,13 @@ implement_commands! {
     /// Since: Redis 3.2.0
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn client_reply<>() {
         cmd("CLIENT REPLY").as_mut()
     }
@@ -1942,6 +4232,13 @@ implement_commands! {
     /// Since: Redis 2.6.9
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn client_setname<T0: ToRedisArgs>(connection_name: T0) {
         cmd("CLIENT SETNAME").arg(connection_name)
     }
@@ -1953,7 +4250,32 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Connection
     /// Complexity: O(1). Some options may introduce additional complexity.
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn client_tracking<>() {
+        cmd("CLIENT TRACKING").as_mut()
+    }
+
+    /// CLIENT TRACKING (Sliceless caller)
+    /// 
+    /// Enable or disable server assisted client side caching support
+    /// 
+    /// Since: Redis 6.0.0
+    /// Group: Connection
+    /// Complexity: O(1). Some options may introduce additional complexity.
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
+    fn client_tracking_single<>() {
         cmd("CLIENT TRACKING").as_mut()
     }
 
@@ -1964,6 +4286,13 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn client_trackinginfo<>() {
         cmd("CLIENT TRACKINGINFO").as_mut()
     }
@@ -1975,6 +4304,16 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Connection
     /// Complexity: O(log N) where N is the number of client connections
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    /// * @connection
     fn client_unblock<T0: ToRedisArgs>(client_id: T0) {
         cmd("CLIENT UNBLOCK").arg(client_id)
     }
@@ -1986,6 +4325,16 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: Connection
     /// Complexity: O(N) Where N is the number of paused clients
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    /// * @connection
     fn client_unpause<>() {
         cmd("CLIENT UNPAUSE").as_mut()
     }
@@ -1997,6 +4346,11 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @fast
+    /// * @connection
     fn echo<T0: ToRedisArgs>(message: T0) {
         cmd("ECHO").arg(message)
     }
@@ -2008,6 +4362,16 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// * NoAuth: Thiscuting the command doesn't require authentication.
+    /// * AllowBusy: From https://redis.io/docs/reference/modules/modules-api-ref/: Permit the command while the server is blocked either by a script or by a slow module command, see RM_Yield.
+    /// ACL Categories:
+    /// * @fast
+    /// * @connection
     fn hello<T0: ToRedisArgs>(arguments: Option<T0>) {
         cmd("HELLO").arg(arguments)
     }
@@ -2019,6 +4383,11 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @fast
+    /// * @connection
     fn ping<T0: ToRedisArgs>(message: Option<T0>) {
         cmd("PING").arg(message)
     }
@@ -2030,6 +4399,16 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// * NoAuth: Thiscuting the command doesn't require authentication.
+    /// * AllowBusy: From https://redis.io/docs/reference/modules/modules-api-ref/: Permit the command while the server is blocked either by a script or by a slow module command, see RM_Yield.
+    /// ACL Categories:
+    /// * @fast
+    /// * @connection
     fn quit<>() {
         cmd("QUIT").as_mut()
     }
@@ -2041,6 +4420,16 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// * NoAuth: Thiscuting the command doesn't require authentication.
+    /// * AllowBusy: From https://redis.io/docs/reference/modules/modules-api-ref/: Permit the command while the server is blocked either by a script or by a slow module command, see RM_Yield.
+    /// ACL Categories:
+    /// * @fast
+    /// * @connection
     fn reset<>() {
         cmd("RESET").as_mut()
     }
@@ -2052,6 +4441,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Connection
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @fast
+    /// * @connection
     fn select<T0: ToRedisArgs>(index: T0) {
         cmd("SELECT").arg(index)
     }
@@ -2063,6 +4459,8 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: Depends on subcommand.
+    /// ACL Categories:
+    /// * @slow
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
     fn acl<>() {
@@ -2076,6 +4474,12 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(1) since the categories and commands are a fixed set.
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
     fn acl_cat<T0: ToRedisArgs>(categoryname: Option<T0>) {
@@ -2089,9 +4493,40 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(1) amortized time considering the typical user.
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_deluser<T0: ToRedisArgs>(username: T0) {
+    fn acl_deluser<T0: ToRedisArgs>(username: &'a [T0]) {
+        cmd("ACL DELUSER").arg(username)
+    }
+
+    /// ACL DELUSER (Sliceless caller)
+    /// 
+    /// Remove the specified ACL users and the associated rules
+    /// 
+    /// Since: Redis 6.0.0
+    /// Group: Server
+    /// Complexity: O(1) amortized time considering the typical user.
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    #[cfg(feature = "acl")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
+    fn acl_deluser_single<T0: ToRedisArgs>(username: T0) {
         cmd("ACL DELUSER").arg(username)
     }
 
@@ -2102,9 +4537,40 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Server
     /// Complexity: O(1).
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_dryrun<T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs>(username: T0, command: T1, arg: Option<T2>) {
+    fn acl_dryrun<T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs>(username: T0, command: T1, arg: Option<&'a [T2]>) {
+        cmd("ACL DRYRUN").arg(username).arg(command).arg(arg)
+    }
+
+    /// ACL DRYRUN (Sliceless caller)
+    /// 
+    /// Returns whether the user can execute the given command without executing the command.
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: Server
+    /// Complexity: O(1).
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    #[cfg(feature = "acl")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
+    fn acl_dryrun_single<T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs>(username: T0, command: T1, arg: Option<T2>) {
         cmd("ACL DRYRUN").arg(username).arg(command).arg(arg)
     }
 
@@ -2115,6 +4581,12 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
     fn acl_genpass<T0: ToRedisArgs>(bits: Option<T0>) {
@@ -2128,6 +4600,15 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(N). Where N is the number of password, command and pattern rules that the user has.
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
     fn acl_getuser<T0: ToRedisArgs>(username: T0) {
@@ -2141,6 +4622,11 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
     fn acl_help<>() {
@@ -2154,6 +4640,15 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(N). Where N is the number of configured users.
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
     fn acl_list<>() {
@@ -2167,6 +4662,15 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(N). Where N is the number of configured users.
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
     fn acl_load<>() {
@@ -2180,6 +4684,15 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(N) with N being the number of entries shown.
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
     fn acl_log<>() {
@@ -2193,6 +4706,15 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(N). Where N is the number of configured users.
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
     fn acl_save<>() {
@@ -2206,9 +4728,40 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(N). Where N is the number of rules provided.
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_setuser<T0: ToRedisArgs, T1: ToRedisArgs>(username: T0, rule: Option<T1>) {
+    fn acl_setuser<T0: ToRedisArgs, T1: ToRedisArgs>(username: T0, rule: Option<&'a [T1]>) {
+        cmd("ACL SETUSER").arg(username).arg(rule)
+    }
+
+    /// ACL SETUSER (Sliceless caller)
+    /// 
+    /// Modify or create the rules for a specific ACL user
+    /// 
+    /// Since: Redis 6.0.0
+    /// Group: Server
+    /// Complexity: O(N). Where N is the number of rules provided.
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    #[cfg(feature = "acl")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
+    fn acl_setuser_single<T0: ToRedisArgs, T1: ToRedisArgs>(username: T0, rule: Option<T1>) {
         cmd("ACL SETUSER").arg(username).arg(rule)
     }
 
@@ -2219,6 +4772,15 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(N). Where N is the number of configured users.
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
     fn acl_users<>() {
@@ -2232,6 +4794,12 @@ implement_commands! {
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
     fn acl_whoami<>() {
@@ -2245,6 +4813,14 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn bgrewriteaof<>() {
         cmd("BGREWRITEAOF").as_mut()
     }
@@ -2256,6 +4832,14 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn bgsave<>() {
         cmd("BGSAVE").as_mut()
     }
@@ -2267,6 +4851,12 @@ implement_commands! {
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(N) where N is the total number of Redis commands
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn command<>() {
         cmd("COMMAND").as_mut()
     }
@@ -2278,6 +4868,12 @@ implement_commands! {
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn command_count<>() {
         cmd("COMMAND COUNT").as_mut()
     }
@@ -2289,7 +4885,30 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the number of commands to look up
-    fn command_docs<T0: ToRedisArgs>(command_name: Option<T0>) {
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
+    fn command_docs<T0: ToRedisArgs>(command_name: Option<&'a [T0]>) {
+        cmd("COMMAND DOCS").arg(command_name)
+    }
+
+    /// COMMAND DOCS (Sliceless caller)
+    /// 
+    /// Get array of specific Redis command documentation
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: Server
+    /// Complexity: O(N) where N is the number of commands to look up
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
+    fn command_docs_single<T0: ToRedisArgs>(command_name: Option<T0>) {
         cmd("COMMAND DOCS").arg(command_name)
     }
 
@@ -2300,6 +4919,12 @@ implement_commands! {
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(N) where N is the number of arguments to the command
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn command_getkeys<>() {
         cmd("COMMAND GETKEYS").as_mut()
     }
@@ -2311,6 +4936,12 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the number of arguments to the command
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn command_getkeysandflags<>() {
         cmd("COMMAND GETKEYSANDFLAGS").as_mut()
     }
@@ -2322,6 +4953,12 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn command_help<>() {
         cmd("COMMAND HELP").as_mut()
     }
@@ -2333,7 +4970,30 @@ implement_commands! {
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(N) where N is the number of commands to look up
-    fn command_info<T0: ToRedisArgs>(command_name: Option<T0>) {
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
+    fn command_info<T0: ToRedisArgs>(command_name: Option<&'a [T0]>) {
+        cmd("COMMAND INFO").arg(command_name)
+    }
+
+    /// COMMAND INFO (Sliceless caller)
+    /// 
+    /// Get array of specific Redis command details, or all when no argument is given.
+    /// 
+    /// Since: Redis 2.8.13
+    /// Group: Server
+    /// Complexity: O(N) where N is the number of commands to look up
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
+    fn command_info_single<T0: ToRedisArgs>(command_name: Option<T0>) {
         cmd("COMMAND INFO").arg(command_name)
     }
 
@@ -2344,6 +5004,12 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the total number of Redis commands
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @connection
     fn command_list<>() {
         cmd("COMMAND LIST").as_mut()
     }
@@ -2355,6 +5021,8 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Server
     /// Complexity: Depends on subcommand.
+    /// ACL Categories:
+    /// * @slow
     fn config<>() {
         cmd("CONFIG").as_mut()
     }
@@ -2366,7 +5034,36 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Server
     /// Complexity: O(N) when N is the number of configuration parameters provided
-    fn config_get<T0: ToRedisArgs>(parameter: T0) {
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn config_get<T0: ToRedisArgs>(parameter: &'a [T0]) {
+        cmd("CONFIG GET").arg(parameter)
+    }
+
+    /// CONFIG GET (Sliceless caller)
+    /// 
+    /// Get the values of configuration parameters
+    /// 
+    /// Since: Redis 2.0.0
+    /// Group: Server
+    /// Complexity: O(N) when N is the number of configuration parameters provided
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn config_get_single<T0: ToRedisArgs>(parameter: T0) {
         cmd("CONFIG GET").arg(parameter)
     }
 
@@ -2377,6 +5074,11 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     fn config_help<>() {
         cmd("CONFIG HELP").as_mut()
     }
@@ -2388,6 +5090,15 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn config_resetstat<>() {
         cmd("CONFIG RESETSTAT").as_mut()
     }
@@ -2399,6 +5110,15 @@ implement_commands! {
     /// Since: Redis 2.8.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn config_rewrite<>() {
         cmd("CONFIG REWRITE").as_mut()
     }
@@ -2410,7 +5130,36 @@ implement_commands! {
     /// Since: Redis 2.0.0
     /// Group: Server
     /// Complexity: O(N) when N is the number of configuration parameters provided
-    fn config_set<T0: ToRedisArgs>(parameter_value: T0) {
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn config_set<T0: ToRedisArgs>(parameter_value: &'a [T0]) {
+        cmd("CONFIG SET").arg(parameter_value)
+    }
+
+    /// CONFIG SET (Sliceless caller)
+    /// 
+    /// Set configuration parameters to the given values
+    /// 
+    /// Since: Redis 2.0.0
+    /// Group: Server
+    /// Complexity: O(N) when N is the number of configuration parameters provided
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn config_set_single<T0: ToRedisArgs>(parameter_value: T0) {
         cmd("CONFIG SET").arg(parameter_value)
     }
 
@@ -2421,6 +5170,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @fast
     fn dbsize<>() {
         cmd("DBSIZE").as_mut()
     }
@@ -2432,6 +5188,15 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: Depends on subcommand.
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn debug<>() {
         cmd("DEBUG").as_mut()
     }
@@ -2443,6 +5208,14 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn failover<>() {
         cmd("FAILOVER").as_mut()
     }
@@ -2454,6 +5227,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the total number of keys in all databases
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @slow
+    /// * @dangerous
     fn flushall<>() {
         cmd("FLUSHALL").as_mut()
     }
@@ -2465,6 +5245,13 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the number of keys in the selected database
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @slow
+    /// * @dangerous
     fn flushdb<>() {
         cmd("FLUSHDB").as_mut()
     }
@@ -2476,7 +5263,30 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(1)
-    fn info<T0: ToRedisArgs>(section: Option<T0>) {
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @dangerous
+    fn info<T0: ToRedisArgs>(section: Option<&'a [T0]>) {
+        cmd("INFO").arg(section)
+    }
+
+    /// INFO (Sliceless caller)
+    /// 
+    /// Get information and statistics about the server
+    /// 
+    /// Since: Redis 1.0.0
+    /// Group: Server
+    /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @dangerous
+    fn info_single<T0: ToRedisArgs>(section: Option<T0>) {
         cmd("INFO").arg(section)
     }
 
@@ -2487,6 +5297,14 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @admin
+    /// * @fast
+    /// * @dangerous
     fn lastsave<>() {
         cmd("LASTSAVE").as_mut()
     }
@@ -2498,6 +5316,8 @@ implement_commands! {
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: Depends on subcommand.
+    /// ACL Categories:
+    /// * @slow
     fn latency<>() {
         cmd("LATENCY").as_mut()
     }
@@ -2509,6 +5329,15 @@ implement_commands! {
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn latency_doctor<>() {
         cmd("LATENCY DOCTOR").as_mut()
     }
@@ -2520,6 +5349,15 @@ implement_commands! {
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn latency_graph<T0: ToRedisArgs>(event: T0) {
         cmd("LATENCY GRAPH").arg(event)
     }
@@ -2531,6 +5369,11 @@ implement_commands! {
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     fn latency_help<>() {
         cmd("LATENCY HELP").as_mut()
     }
@@ -2542,7 +5385,36 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the number of commands with latency information being retrieved.
-    fn latency_histogram<T0: ToRedisArgs>(command: Option<T0>) {
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn latency_histogram<T0: ToRedisArgs>(command: Option<&'a [T0]>) {
+        cmd("LATENCY HISTOGRAM").arg(command)
+    }
+
+    /// LATENCY HISTOGRAM (Sliceless caller)
+    /// 
+    /// Return the cumulative distribution of latencies of a subset of commands or all.
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: Server
+    /// Complexity: O(N) where N is the number of commands with latency information being retrieved.
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn latency_histogram_single<T0: ToRedisArgs>(command: Option<T0>) {
         cmd("LATENCY HISTOGRAM").arg(command)
     }
 
@@ -2553,6 +5425,15 @@ implement_commands! {
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn latency_history<T0: ToRedisArgs>(event: T0) {
         cmd("LATENCY HISTORY").arg(event)
     }
@@ -2564,6 +5445,15 @@ implement_commands! {
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn latency_latest<>() {
         cmd("LATENCY LATEST").as_mut()
     }
@@ -2575,7 +5465,36 @@ implement_commands! {
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(1)
-    fn latency_reset<T0: ToRedisArgs>(event: Option<T0>) {
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn latency_reset<T0: ToRedisArgs>(event: Option<&'a [T0]>) {
+        cmd("LATENCY RESET").arg(event)
+    }
+
+    /// LATENCY RESET (Sliceless caller)
+    /// 
+    /// Reset latency data for one or more events.
+    /// 
+    /// Since: Redis 2.8.13
+    /// Group: Server
+    /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn latency_reset_single<T0: ToRedisArgs>(event: Option<T0>) {
         cmd("LATENCY RESET").arg(event)
     }
 
@@ -2585,6 +5504,12 @@ implement_commands! {
     /// 
     /// Since: Redis 5.0.0
     /// Group: Server
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @fast
     fn lolwut<>() {
         cmd("LOLWUT").as_mut()
     }
@@ -2596,6 +5521,8 @@ implement_commands! {
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: Depends on subcommand.
+    /// ACL Categories:
+    /// * @slow
     fn memory<>() {
         cmd("MEMORY").as_mut()
     }
@@ -2607,6 +5534,8 @@ implement_commands! {
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// ACL Categories:
+    /// * @slow
     fn memory_doctor<>() {
         cmd("MEMORY DOCTOR").as_mut()
     }
@@ -2618,6 +5547,11 @@ implement_commands! {
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     fn memory_help<>() {
         cmd("MEMORY HELP").as_mut()
     }
@@ -2629,6 +5563,8 @@ implement_commands! {
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: Depends on how much memory is allocated, could be slow
+    /// ACL Categories:
+    /// * @slow
     fn memory_malloc_stats<>() {
         cmd("MEMORY MALLOC-STATS").as_mut()
     }
@@ -2640,6 +5576,8 @@ implement_commands! {
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: Depends on how much memory is allocated, could be slow
+    /// ACL Categories:
+    /// * @slow
     fn memory_purge<>() {
         cmd("MEMORY PURGE").as_mut()
     }
@@ -2651,6 +5589,8 @@ implement_commands! {
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// ACL Categories:
+    /// * @slow
     fn memory_stats<>() {
         cmd("MEMORY STATS").as_mut()
     }
@@ -2662,6 +5602,11 @@ implement_commands! {
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the number of samples.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @slow
     fn memory_usage<K0: ToRedisArgs>(key: K0) {
         cmd("MEMORY USAGE").arg(key)
     }
@@ -2673,6 +5618,8 @@ implement_commands! {
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: Depends on subcommand.
+    /// ACL Categories:
+    /// * @slow
     fn module<>() {
         cmd("MODULE").as_mut()
     }
@@ -2684,6 +5631,11 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     fn module_help<>() {
         cmd("MODULE HELP").as_mut()
     }
@@ -2695,6 +5647,13 @@ implement_commands! {
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the number of loaded modules.
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn module_list<>() {
         cmd("MODULE LIST").as_mut()
     }
@@ -2706,7 +5665,34 @@ implement_commands! {
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: O(1)
-    fn module_load<T0: ToRedisArgs, T1: ToRedisArgs>(path: T0, arg: Option<T1>) {
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn module_load<T0: ToRedisArgs, T1: ToRedisArgs>(path: T0, arg: Option<&'a [T1]>) {
+        cmd("MODULE LOAD").arg(path).arg(arg)
+    }
+
+    /// MODULE LOAD (Sliceless caller)
+    /// 
+    /// Load a module
+    /// 
+    /// Since: Redis 4.0.0
+    /// Group: Server
+    /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn module_load_single<T0: ToRedisArgs, T1: ToRedisArgs>(path: T0, arg: Option<T1>) {
         cmd("MODULE LOAD").arg(path).arg(arg)
     }
 
@@ -2717,7 +5703,34 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn module_loadex<T0: ToRedisArgs>(path: T0) {
+        cmd("MODULE LOADEX").arg(path)
+    }
+
+    /// MODULE LOADEX (Sliceless caller)
+    /// 
+    /// Load a module with extended parameters
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: Server
+    /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn module_loadex_single<T0: ToRedisArgs>(path: T0) {
         cmd("MODULE LOADEX").arg(path)
     }
 
@@ -2728,6 +5741,14 @@ implement_commands! {
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn module_unload<T0: ToRedisArgs>(name: T0) {
         cmd("MODULE UNLOAD").arg(name)
     }
@@ -2738,6 +5759,15 @@ implement_commands! {
     /// 
     /// Since: Redis 1.0.0
     /// Group: Server
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn monitor<>() {
         cmd("MONITOR").as_mut()
     }
@@ -2748,6 +5778,15 @@ implement_commands! {
     /// 
     /// Since: Redis 2.8.0
     /// Group: Server
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// * NoMulti: This command isn't allowed inside the context of a transaction.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn psync<T0: ToRedisArgs, T1: ToRedisArgs>(replicationid: T0, offset: T1) {
         cmd("PSYNC").arg(replicationid).arg(offset)
     }
@@ -2759,6 +5798,16 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * AllowBusy: From https://redis.io/docs/reference/modules/modules-api-ref/: Permit the command while the server is blocked either by a script or by a slow module command, see RM_Yield.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn replconf<>() {
         cmd("REPLCONF").as_mut()
     }
@@ -2770,6 +5819,15 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn replicaof<T0: ToRedisArgs, T1: ToRedisArgs>(host: T0, port: T1) {
         cmd("REPLICAOF").arg(host).arg(port)
     }
@@ -2781,6 +5839,15 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Server
     /// Complexity: O(1) to create the new key and additional O(N*M) to reconstruct the serialized value, where N is the number of Redis objects composing the value and M their average size. For small string values the time complexity is thus O(1)+O(1*M) where M is small, so simply O(1). However for sorted set values the complexity is O(N*M*log(N)) because inserting values into sorted sets is O(log(N)).
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Asking: This command is allowed even during hash slot migration. This flag is relevant in Redis Cluster deployments.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @slow
+    /// * @dangerous
     fn restore_asking<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, ttl: T0, serialized_value: T1) {
         cmd("RESTORE-ASKING").arg(key).arg(ttl).arg(serialized_value)
     }
@@ -2792,6 +5859,15 @@ implement_commands! {
     /// Since: Redis 2.8.12
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @admin
+    /// * @fast
+    /// * @dangerous
     fn role<>() {
         cmd("ROLE").as_mut()
     }
@@ -2803,6 +5879,15 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the total number of keys in all databases
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// * NoMulti: This command isn't allowed inside the context of a transaction.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn save<>() {
         cmd("SAVE").as_mut()
     }
@@ -2814,6 +5899,17 @@ implement_commands! {
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(N) when saving, where N is the total number of keys in all databases when saving data, otherwise O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoMulti: This command isn't allowed inside the context of a transaction.
+    /// * AllowBusy: From https://redis.io/docs/reference/modules/modules-api-ref/: Permit the command while the server is blocked either by a script or by a slow module command, see RM_Yield.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn shutdown<>() {
         cmd("SHUTDOWN").as_mut()
     }
@@ -2827,6 +5923,15 @@ implement_commands! {
     /// Replaced By: `REPLICAOF`
     /// Complexity: O(1)
     /// Replaced By: `REPLICAOF`
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     #[deprecated]    fn slaveof<T0: ToRedisArgs, T1: ToRedisArgs>(host: T0, port: T1) {
         cmd("SLAVEOF").arg(host).arg(port)
     }
@@ -2838,6 +5943,8 @@ implement_commands! {
     /// Since: Redis 2.2.12
     /// Group: Server
     /// Complexity: Depends on subcommand.
+    /// ACL Categories:
+    /// * @slow
     fn slowlog<>() {
         cmd("SLOWLOG").as_mut()
     }
@@ -2849,6 +5956,14 @@ implement_commands! {
     /// Since: Redis 2.2.12
     /// Group: Server
     /// Complexity: O(N) where N is the number of entries returned
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn slowlog_get<T0: ToRedisArgs>(count: Option<T0>) {
         cmd("SLOWLOG GET").arg(count)
     }
@@ -2860,6 +5975,11 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     fn slowlog_help<>() {
         cmd("SLOWLOG HELP").as_mut()
     }
@@ -2871,6 +5991,14 @@ implement_commands! {
     /// Since: Redis 2.2.12
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn slowlog_len<>() {
         cmd("SLOWLOG LEN").as_mut()
     }
@@ -2882,6 +6010,14 @@ implement_commands! {
     /// Since: Redis 2.2.12
     /// Group: Server
     /// Complexity: O(N) where N is the number of entries in the slowlog
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn slowlog_reset<>() {
         cmd("SLOWLOG RESET").as_mut()
     }
@@ -2893,6 +6029,14 @@ implement_commands! {
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the count of clients watching or blocking on keys from both databases.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @write
+    /// * @fast
+    /// * @dangerous
     fn swapdb<T0: ToRedisArgs, T1: ToRedisArgs>(index1: T0, index2: T1) {
         cmd("SWAPDB").arg(index1).arg(index2)
     }
@@ -2903,6 +6047,15 @@ implement_commands! {
     /// 
     /// Since: Redis 1.0.0
     /// Group: Server
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// * NoMulti: This command isn't allowed inside the context of a transaction.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn sync<>() {
         cmd("SYNC").as_mut()
     }
@@ -2914,6 +6067,12 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Server
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @fast
     fn time<>() {
         cmd("TIME").as_mut()
     }
@@ -2925,7 +6084,36 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Scripting
     /// Complexity: Depends on the script that is executed.
-    fn eval<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(script: T0, numkeys: T1, key: Option<K0>, arg: Option<T2>) {
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * SkipMonitor: This command is not shown in MONITOR's output.
+    /// * NoMandatoryKeys: This command may accept key name arguments, but these aren't mandatory.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
+    fn eval<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(script: T0, numkeys: T1, key: Option<&'a [K0]>, arg: Option<&'a [T2]>) {
+        cmd("EVAL").arg(script).arg(numkeys).arg(key).arg(arg)
+    }
+
+    /// EVAL (Sliceless caller)
+    /// 
+    /// Execute a Lua script server side
+    /// 
+    /// Since: Redis 2.6.0
+    /// Group: Scripting
+    /// Complexity: Depends on the script that is executed.
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * SkipMonitor: This command is not shown in MONITOR's output.
+    /// * NoMandatoryKeys: This command may accept key name arguments, but these aren't mandatory.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
+    fn eval_single<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(script: T0, numkeys: T1, key: Option<K0>, arg: Option<T2>) {
         cmd("EVAL").arg(script).arg(numkeys).arg(key).arg(arg)
     }
 
@@ -2936,7 +6124,36 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Scripting
     /// Complexity: Depends on the script that is executed.
-    fn evalsha<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(sha1: T0, numkeys: T1, key: Option<K0>, arg: Option<T2>) {
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * SkipMonitor: This command is not shown in MONITOR's output.
+    /// * NoMandatoryKeys: This command may accept key name arguments, but these aren't mandatory.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
+    fn evalsha<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(sha1: T0, numkeys: T1, key: Option<&'a [K0]>, arg: Option<&'a [T2]>) {
+        cmd("EVALSHA").arg(sha1).arg(numkeys).arg(key).arg(arg)
+    }
+
+    /// EVALSHA (Sliceless caller)
+    /// 
+    /// Execute a Lua script server side
+    /// 
+    /// Since: Redis 2.6.0
+    /// Group: Scripting
+    /// Complexity: Depends on the script that is executed.
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * SkipMonitor: This command is not shown in MONITOR's output.
+    /// * NoMandatoryKeys: This command may accept key name arguments, but these aren't mandatory.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
+    fn evalsha_single<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(sha1: T0, numkeys: T1, key: Option<K0>, arg: Option<T2>) {
         cmd("EVALSHA").arg(sha1).arg(numkeys).arg(key).arg(arg)
     }
 
@@ -2947,7 +6164,38 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: Depends on the script that is executed.
-    fn evalsha_ro<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(sha1: T0, numkeys: T1, key: K0, arg: T2) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * SkipMonitor: This command is not shown in MONITOR's output.
+    /// * NoMandatoryKeys: This command may accept key name arguments, but these aren't mandatory.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
+    fn evalsha_ro<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(sha1: T0, numkeys: T1, key: &'a [K0], arg: &'a [T2]) {
+        cmd("EVALSHA_RO").arg(sha1).arg(numkeys).arg(key).arg(arg)
+    }
+
+    /// EVALSHA_RO (Sliceless caller)
+    /// 
+    /// Execute a read-only Lua script server side
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: Scripting
+    /// Complexity: Depends on the script that is executed.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * SkipMonitor: This command is not shown in MONITOR's output.
+    /// * NoMandatoryKeys: This command may accept key name arguments, but these aren't mandatory.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
+    fn evalsha_ro_single<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(sha1: T0, numkeys: T1, key: K0, arg: T2) {
         cmd("EVALSHA_RO").arg(sha1).arg(numkeys).arg(key).arg(arg)
     }
 
@@ -2958,7 +6206,38 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: Depends on the script that is executed.
-    fn eval_ro<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(script: T0, numkeys: T1, key: K0, arg: T2) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * SkipMonitor: This command is not shown in MONITOR's output.
+    /// * NoMandatoryKeys: This command may accept key name arguments, but these aren't mandatory.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
+    fn eval_ro<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(script: T0, numkeys: T1, key: &'a [K0], arg: &'a [T2]) {
+        cmd("EVAL_RO").arg(script).arg(numkeys).arg(key).arg(arg)
+    }
+
+    /// EVAL_RO (Sliceless caller)
+    /// 
+    /// Execute a read-only Lua script server side
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: Scripting
+    /// Complexity: Depends on the script that is executed.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * SkipMonitor: This command is not shown in MONITOR's output.
+    /// * NoMandatoryKeys: This command may accept key name arguments, but these aren't mandatory.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
+    fn eval_ro_single<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(script: T0, numkeys: T1, key: K0, arg: T2) {
         cmd("EVAL_RO").arg(script).arg(numkeys).arg(key).arg(arg)
     }
 
@@ -2969,7 +6248,36 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: Depends on the function that is executed.
-    fn fcall<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(function: T0, numkeys: T1, key: K0, arg: T2) {
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * SkipMonitor: This command is not shown in MONITOR's output.
+    /// * NoMandatoryKeys: This command may accept key name arguments, but these aren't mandatory.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
+    fn fcall<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(function: T0, numkeys: T1, key: &'a [K0], arg: &'a [T2]) {
+        cmd("FCALL").arg(function).arg(numkeys).arg(key).arg(arg)
+    }
+
+    /// FCALL (Sliceless caller)
+    /// 
+    /// Invoke a function
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: Scripting
+    /// Complexity: Depends on the function that is executed.
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * SkipMonitor: This command is not shown in MONITOR's output.
+    /// * NoMandatoryKeys: This command may accept key name arguments, but these aren't mandatory.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
+    fn fcall_single<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(function: T0, numkeys: T1, key: K0, arg: T2) {
         cmd("FCALL").arg(function).arg(numkeys).arg(key).arg(arg)
     }
 
@@ -2980,7 +6288,38 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: Depends on the function that is executed.
-    fn fcall_ro<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(function: T0, numkeys: T1, key: K0, arg: T2) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * SkipMonitor: This command is not shown in MONITOR's output.
+    /// * NoMandatoryKeys: This command may accept key name arguments, but these aren't mandatory.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
+    fn fcall_ro<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(function: T0, numkeys: T1, key: &'a [K0], arg: &'a [T2]) {
+        cmd("FCALL_RO").arg(function).arg(numkeys).arg(key).arg(arg)
+    }
+
+    /// FCALL_RO (Sliceless caller)
+    /// 
+    /// Invoke a read-only function
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: Scripting
+    /// Complexity: Depends on the function that is executed.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * SkipMonitor: This command is not shown in MONITOR's output.
+    /// * NoMandatoryKeys: This command may accept key name arguments, but these aren't mandatory.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
+    fn fcall_ro_single<T0: ToRedisArgs, T1: ToRedisArgs, K0: ToRedisArgs, T2: ToRedisArgs>(function: T0, numkeys: T1, key: K0, arg: T2) {
         cmd("FCALL_RO").arg(function).arg(numkeys).arg(key).arg(arg)
     }
 
@@ -2991,6 +6330,8 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: Depends on subcommand.
+    /// ACL Categories:
+    /// * @slow
     fn function<>() {
         cmd("FUNCTION").as_mut()
     }
@@ -3002,6 +6343,13 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// ACL Categories:
+    /// * @write
+    /// * @slow
+    /// * @scripting
     fn function_delete<T0: ToRedisArgs>(library_name: T0) {
         cmd("FUNCTION DELETE").arg(library_name)
     }
@@ -3013,6 +6361,11 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(N) where N is the number of functions
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
     fn function_dump<>() {
         cmd("FUNCTION DUMP").as_mut()
     }
@@ -3024,6 +6377,13 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(N) where N is the number of functions deleted
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// ACL Categories:
+    /// * @write
+    /// * @slow
+    /// * @scripting
     fn function_flush<>() {
         cmd("FUNCTION FLUSH").as_mut()
     }
@@ -3035,6 +6395,12 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
     fn function_help<>() {
         cmd("FUNCTION HELP").as_mut()
     }
@@ -3046,6 +6412,12 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * AllowBusy: From https://redis.io/docs/reference/modules/modules-api-ref/: Permit the command while the server is blocked either by a script or by a slow module command, see RM_Yield.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
     fn function_kill<>() {
         cmd("FUNCTION KILL").as_mut()
     }
@@ -3057,6 +6429,11 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(N) where N is the number of functions
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
     fn function_list<>() {
         cmd("FUNCTION LIST").as_mut()
     }
@@ -3068,6 +6445,14 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(1) (considering compilation time is redundant)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// ACL Categories:
+    /// * @write
+    /// * @slow
+    /// * @scripting
     fn function_load<T0: ToRedisArgs>(function_code: T0) {
         cmd("FUNCTION LOAD").arg(function_code)
     }
@@ -3079,6 +6464,14 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(N) where N is the number of functions on the payload
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// ACL Categories:
+    /// * @write
+    /// * @slow
+    /// * @scripting
     fn function_restore<T0: ToRedisArgs>(serialized_value: T0) {
         cmd("FUNCTION RESTORE").arg(serialized_value)
     }
@@ -3090,6 +6483,12 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * AllowBusy: From https://redis.io/docs/reference/modules/modules-api-ref/: Permit the command while the server is blocked either by a script or by a slow module command, see RM_Yield.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
     fn function_stats<>() {
         cmd("FUNCTION STATS").as_mut()
     }
@@ -3101,6 +6500,8 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Scripting
     /// Complexity: Depends on subcommand.
+    /// ACL Categories:
+    /// * @slow
     fn script<>() {
         cmd("SCRIPT").as_mut()
     }
@@ -3112,6 +6513,11 @@ implement_commands! {
     /// Since: Redis 3.2.0
     /// Group: Scripting
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
     fn script_debug<>() {
         cmd("SCRIPT DEBUG").as_mut()
     }
@@ -3123,7 +6529,28 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Scripting
     /// Complexity: O(N) with N being the number of scripts to check (so checking a single script is an O(1) operation).
-    fn script_exists<T0: ToRedisArgs>(sha1: T0) {
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
+    fn script_exists<T0: ToRedisArgs>(sha1: &'a [T0]) {
+        cmd("SCRIPT EXISTS").arg(sha1)
+    }
+
+    /// SCRIPT EXISTS (Sliceless caller)
+    /// 
+    /// Check existence of scripts in the script cache.
+    /// 
+    /// Since: Redis 2.6.0
+    /// Group: Scripting
+    /// Complexity: O(N) with N being the number of scripts to check (so checking a single script is an O(1) operation).
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
+    fn script_exists_single<T0: ToRedisArgs>(sha1: T0) {
         cmd("SCRIPT EXISTS").arg(sha1)
     }
 
@@ -3134,6 +6561,11 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Scripting
     /// Complexity: O(N) with N being the number of scripts in cache
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
     fn script_flush<>() {
         cmd("SCRIPT FLUSH").as_mut()
     }
@@ -3145,6 +6577,12 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Scripting
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
     fn script_help<>() {
         cmd("SCRIPT HELP").as_mut()
     }
@@ -3156,6 +6594,12 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Scripting
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * AllowBusy: From https://redis.io/docs/reference/modules/modules-api-ref/: Permit the command while the server is blocked either by a script or by a slow module command, see RM_Yield.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
     fn script_kill<>() {
         cmd("SCRIPT KILL").as_mut()
     }
@@ -3167,6 +6611,12 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Scripting
     /// Complexity: O(N) with N being the length in bytes of the script body.
+    /// CommandFlags:
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
+    /// * @scripting
     fn script_load<T0: ToRedisArgs>(script: T0) {
         cmd("SCRIPT LOAD").arg(script)
     }
@@ -3178,7 +6628,34 @@ implement_commands! {
     /// Since: Redis 2.8.9
     /// Group: Hyperloglog
     /// Complexity: O(1) to add every element.
-    fn pfadd<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: Option<T0>) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @hyperloglog
+    /// * @fast
+    fn pfadd<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: Option<&'a [T0]>) {
+        cmd("PFADD").arg(key).arg(element)
+    }
+
+    /// PFADD (Sliceless caller)
+    /// 
+    /// Adds the specified elements to the specified HyperLogLog.
+    /// 
+    /// Since: Redis 2.8.9
+    /// Group: Hyperloglog
+    /// Complexity: O(1) to add every element.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @hyperloglog
+    /// * @fast
+    fn pfadd_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: Option<T0>) {
         cmd("PFADD").arg(key).arg(element)
     }
 
@@ -3189,7 +6666,30 @@ implement_commands! {
     /// Since: Redis 2.8.9
     /// Group: Hyperloglog
     /// Complexity: O(1) with a very small average constant time when called with a single key. O(N) with N being the number of keys, and much bigger constant times, when called with multiple keys.
-    fn pfcount<K0: ToRedisArgs>(key: K0) {
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @hyperloglog
+    /// * @slow
+    fn pfcount<K0: ToRedisArgs>(key: &'a [K0]) {
+        cmd("PFCOUNT").arg(key)
+    }
+
+    /// PFCOUNT (Sliceless caller)
+    /// 
+    /// Return the approximated cardinality of the set(s) observed by the HyperLogLog at key(s).
+    /// 
+    /// Since: Redis 2.8.9
+    /// Group: Hyperloglog
+    /// Complexity: O(1) with a very small average constant time when called with a single key. O(N) with N being the number of keys, and much bigger constant times, when called with multiple keys.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @hyperloglog
+    /// * @slow
+    fn pfcount_single<K0: ToRedisArgs>(key: K0) {
         cmd("PFCOUNT").arg(key)
     }
 
@@ -3200,6 +6700,16 @@ implement_commands! {
     /// Since: Redis 2.8.9
     /// Group: Hyperloglog
     /// Complexity: N/A
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Admin: This command is an administrative command.
+    /// ACL Categories:
+    /// * @write
+    /// * @hyperloglog
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn pfdebug<T0: ToRedisArgs, K0: ToRedisArgs>(subcommand: T0, key: K0) {
         cmd("PFDEBUG").arg(subcommand).arg(key)
     }
@@ -3211,7 +6721,32 @@ implement_commands! {
     /// Since: Redis 2.8.9
     /// Group: Hyperloglog
     /// Complexity: O(N) to merge N HyperLogLogs, but with high constant times.
-    fn pfmerge<K0: ToRedisArgs, K1: ToRedisArgs>(destkey: K0, sourcekey: K1) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @hyperloglog
+    /// * @slow
+    fn pfmerge<K0: ToRedisArgs, K1: ToRedisArgs>(destkey: K0, sourcekey: &'a [K1]) {
+        cmd("PFMERGE").arg(destkey).arg(sourcekey)
+    }
+
+    /// PFMERGE (Sliceless caller)
+    /// 
+    /// Merge N different HyperLogLogs into a single one.
+    /// 
+    /// Since: Redis 2.8.9
+    /// Group: Hyperloglog
+    /// Complexity: O(N) to merge N HyperLogLogs, but with high constant times.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @hyperloglog
+    /// * @slow
+    fn pfmerge_single<K0: ToRedisArgs, K1: ToRedisArgs>(destkey: K0, sourcekey: K1) {
         cmd("PFMERGE").arg(destkey).arg(sourcekey)
     }
 
@@ -3222,6 +6757,13 @@ implement_commands! {
     /// Since: Redis 2.8.9
     /// Group: Hyperloglog
     /// Complexity: N/A
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// ACL Categories:
+    /// * @hyperloglog
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn pfselftest<>() {
         cmd("PFSELFTEST").as_mut()
     }
@@ -3233,6 +6775,11 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @fast
+    /// * @connection
     fn asking<>() {
         cmd("ASKING").as_mut()
     }
@@ -3244,6 +6791,8 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: Depends on subcommand.
+    /// ACL Categories:
+    /// * @slow
     fn cluster<>() {
         cmd("CLUSTER").as_mut()
     }
@@ -3255,7 +6804,34 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the total number of hash slot arguments
-    fn cluster_addslots<T0: ToRedisArgs>(slot: T0) {
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn cluster_addslots<T0: ToRedisArgs>(slot: &'a [T0]) {
+        cmd("CLUSTER ADDSLOTS").arg(slot)
+    }
+
+    /// CLUSTER ADDSLOTS (Sliceless caller)
+    /// 
+    /// Assign new hash slots to receiving node
+    /// 
+    /// Since: Redis 3.0.0
+    /// Group: Cluster
+    /// Complexity: O(N) where N is the total number of hash slot arguments
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn cluster_addslots_single<T0: ToRedisArgs>(slot: T0) {
         cmd("CLUSTER ADDSLOTS").arg(slot)
     }
 
@@ -3266,7 +6842,34 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the total number of the slots between the start slot and end slot arguments.
-    fn cluster_addslotsrange<T0: ToRedisArgs>(start_slot_end_slot: T0) {
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn cluster_addslotsrange<T0: ToRedisArgs>(start_slot_end_slot: &'a [T0]) {
+        cmd("CLUSTER ADDSLOTSRANGE").arg(start_slot_end_slot)
+    }
+
+    /// CLUSTER ADDSLOTSRANGE (Sliceless caller)
+    /// 
+    /// Assign new hash slots to receiving node
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: Cluster
+    /// Complexity: O(N) where N is the total number of the slots between the start slot and end slot arguments.
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn cluster_addslotsrange_single<T0: ToRedisArgs>(start_slot_end_slot: T0) {
         cmd("CLUSTER ADDSLOTSRANGE").arg(start_slot_end_slot)
     }
 
@@ -3277,6 +6880,14 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn cluster_bumpepoch<>() {
         cmd("CLUSTER BUMPEPOCH").as_mut()
     }
@@ -3288,6 +6899,13 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the number of failure reports
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn cluster_count_failure_reports<T0: ToRedisArgs>(node_id: T0) {
         cmd("CLUSTER COUNT-FAILURE-REPORTS").arg(node_id)
     }
@@ -3299,6 +6917,10 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     fn cluster_countkeysinslot<T0: ToRedisArgs>(slot: T0) {
         cmd("CLUSTER COUNTKEYSINSLOT").arg(slot)
     }
@@ -3310,7 +6932,34 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the total number of hash slot arguments
-    fn cluster_delslots<T0: ToRedisArgs>(slot: T0) {
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn cluster_delslots<T0: ToRedisArgs>(slot: &'a [T0]) {
+        cmd("CLUSTER DELSLOTS").arg(slot)
+    }
+
+    /// CLUSTER DELSLOTS (Sliceless caller)
+    /// 
+    /// Set hash slots as unbound in receiving node
+    /// 
+    /// Since: Redis 3.0.0
+    /// Group: Cluster
+    /// Complexity: O(N) where N is the total number of hash slot arguments
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn cluster_delslots_single<T0: ToRedisArgs>(slot: T0) {
         cmd("CLUSTER DELSLOTS").arg(slot)
     }
 
@@ -3321,7 +6970,34 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the total number of the slots between the start slot and end slot arguments.
-    fn cluster_delslotsrange<T0: ToRedisArgs>(start_slot_end_slot: T0) {
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn cluster_delslotsrange<T0: ToRedisArgs>(start_slot_end_slot: &'a [T0]) {
+        cmd("CLUSTER DELSLOTSRANGE").arg(start_slot_end_slot)
+    }
+
+    /// CLUSTER DELSLOTSRANGE (Sliceless caller)
+    /// 
+    /// Set hash slots as unbound in receiving node
+    /// 
+    /// Since: Redis 7.0.0
+    /// Group: Cluster
+    /// Complexity: O(N) where N is the total number of the slots between the start slot and end slot arguments.
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
+    fn cluster_delslotsrange_single<T0: ToRedisArgs>(start_slot_end_slot: T0) {
         cmd("CLUSTER DELSLOTSRANGE").arg(start_slot_end_slot)
     }
 
@@ -3332,6 +7008,14 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn cluster_failover<>() {
         cmd("CLUSTER FAILOVER").as_mut()
     }
@@ -3343,6 +7027,14 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn cluster_flushslots<>() {
         cmd("CLUSTER FLUSHSLOTS").as_mut()
     }
@@ -3354,6 +7046,14 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn cluster_forget<T0: ToRedisArgs>(node_id: T0) {
         cmd("CLUSTER FORGET").arg(node_id)
     }
@@ -3365,6 +7065,10 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(log(N)) where N is the number of requested keys
+    /// CommandFlags:
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     fn cluster_getkeysinslot<T0: ToRedisArgs, T1: ToRedisArgs>(slot: T0, count: T1) {
         cmd("CLUSTER GETKEYSINSLOT").arg(slot).arg(count)
     }
@@ -3376,6 +7080,11 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     fn cluster_help<>() {
         cmd("CLUSTER HELP").as_mut()
     }
@@ -3387,6 +7096,10 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     fn cluster_info<>() {
         cmd("CLUSTER INFO").as_mut()
     }
@@ -3398,6 +7111,10 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the number of bytes in the key
+    /// CommandFlags:
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     fn cluster_keyslot<T0: ToRedisArgs>(key: T0) {
         cmd("CLUSTER KEYSLOT").arg(key)
     }
@@ -3409,6 +7126,10 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the total number of Cluster nodes
+    /// CommandFlags:
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     fn cluster_links<>() {
         cmd("CLUSTER LINKS").as_mut()
     }
@@ -3420,6 +7141,14 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn cluster_meet<T0: ToRedisArgs, T1: ToRedisArgs>(ip: T0, port: T1) {
         cmd("CLUSTER MEET").arg(ip).arg(port)
     }
@@ -3431,6 +7160,10 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     fn cluster_myid<>() {
         cmd("CLUSTER MYID").as_mut()
     }
@@ -3442,6 +7175,10 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the total number of Cluster nodes
+    /// CommandFlags:
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     fn cluster_nodes<>() {
         cmd("CLUSTER NODES").as_mut()
     }
@@ -3453,6 +7190,13 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn cluster_replicas<T0: ToRedisArgs>(node_id: T0) {
         cmd("CLUSTER REPLICAS").arg(node_id)
     }
@@ -3464,6 +7208,14 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn cluster_replicate<T0: ToRedisArgs>(node_id: T0) {
         cmd("CLUSTER REPLICATE").arg(node_id)
     }
@@ -3475,6 +7227,14 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the number of known nodes. The command may execute a FLUSHALL as a side effect.
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Noscript: This command can't be called from scripts or functions.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn cluster_reset<>() {
         cmd("CLUSTER RESET").as_mut()
     }
@@ -3486,6 +7246,14 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn cluster_saveconfig<>() {
         cmd("CLUSTER SAVECONFIG").as_mut()
     }
@@ -3497,6 +7265,14 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn cluster_set_config_epoch<T0: ToRedisArgs>(config_epoch: T0) {
         cmd("CLUSTER SET-CONFIG-EPOCH").arg(config_epoch)
     }
@@ -3508,6 +7284,14 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * NoAsyncLoading: This command is denied during asynchronous loading (that is when a replica uses disk-less SWAPDB SYNC, and allows access to the old dataset).
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     fn cluster_setslot<T0: ToRedisArgs>(slot: T0) {
         cmd("CLUSTER SETSLOT").arg(slot)
     }
@@ -3519,6 +7303,10 @@ implement_commands! {
     /// Since: Redis 7.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the total number of cluster nodes
+    /// CommandFlags:
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     fn cluster_shards<>() {
         cmd("CLUSTER SHARDS").as_mut()
     }
@@ -3532,6 +7320,13 @@ implement_commands! {
     /// Replaced By: `CLUSTER REPLICAS`
     /// Complexity: O(1)
     /// Replaced By: `CLUSTER REPLICAS`
+    /// CommandFlags:
+    /// * Admin: This command is an administrative command.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @admin
+    /// * @slow
+    /// * @dangerous
     #[deprecated]    fn cluster_slaves<T0: ToRedisArgs>(node_id: T0) {
         cmd("CLUSTER SLAVES").arg(node_id)
     }
@@ -3545,6 +7340,10 @@ implement_commands! {
     /// Replaced By: `CLUSTER SHARDS`
     /// Complexity: O(N) where N is the total number of Cluster nodes
     /// Replaced By: `CLUSTER SHARDS`
+    /// CommandFlags:
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @slow
     #[deprecated]    fn cluster_slots<>() {
         cmd("CLUSTER SLOTS").as_mut()
     }
@@ -3556,6 +7355,13 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @fast
+    /// * @connection
     fn readonly<>() {
         cmd("READONLY").as_mut()
     }
@@ -3567,6 +7373,13 @@ implement_commands! {
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @fast
+    /// * @connection
     fn readwrite<>() {
         cmd("READWRITE").as_mut()
     }
@@ -3578,9 +7391,36 @@ implement_commands! {
     /// Since: Redis 3.2.0
     /// Group: Geo
     /// Complexity: O(log(N)) for each item added, where N is the number of elements in the sorted set.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @geo
+    /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geoadd<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, longitude_latitude_member: T0) {
+    fn geoadd<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, longitude_latitude_member: &'a [T0]) {
+        cmd("GEOADD").arg(key).arg(longitude_latitude_member)
+    }
+
+    /// GEOADD (Sliceless caller)
+    /// 
+    /// Add one or more geospatial items in the geospatial index represented using a sorted set
+    /// 
+    /// Since: Redis 3.2.0
+    /// Group: Geo
+    /// Complexity: O(log(N)) for each item added, where N is the number of elements in the sorted set.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @geo
+    /// * @slow
+    #[cfg(feature = "geospatial")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
+    fn geoadd_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, longitude_latitude_member: T0) {
         cmd("GEOADD").arg(key).arg(longitude_latitude_member)
     }
 
@@ -3591,6 +7431,12 @@ implement_commands! {
     /// Since: Redis 3.2.0
     /// Group: Geo
     /// Complexity: O(log(N))
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @geo
+    /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     fn geodist<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, member1: T0, member2: T1) {
@@ -3604,9 +7450,34 @@ implement_commands! {
     /// Since: Redis 3.2.0
     /// Group: Geo
     /// Complexity: O(log(N)) for each member requested, where N is the number of elements in the sorted set.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @geo
+    /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geohash<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
+    fn geohash<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: &'a [T0]) {
+        cmd("GEOHASH").arg(key).arg(member)
+    }
+
+    /// GEOHASH (Sliceless caller)
+    /// 
+    /// Returns members of a geospatial index as standard geohash strings
+    /// 
+    /// Since: Redis 3.2.0
+    /// Group: Geo
+    /// Complexity: O(log(N)) for each member requested, where N is the number of elements in the sorted set.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @geo
+    /// * @slow
+    #[cfg(feature = "geospatial")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
+    fn geohash_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
         cmd("GEOHASH").arg(key).arg(member)
     }
 
@@ -3617,9 +7488,34 @@ implement_commands! {
     /// Since: Redis 3.2.0
     /// Group: Geo
     /// Complexity: O(N) where N is the number of members requested.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @geo
+    /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geopos<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
+    fn geopos<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: &'a [T0]) {
+        cmd("GEOPOS").arg(key).arg(member)
+    }
+
+    /// GEOPOS (Sliceless caller)
+    /// 
+    /// Returns longitude and latitude of members of a geospatial index
+    /// 
+    /// Since: Redis 3.2.0
+    /// Group: Geo
+    /// Complexity: O(N) where N is the number of members requested.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @geo
+    /// * @slow
+    #[cfg(feature = "geospatial")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
+    fn geopos_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) {
         cmd("GEOPOS").arg(key).arg(member)
     }
 
@@ -3632,6 +7528,14 @@ implement_commands! {
     /// Replaced By: `GEOSEARCH` and `GEOSEARCHSTORE` with the `BYRADIUS` argument
     /// Complexity: O(N+log(M)) where N is the number of elements inside the bounding box of the circular area delimited by center and radius and M is the number of items inside the index.
     /// Replaced By: `GEOSEARCH` and `GEOSEARCHSTORE` with the `BYRADIUS` argument
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @geo
+    /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated]    fn georadius<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(key: K0, longitude: T0, latitude: T1, radius: T2, count: Option<T3>) {
@@ -3647,6 +7551,14 @@ implement_commands! {
     /// Replaced By: `GEOSEARCH` and `GEOSEARCHSTORE` with the `BYRADIUS` and `FROMMEMBER` arguments
     /// Complexity: O(N+log(M)) where N is the number of elements inside the bounding box of the circular area delimited by center and radius and M is the number of items inside the index.
     /// Replaced By: `GEOSEARCH` and `GEOSEARCHSTORE` with the `BYRADIUS` and `FROMMEMBER` arguments
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @geo
+    /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated]    fn georadiusbymember<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs>(key: K0, member: T0, radius: T1, count: Option<T2>) {
@@ -3662,6 +7574,12 @@ implement_commands! {
     /// Replaced By: `GEOSEARCH` with the `BYRADIUS` and `FROMMEMBER` arguments
     /// Complexity: O(N+log(M)) where N is the number of elements inside the bounding box of the circular area delimited by center and radius and M is the number of items inside the index.
     /// Replaced By: `GEOSEARCH` with the `BYRADIUS` and `FROMMEMBER` arguments
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @geo
+    /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated]    fn georadiusbymember_ro<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs>(key: K0, member: T0, radius: T1, count: Option<T2>) {
@@ -3677,6 +7595,12 @@ implement_commands! {
     /// Replaced By: `GEOSEARCH` with the `BYRADIUS` argument
     /// Complexity: O(N+log(M)) where N is the number of elements inside the bounding box of the circular area delimited by center and radius and M is the number of items inside the index.
     /// Replaced By: `GEOSEARCH` with the `BYRADIUS` argument
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @geo
+    /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated]    fn georadius_ro<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(key: K0, longitude: T0, latitude: T1, radius: T2, count: Option<T3>) {
@@ -3690,6 +7614,12 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: Geo
     /// Complexity: O(N+log(M)) where N is the number of elements in the grid-aligned bounding box area around the shape provided as the filter and M is the number of items inside the shape
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @geo
+    /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     fn geosearch<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, count: Option<T0>) {
@@ -3703,6 +7633,13 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: Geo
     /// Complexity: O(N+log(M)) where N is the number of elements in the grid-aligned bounding box area around the shape provided as the filter and M is the number of items inside the shape
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @geo
+    /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     fn geosearchstore<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs>(destination: K0, source: K1, count: Option<T0>) {
@@ -3716,9 +7653,36 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1) for each message ID processed.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xack<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, group: T0, id: T1) {
+    fn xack<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, group: T0, id: &'a [T1]) {
+        cmd("XACK").arg(key).arg(group).arg(id)
+    }
+
+    /// XACK (Sliceless caller)
+    /// 
+    /// Marks a pending message as correctly processed, effectively removing it from the pending entries list of the consumer group. Return value of the command is the number of messages successfully acknowledged, that is, the IDs we were actually able to resolve in the PEL.
+    /// 
+    /// Since: Redis 5.0.0
+    /// Group: Stream
+    /// Complexity: O(1) for each message ID processed.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @fast
+    #[cfg(feature = "streams")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
+    fn xack_single<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, group: T0, id: T1) {
         cmd("XACK").arg(key).arg(group).arg(id)
     }
 
@@ -3729,9 +7693,38 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1) when adding a new entry, O(N) when trimming where N being the number of entries evicted.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xadd<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, trim: Option<T0>, field_value: T1) {
+    fn xadd<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, trim: Option<T0>, field_value: &'a [T1]) {
+        cmd("XADD").arg(key).arg(trim).arg(field_value)
+    }
+
+    /// XADD (Sliceless caller)
+    /// 
+    /// Appends a new entry to a stream
+    /// 
+    /// Since: Redis 5.0.0
+    /// Group: Stream
+    /// Complexity: O(1) when adding a new entry, O(N) when trimming where N being the number of entries evicted.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @fast
+    #[cfg(feature = "streams")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
+    fn xadd_single<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, trim: Option<T0>, field_value: T1) {
         cmd("XADD").arg(key).arg(trim).arg(field_value)
     }
 
@@ -3742,6 +7735,13 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: Stream
     /// Complexity: O(1) if COUNT is small.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xautoclaim<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(key: K0, group: T0, consumer: T1, min_idle_time: T2, start: T3) {
@@ -3755,9 +7755,36 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(log N) with N being the number of messages in the PEL of the consumer group.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xclaim<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(key: K0, group: T0, consumer: T1, min_idle_time: T2, id: T3) {
+    fn xclaim<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(key: K0, group: T0, consumer: T1, min_idle_time: T2, id: &'a [T3]) {
+        cmd("XCLAIM").arg(key).arg(group).arg(consumer).arg(min_idle_time).arg(id)
+    }
+
+    /// XCLAIM (Sliceless caller)
+    /// 
+    /// Changes (or acquires) ownership of a message in a consumer group, as if the message was delivered to the specified consumer.
+    /// 
+    /// Since: Redis 5.0.0
+    /// Group: Stream
+    /// Complexity: O(log N) with N being the number of messages in the PEL of the consumer group.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @fast
+    #[cfg(feature = "streams")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
+    fn xclaim_single<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(key: K0, group: T0, consumer: T1, min_idle_time: T2, id: T3) {
         cmd("XCLAIM").arg(key).arg(group).arg(consumer).arg(min_idle_time).arg(id)
     }
 
@@ -3768,9 +7795,36 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1) for each single item to delete in the stream, regardless of the stream size.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xdel<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, id: T0) {
+    fn xdel<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, id: &'a [T0]) {
+        cmd("XDEL").arg(key).arg(id)
+    }
+
+    /// XDEL (Sliceless caller)
+    /// 
+    /// Removes the specified entries from the stream. Returns the number of items actually deleted, that may be different from the number of IDs passed in case certain IDs do not exist.
+    /// 
+    /// Since: Redis 5.0.0
+    /// Group: Stream
+    /// Complexity: O(1) for each single item to delete in the stream, regardless of the stream size.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @fast
+    #[cfg(feature = "streams")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
+    fn xdel_single<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, id: T0) {
         cmd("XDEL").arg(key).arg(id)
     }
 
@@ -3781,6 +7835,8 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: Depends on subcommand.
+    /// ACL Categories:
+    /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xgroup<>() {
@@ -3794,6 +7850,13 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xgroup_create<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, groupname: T0) {
@@ -3807,6 +7870,13 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: Stream
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xgroup_createconsumer<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, groupname: T0, consumername: T1) {
@@ -3820,6 +7890,12 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xgroup_delconsumer<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, groupname: T0, consumername: T1) {
@@ -3833,6 +7909,12 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(N) where N is the number of entries in the group's pending entries list (PEL).
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xgroup_destroy<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, groupname: T0) {
@@ -3846,6 +7928,12 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @stream
+    /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xgroup_help<>() {
@@ -3859,6 +7947,12 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xgroup_setid<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, groupname: T0) {
@@ -3872,6 +7966,8 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: Depends on subcommand.
+    /// ACL Categories:
+    /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xinfo<>() {
@@ -3885,6 +7981,12 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @stream
+    /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xinfo_consumers<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, groupname: T0) {
@@ -3898,6 +8000,12 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @stream
+    /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xinfo_groups<K0: ToRedisArgs>(key: K0) {
@@ -3911,6 +8019,12 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
+    /// ACL Categories:
+    /// * @stream
+    /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xinfo_help<>() {
@@ -3924,6 +8038,12 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @stream
+    /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xinfo_stream<K0: ToRedisArgs>(key: K0) {
@@ -3937,6 +8057,13 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @stream
+    /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xlen<K0: ToRedisArgs>(key: K0) {
@@ -3950,6 +8077,12 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(N) with N being the number of elements returned, so asking for a small fixed number of entries per call is O(1). O(M), where M is the total number of entries scanned when used with the IDLE filter. When the command returns just the summary and the list of consumers is small, it runs in O(1) time; otherwise, an additional O(N) time for iterating every consumer.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @stream
+    /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xpending<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, group: T0, filters: Option<T1>) {
@@ -3963,6 +8096,12 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(N) with N being the number of elements being returned. If N is constant (e.g. always asking for the first 10 elements with COUNT), you can consider it O(1).
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @stream
+    /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, start: T0, end: T1) {
@@ -3976,6 +8115,15 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: For each stream mentioned: O(N) with N being the number of elements being returned, it means that XREAD-ing with a fixed COUNT is O(1). Note that when the BLOCK option is used, XADD will pay O(M) time in order to serve the M clients blocked on the stream getting new data.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Blocking: This command may block the requesting client.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @read
+    /// * @stream
+    /// * @slow
+    /// * @blocking
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xread<>() {
@@ -3989,6 +8137,15 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: For each stream mentioned: O(M) with M being the number of elements returned. If M is constant (e.g. always asking for the first 10 elements with COUNT), you can consider it O(1). On the other side when XREADGROUP blocks, XADD will pay the O(N) time in order to serve the N clients blocked on the stream getting new data.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Blocking: This command may block the requesting client.
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @slow
+    /// * @blocking
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xreadgroup<>() {
@@ -4002,6 +8159,12 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(N) with N being the number of elements returned. If N is constant (e.g. always asking for the first 10 elements with COUNT), you can consider it O(1).
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @stream
+    /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xrevrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, end: T0, start: T1) {
@@ -4015,6 +8178,14 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xsetid<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, last_id: T0) {
@@ -4028,6 +8199,12 @@ implement_commands! {
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(N), with N being the number of evicted entries. Constant times are very small however, since entries are organized in macro nodes containing multiple entries that can be released with a single deallocation.
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// ACL Categories:
+    /// * @write
+    /// * @stream
+    /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
     fn xtrim<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, trim: T0) {
@@ -4041,6 +8218,12 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Bitmap
     /// Complexity: O(N)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @bitmap
+    /// * @slow
     fn bitcount<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, index: Option<T0>) {
         cmd("BITCOUNT").arg(key).arg(index)
     }
@@ -4052,7 +8235,34 @@ implement_commands! {
     /// Since: Redis 3.2.0
     /// Group: Bitmap
     /// Complexity: O(1) for each subcommand specified
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @bitmap
+    /// * @slow
     fn bitfield<K0: ToRedisArgs>(key: K0) {
+        cmd("BITFIELD").arg(key)
+    }
+
+    /// BITFIELD (Sliceless caller)
+    /// 
+    /// Perform arbitrary bitfield integer operations on strings
+    /// 
+    /// Since: Redis 3.2.0
+    /// Group: Bitmap
+    /// Complexity: O(1) for each subcommand specified
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
+    /// ACL Categories:
+    /// * @write
+    /// * @bitmap
+    /// * @slow
+    fn bitfield_single<K0: ToRedisArgs>(key: K0) {
         cmd("BITFIELD").arg(key)
     }
 
@@ -4063,7 +8273,32 @@ implement_commands! {
     /// Since: Redis 6.2.0
     /// Group: Bitmap
     /// Complexity: O(1) for each subcommand specified
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @bitmap
+    /// * @fast
     fn bitfield_ro<K0: ToRedisArgs>(key: K0) {
+        cmd("BITFIELD_RO").arg(key)
+    }
+
+    /// BITFIELD_RO (Sliceless caller)
+    /// 
+    /// Perform arbitrary bitfield integer operations on strings. Read-only variant of BITFIELD
+    /// 
+    /// Since: Redis 6.2.0
+    /// Group: Bitmap
+    /// Complexity: O(1) for each subcommand specified
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @bitmap
+    /// * @fast
+    fn bitfield_ro_single<K0: ToRedisArgs>(key: K0) {
         cmd("BITFIELD_RO").arg(key)
     }
 
@@ -4074,7 +8309,32 @@ implement_commands! {
     /// Since: Redis 2.6.0
     /// Group: Bitmap
     /// Complexity: O(N)
-    fn bitop<T0: ToRedisArgs, K0: ToRedisArgs, K1: ToRedisArgs>(operation: T0, destkey: K0, key: K1) {
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @bitmap
+    /// * @slow
+    fn bitop<T0: ToRedisArgs, K0: ToRedisArgs, K1: ToRedisArgs>(operation: T0, destkey: K0, key: &'a [K1]) {
+        cmd("BITOP").arg(operation).arg(destkey).arg(key)
+    }
+
+    /// BITOP (Sliceless caller)
+    /// 
+    /// Perform bitwise operations between strings
+    /// 
+    /// Since: Redis 2.6.0
+    /// Group: Bitmap
+    /// Complexity: O(N)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @bitmap
+    /// * @slow
+    fn bitop_single<T0: ToRedisArgs, K0: ToRedisArgs, K1: ToRedisArgs>(operation: T0, destkey: K0, key: K1) {
         cmd("BITOP").arg(operation).arg(destkey).arg(key)
     }
 
@@ -4085,6 +8345,12 @@ implement_commands! {
     /// Since: Redis 2.8.7
     /// Group: Bitmap
     /// Complexity: O(N)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @bitmap
+    /// * @slow
     fn bitpos<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, bit: T0, index: Option<T1>) {
         cmd("BITPOS").arg(key).arg(bit).arg(index)
     }
@@ -4096,6 +8362,13 @@ implement_commands! {
     /// Since: Redis 2.2.0
     /// Group: Bitmap
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
+    /// ACL Categories:
+    /// * @read
+    /// * @bitmap
+    /// * @fast
     fn getbit<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, offset: T0) {
         cmd("GETBIT").arg(key).arg(offset)
     }
@@ -4107,6 +8380,13 @@ implement_commands! {
     /// Since: Redis 2.2.0
     /// Group: Bitmap
     /// Complexity: O(1)
+    /// CommandFlags:
+    /// * Write: This command may modify data.
+    /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
+    /// ACL Categories:
+    /// * @write
+    /// * @bitmap
+    /// * @slow
     fn setbit<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, offset: T0, value: T1) {
         cmd("SETBIT").arg(key).arg(offset).arg(value)
     }

@@ -9,7 +9,8 @@ mod commands;
 
 pub static BLACKLIST: &[&str] = &["SCAN", "HSCAN", "SSCAN", "ZSCAN", "CLIENT KILL"];
 pub static COMMAND_NAME_OVERWRITE: &[(&str, &str)] = &[];
-pub static COMMAND_COMPATIBILITY: &[(&str, &str)] = &[("GETDEL", "GET_DEL"), ("ZREMRANGEBYLEX", "ZREMBYLEX")];
+pub static COMMAND_COMPATIBILITY: &[(&str, &str)] =
+    &[("GETDEL", "GET_DEL"), ("ZREMRANGEBYLEX", "ZREMBYLEX")];
 
 pub struct CodeGenerator<'a> {
     depth: u8,
@@ -21,6 +22,11 @@ fn push_indent(buf: &mut String, depth: u8) {
         buf.push_str("    ");
     }
 }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum GenerationKind {
+    Full,
+    IgnoreMultiple,
+}
 
 impl<'a> CodeGenerator<'a> {
     pub fn generate(commands: CommandSet, buf: &mut String) {
@@ -31,20 +37,32 @@ impl<'a> CodeGenerator<'a> {
         code_gen.push_indent();
         code_gen.buf.push_str("'a\n\n");
 
+        dbg!(commands
+            .clone()
+            .into_iter()
+            .filter(|(_, x)| x.arguments.iter().any(|x| x.multiple))
+            .collect::<Vec<_>>());
+
         // Group commands by group and then by command name
         for (command, definition) in commands
             .into_iter()
             .sorted_by(|x, y| Ord::cmp(&x.1.group, &y.1.group).then(Ord::cmp(&x.0, &y.0)))
         {
             if !BLACKLIST.contains(&&*command) {
-                code_gen.append_command(command.clone(), definition.clone());
+                code_gen.append_command(command.clone(), definition.clone(), GenerationKind::Full);
+            }
+
+            // We would be better of instead of generating a whole implementation for this by just calling to the full generation, transforming in the fn body.
+            // This needs to wait until we get rid of the macro that currently creates the trait impls.
+            if definition.accepts_multiple() {
+                code_gen.append_command(command.clone(), definition.clone(), GenerationKind::IgnoreMultiple);
             }
 
             if let Some(backwarts_compatible_name) = COMMAND_COMPATIBILITY
                 .iter()
                 .find(|(name, _)| name == &&command)
             {
-                code_gen.append_command(backwarts_compatible_name.1.to_string(), definition);
+                code_gen.append_command(backwarts_compatible_name.1.to_string(), definition, GenerationKind::Full);
             }
         }
 
@@ -56,10 +74,10 @@ impl<'a> CodeGenerator<'a> {
         push_indent(self.buf, self.depth);
     }
 
-    fn append_command(&mut self, name: String, definition: CommandDefinition) {
+    fn append_command(&mut self, name: String, definition: CommandDefinition, kind: GenerationKind) {
         log::debug!("  command: {:?}", name);
 
-        let command = Command::new(name, &definition);
+        let command = Command::new(name, &definition, kind);
 
         self.append_doc(&command);
         self.append_feature_gate(&command);
@@ -81,6 +99,8 @@ impl<'a> CodeGenerator<'a> {
         self.buf.push_str("}\n");
         self.buf.push('\n');
     }
+
+
 
     // Todo Improve docs. Add complexity group etc.
     fn append_doc(&mut self, command: &Command) {
