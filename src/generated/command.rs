@@ -1,36 +1,8 @@
 use crate::types::{FromRedisValue, NumericBehavior, RedisResult, ToRedisArgs, RedisWrite, Expiry};
 use crate::connection::{Connection, ConnectionLike, Msg};
-use crate::cmd::{Cmd, Iter};
+use crate::cmd::{cmd, Cmd};
 
-/// Implements common redis commands for connection like objects.  This
-/// allows you to send commands straight to a connection or client.  It
-/// is also implemented for redis results of clients which makes for
-/// very convenient access in some basic cases.
-/// 
-/// This allows you to use nicer syntax for some common operations.
-/// For instance this code:
-/// 
-/// ```rust,no_run
-/// # fn do_something() -> redis::RedisResult<()> {
-/// let client = redis::Client::open("redis://127.0.0.1/")?;
-/// let mut con = client.get_connection()?;
-/// redis::cmd("SET").arg("my_key").arg(42).execute(&mut con);
-/// assert_eq!(redis::cmd("GET").arg("my_key").query(&mut con), Ok(42));
-/// # Ok(()) }
-/// ```
-/// 
-/// Will become this:
-/// 
-/// ```rust,no_run
-/// # fn do_something() -> redis::RedisResult<()> {
-/// use redis::Commands;
-/// let client = redis::Client::open("redis://127.0.0.1/")?;
-/// let mut con = client.get_connection()?;
-/// con.set("my_key", 42)?;
-/// assert_eq!(con.get("my_key"), Ok(42));
-/// # Ok(()) }
-/// ```
-pub trait Commands : ConnectionLike + Sized {
+impl Cmd {
     /// COPY
     /// 
     /// Copy a key
@@ -45,8 +17,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @write
     /// * @slow
-    fn copy<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, source: K0, destination: K1) -> RedisResult<RV> {
-        Cmd::copy(source, destination).query(self)
+    pub fn copy<K0: ToRedisArgs, K1: ToRedisArgs>(source: K0, destination: K1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("COPY");
+        rv.arg(source);
+        rv.arg(destination);
+        rv
     }
 
     /// DEL
@@ -62,8 +38,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @write
     /// * @slow
-    fn del<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::del(key).query(self)
+    pub fn del<'a, K0: ToRedisArgs>(key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("DEL");
+        rv.arg(key);
+        rv
     }
 
     /// DUMP
@@ -79,8 +58,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @read
     /// * @slow
-    fn dump<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::dump(key).query(self)
+    pub fn dump<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("DUMP");
+        rv.arg(key);
+        rv
     }
 
     /// EXISTS
@@ -97,8 +79,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @read
     /// * @fast
-    fn exists<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::exists(key).query(self)
+    pub fn exists<'a, K0: ToRedisArgs>(key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("EXISTS");
+        rv.arg(key);
+        rv
     }
 
     /// EXPIRE
@@ -115,8 +100,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @write
     /// * @fast
-    fn expire<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, seconds: i64) -> RedisResult<RV> {
-        Cmd::expire(key, seconds).query(self)
+    pub fn expire<K0: ToRedisArgs>(key: K0, seconds: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("EXPIRE");
+        rv.arg(key);
+        rv.arg(seconds);
+        rv
     }
 
     /// EXPIREAT
@@ -133,8 +122,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @write
     /// * @fast
-    fn expireat<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::expireat(key).query(self)
+    pub fn expireat<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("EXPIREAT");
+        rv.arg(key);
+        rv
     }
 
     /// EXPIRETIME
@@ -151,8 +143,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @read
     /// * @fast
-    fn expiretime<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::expiretime(key).query(self)
+    pub fn expiretime<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("EXPIRETIME");
+        rv.arg(key);
+        rv
     }
 
     /// KEYS
@@ -169,8 +164,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @slow
     /// * @dangerous
-    fn keys<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, pattern: K0) -> RedisResult<RV> {
-        Cmd::keys(pattern).query(self)
+    pub fn keys<K0: ToRedisArgs>(pattern: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("KEYS");
+        rv.arg(pattern);
+        rv
     }
 
     /// MIGRATE
@@ -188,8 +186,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @slow
     /// * @dangerous
-    fn migrate<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, host: T0, port: i64, destination_db: i64, timeout: i64) -> RedisResult<RV> {
-        Cmd::migrate(host, port, destination_db, timeout).query(self)
+    pub fn migrate<T0: ToRedisArgs>(host: T0, port: i64, destination_db: i64, timeout: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MIGRATE");
+        rv.arg(host);
+        rv.arg(port);
+        rv.arg(destination_db);
+        rv.arg(timeout);
+        rv
     }
 
     /// MOVE
@@ -206,8 +210,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @write
     /// * @fast
-    fn move_key<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, db: i64) -> RedisResult<RV> {
-        Cmd::move_key(key, db).query(self)
+    pub fn move_key<K0: ToRedisArgs>(key: K0, db: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MOVE");
+        rv.arg(key);
+        rv.arg(db);
+        rv
     }
 
     /// OBJECT ENCODING
@@ -223,8 +231,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @read
     /// * @slow
-    fn object_encoding<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::object_encoding(key).query(self)
+    pub fn object_encoding<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("OBJECT ENCODING");
+        rv.arg(key);
+        rv
     }
 
     /// OBJECT FREQ
@@ -240,8 +251,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @read
     /// * @slow
-    fn object_freq<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::object_freq(key).query(self)
+    pub fn object_freq<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("OBJECT FREQ");
+        rv.arg(key);
+        rv
     }
 
     /// OBJECT HELP
@@ -257,8 +271,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @keyspace
     /// * @slow
-    fn object_help<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::object_help().query(self)
+    pub fn object_help() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("OBJECT HELP");
+        rv
     }
 
     /// OBJECT IDLETIME
@@ -274,8 +290,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @read
     /// * @slow
-    fn object_idletime<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::object_idletime(key).query(self)
+    pub fn object_idletime<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("OBJECT IDLETIME");
+        rv.arg(key);
+        rv
     }
 
     /// OBJECT REFCOUNT
@@ -291,8 +310,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @read
     /// * @slow
-    fn object_refcount<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::object_refcount(key).query(self)
+    pub fn object_refcount<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("OBJECT REFCOUNT");
+        rv.arg(key);
+        rv
     }
 
     /// PERSIST
@@ -309,8 +331,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @write
     /// * @fast
-    fn persist<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::persist(key).query(self)
+    pub fn persist<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PERSIST");
+        rv.arg(key);
+        rv
     }
 
     /// PEXPIRE
@@ -327,8 +352,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @write
     /// * @fast
-    fn pexpire<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, milliseconds: i64) -> RedisResult<RV> {
-        Cmd::pexpire(key, milliseconds).query(self)
+    pub fn pexpire<K0: ToRedisArgs>(key: K0, milliseconds: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PEXPIRE");
+        rv.arg(key);
+        rv.arg(milliseconds);
+        rv
     }
 
     /// PEXPIREAT
@@ -345,8 +374,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @write
     /// * @fast
-    fn pexpireat<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::pexpireat(key).query(self)
+    pub fn pexpireat<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PEXPIREAT");
+        rv.arg(key);
+        rv
     }
 
     /// PEXPIRETIME
@@ -363,8 +395,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @read
     /// * @fast
-    fn pexpiretime<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::pexpiretime(key).query(self)
+    pub fn pexpiretime<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PEXPIRETIME");
+        rv.arg(key);
+        rv
     }
 
     /// PTTL
@@ -381,8 +416,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @read
     /// * @fast
-    fn pttl<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::pttl(key).query(self)
+    pub fn pttl<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PTTL");
+        rv.arg(key);
+        rv
     }
 
     /// RANDOMKEY
@@ -398,8 +436,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @read
     /// * @slow
-    fn randomkey<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::randomkey().query(self)
+    pub fn randomkey() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("RANDOMKEY");
+        rv
     }
 
     /// RENAME
@@ -415,8 +455,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @write
     /// * @slow
-    fn rename<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, newkey: K1) -> RedisResult<RV> {
-        Cmd::rename(key, newkey).query(self)
+    pub fn rename<K0: ToRedisArgs, K1: ToRedisArgs>(key: K0, newkey: K1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("RENAME");
+        rv.arg(key);
+        rv.arg(newkey);
+        rv
     }
 
     /// RENAMENX
@@ -433,8 +477,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @write
     /// * @fast
-    fn renamenx<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, newkey: K1) -> RedisResult<RV> {
-        Cmd::renamenx(key, newkey).query(self)
+    pub fn renamenx<K0: ToRedisArgs, K1: ToRedisArgs>(key: K0, newkey: K1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("RENAMENX");
+        rv.arg(key);
+        rv.arg(newkey);
+        rv
     }
 
     /// RESTORE
@@ -452,8 +500,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @slow
     /// * @dangerous
-    fn restore<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, ttl: i64, serialized_value: T0) -> RedisResult<RV> {
-        Cmd::restore(key, ttl, serialized_value).query(self)
+    pub fn restore<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, ttl: i64, serialized_value: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("RESTORE");
+        rv.arg(key);
+        rv.arg(ttl);
+        rv.arg(serialized_value);
+        rv
     }
 
     /// SORT
@@ -474,8 +527,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @list
     /// * @slow
     /// * @dangerous
-    fn sort<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::sort(key).query(self)
+    pub fn sort<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SORT");
+        rv.arg(key);
+        rv
     }
 
     /// SORT_RO
@@ -495,8 +551,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @list
     /// * @slow
     /// * @dangerous
-    fn sort_ro<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::sort_ro(key).query(self)
+    pub fn sort_ro<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SORT_RO");
+        rv.arg(key);
+        rv
     }
 
     /// TOUCH
@@ -513,8 +572,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @read
     /// * @fast
-    fn touch<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::touch(key).query(self)
+    pub fn touch<'a, K0: ToRedisArgs>(key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("TOUCH");
+        rv.arg(key);
+        rv
     }
 
     /// TTL
@@ -531,8 +593,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @read
     /// * @fast
-    fn ttl<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::ttl(key).query(self)
+    pub fn ttl<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("TTL");
+        rv.arg(key);
+        rv
     }
 
     /// TYPE
@@ -549,8 +614,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @read
     /// * @fast
-    fn r#type<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::r#type(key).query(self)
+    pub fn r#type<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("TYPE");
+        rv.arg(key);
+        rv
     }
 
     /// UNLINK
@@ -567,8 +635,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @write
     /// * @fast
-    fn unlink<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::unlink(key).query(self)
+    pub fn unlink<'a, K0: ToRedisArgs>(key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("UNLINK");
+        rv.arg(key);
+        rv
     }
 
     /// WAIT
@@ -583,8 +654,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn wait<RV: FromRedisValue>(&mut self, numreplicas: i64, timeout: i64) -> RedisResult<RV> {
-        Cmd::wait(numreplicas, timeout).query(self)
+    pub fn wait(numreplicas: i64, timeout: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("WAIT");
+        rv.arg(numreplicas);
+        rv.arg(timeout);
+        rv
     }
 
     /// APPEND
@@ -602,8 +677,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @fast
-    fn append<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, value: T0) -> RedisResult<RV> {
-        Cmd::append(key, value).query(self)
+    pub fn append<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, value: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("APPEND");
+        rv.arg(key);
+        rv.arg(value);
+        rv
     }
 
     /// DECR
@@ -621,8 +700,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @fast
-    fn decr<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::decr(key).query(self)
+    pub fn decr<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("DECR");
+        rv.arg(key);
+        rv
     }
 
     /// DECRBY
@@ -640,8 +722,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @fast
-    fn decrby<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, decrement: i64) -> RedisResult<RV> {
-        Cmd::decrby(key, decrement).query(self)
+    pub fn decrby<K0: ToRedisArgs>(key: K0, decrement: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("DECRBY");
+        rv.arg(key);
+        rv.arg(decrement);
+        rv
     }
 
     /// GET
@@ -658,8 +744,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @string
     /// * @fast
-    fn get<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::get(key).query(self)
+    pub fn get<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GET");
+        rv.arg(key);
+        rv
     }
 
     /// GETDEL
@@ -676,8 +765,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @fast
-    fn getdel<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::getdel(key).query(self)
+    pub fn getdel<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GETDEL");
+        rv.arg(key);
+        rv
     }
 
     /// GETDEL
@@ -694,8 +786,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @fast
-    fn get_del<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::get_del(key).query(self)
+    pub fn get_del<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GETDEL");
+        rv.arg(key);
+        rv
     }
 
     /// GETEX
@@ -712,8 +807,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @fast
-    fn getex<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::getex(key).query(self)
+    pub fn getex<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GETEX");
+        rv.arg(key);
+        rv
     }
 
     /// GETRANGE
@@ -729,8 +827,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @string
     /// * @slow
-    fn getrange<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, start: i64, end: i64) -> RedisResult<RV> {
-        Cmd::getrange(key, start, end).query(self)
+    pub fn getrange<K0: ToRedisArgs>(key: K0, start: i64, end: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GETRANGE");
+        rv.arg(key);
+        rv.arg(start);
+        rv.arg(end);
+        rv
     }
 
     /// GETSET
@@ -751,8 +854,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @string
     /// * @fast
     #[deprecated]
-    fn getset<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, value: T0) -> RedisResult<RV> {
-        Cmd::getset(key, value).query(self)
+    pub fn getset<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, value: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GETSET");
+        rv.arg(key);
+        rv.arg(value);
+        rv
     }
 
     /// INCR
@@ -770,8 +877,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @fast
-    fn incr<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::incr(key).query(self)
+    pub fn incr<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("INCR");
+        rv.arg(key);
+        rv
     }
 
     /// INCRBY
@@ -789,8 +899,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @fast
-    fn incrby<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, increment: i64) -> RedisResult<RV> {
-        Cmd::incrby(key, increment).query(self)
+    pub fn incrby<K0: ToRedisArgs>(key: K0, increment: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("INCRBY");
+        rv.arg(key);
+        rv.arg(increment);
+        rv
     }
 
     /// INCRBYFLOAT
@@ -808,8 +922,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @fast
-    fn incrbyfloat<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, increment: f64) -> RedisResult<RV> {
-        Cmd::incrbyfloat(key, increment).query(self)
+    pub fn incrbyfloat<K0: ToRedisArgs>(key: K0, increment: f64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("INCRBYFLOAT");
+        rv.arg(key);
+        rv.arg(increment);
+        rv
     }
 
     /// LCS
@@ -825,8 +943,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @string
     /// * @slow
-    fn lcs<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, key1: K0, key2: K1) -> RedisResult<RV> {
-        Cmd::lcs(key1, key2).query(self)
+    pub fn lcs<K0: ToRedisArgs, K1: ToRedisArgs>(key1: K0, key2: K1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LCS");
+        rv.arg(key1);
+        rv.arg(key2);
+        rv
     }
 
     /// MGET
@@ -843,8 +965,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @string
     /// * @fast
-    fn mget<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::mget(key).query(self)
+    pub fn mget<'a, K0: ToRedisArgs>(key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MGET");
+        rv.arg(key);
+        rv
     }
 
     /// MSET
@@ -861,8 +986,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @slow
-    fn mset<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key_value: &'a [T0]) -> RedisResult<RV> {
-        Cmd::mset(key_value).query(self)
+    pub fn mset<'a, T0: ToRedisArgs>(key_value: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MSET");
+        rv.arg(key_value);
+        rv
     }
 
     /// MSETNX
@@ -879,8 +1007,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @slow
-    fn msetnx<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key_value: &'a [T0]) -> RedisResult<RV> {
-        Cmd::msetnx(key_value).query(self)
+    pub fn msetnx<'a, T0: ToRedisArgs>(key_value: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MSETNX");
+        rv.arg(key_value);
+        rv
     }
 
     /// PSETEX
@@ -897,8 +1028,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @slow
-    fn psetex<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, milliseconds: i64, value: T0) -> RedisResult<RV> {
-        Cmd::psetex(key, milliseconds, value).query(self)
+    pub fn psetex<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, milliseconds: i64, value: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PSETEX");
+        rv.arg(key);
+        rv.arg(milliseconds);
+        rv.arg(value);
+        rv
     }
 
     /// SET
@@ -916,8 +1052,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @slow
-    fn set<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, value: T0) -> RedisResult<RV> {
-        Cmd::set(key, value).query(self)
+    pub fn set<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, value: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SET");
+        rv.arg(key);
+        rv.arg(value);
+        rv
     }
 
     /// SETEX
@@ -934,8 +1074,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @slow
-    fn setex<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, seconds: i64, value: T0) -> RedisResult<RV> {
-        Cmd::setex(key, seconds, value).query(self)
+    pub fn setex<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, seconds: i64, value: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SETEX");
+        rv.arg(key);
+        rv.arg(seconds);
+        rv.arg(value);
+        rv
     }
 
     /// SETNX
@@ -953,8 +1098,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @fast
-    fn setnx<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, value: T0) -> RedisResult<RV> {
-        Cmd::setnx(key, value).query(self)
+    pub fn setnx<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, value: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SETNX");
+        rv.arg(key);
+        rv.arg(value);
+        rv
     }
 
     /// SETRANGE
@@ -971,8 +1120,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @slow
-    fn setrange<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, offset: i64, value: T0) -> RedisResult<RV> {
-        Cmd::setrange(key, offset, value).query(self)
+    pub fn setrange<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, offset: i64, value: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SETRANGE");
+        rv.arg(key);
+        rv.arg(offset);
+        rv.arg(value);
+        rv
     }
 
     /// STRLEN
@@ -989,8 +1143,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @string
     /// * @fast
-    fn strlen<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::strlen(key).query(self)
+    pub fn strlen<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("STRLEN");
+        rv.arg(key);
+        rv
     }
 
     /// SUBSTR
@@ -1009,8 +1166,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @string
     /// * @slow
     #[deprecated]
-    fn substr<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, start: i64, end: i64) -> RedisResult<RV> {
-        Cmd::substr(key, start, end).query(self)
+    pub fn substr<K0: ToRedisArgs>(key: K0, start: i64, end: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SUBSTR");
+        rv.arg(key);
+        rv.arg(start);
+        rv.arg(end);
+        rv
     }
 
     /// BLMOVE
@@ -1030,8 +1192,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @list
     /// * @slow
     /// * @blocking
-    fn blmove<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, source: K0, destination: K1, timeout: f64) -> RedisResult<RV> {
-        Cmd::blmove(source, destination, timeout).query(self)
+    pub fn blmove<K0: ToRedisArgs, K1: ToRedisArgs>(source: K0, destination: K1, timeout: f64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("BLMOVE");
+        rv.arg(source);
+        rv.arg(destination);
+        rv.arg(timeout);
+        rv
     }
 
     /// BLMPOP
@@ -1050,8 +1217,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @list
     /// * @slow
     /// * @blocking
-    fn blmpop<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, timeout: f64, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::blmpop(timeout, numkeys, key).query(self)
+    pub fn blmpop<'a, K0: ToRedisArgs>(timeout: f64, numkeys: i64, key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("BLMPOP");
+        rv.arg(timeout);
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv
     }
 
     /// BLPOP
@@ -1070,8 +1242,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @list
     /// * @slow
     /// * @blocking
-    fn blpop<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0], timeout: f64) -> RedisResult<RV> {
-        Cmd::blpop(key, timeout).query(self)
+    pub fn blpop<'a, K0: ToRedisArgs>(key: &'a [K0], timeout: f64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("BLPOP");
+        rv.arg(key);
+        rv.arg(timeout);
+        rv
     }
 
     /// BRPOP
@@ -1090,8 +1266,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @list
     /// * @slow
     /// * @blocking
-    fn brpop<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0], timeout: f64) -> RedisResult<RV> {
-        Cmd::brpop(key, timeout).query(self)
+    pub fn brpop<'a, K0: ToRedisArgs>(key: &'a [K0], timeout: f64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("BRPOP");
+        rv.arg(key);
+        rv.arg(timeout);
+        rv
     }
 
     /// BRPOPLPUSH
@@ -1114,8 +1294,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     /// * @blocking
     #[deprecated]
-    fn brpoplpush<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, source: K0, destination: K1, timeout: f64) -> RedisResult<RV> {
-        Cmd::brpoplpush(source, destination, timeout).query(self)
+    pub fn brpoplpush<K0: ToRedisArgs, K1: ToRedisArgs>(source: K0, destination: K1, timeout: f64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("BRPOPLPUSH");
+        rv.arg(source);
+        rv.arg(destination);
+        rv.arg(timeout);
+        rv
     }
 
     /// LINDEX
@@ -1131,8 +1316,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @list
     /// * @slow
-    fn lindex<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, index: i64) -> RedisResult<RV> {
-        Cmd::lindex(key, index).query(self)
+    pub fn lindex<K0: ToRedisArgs>(key: K0, index: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LINDEX");
+        rv.arg(key);
+        rv.arg(index);
+        rv
     }
 
     /// LINSERT
@@ -1149,8 +1338,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @slow
-    fn linsert<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, pivot: T0, element: T1) -> RedisResult<RV> {
-        Cmd::linsert(key, pivot, element).query(self)
+    pub fn linsert<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, pivot: T0, element: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LINSERT");
+        rv.arg(key);
+        rv.arg(pivot);
+        rv.arg(element);
+        rv
     }
 
     /// LLEN
@@ -1167,8 +1361,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @list
     /// * @fast
-    fn llen<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::llen(key).query(self)
+    pub fn llen<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LLEN");
+        rv.arg(key);
+        rv
     }
 
     /// LMOVE
@@ -1185,8 +1382,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @slow
-    fn lmove<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, source: K0, destination: K1) -> RedisResult<RV> {
-        Cmd::lmove(source, destination).query(self)
+    pub fn lmove<K0: ToRedisArgs, K1: ToRedisArgs>(source: K0, destination: K1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LMOVE");
+        rv.arg(source);
+        rv.arg(destination);
+        rv
     }
 
     /// LMPOP
@@ -1203,8 +1404,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @slow
-    fn lmpop<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::lmpop(numkeys, key).query(self)
+    pub fn lmpop<'a, K0: ToRedisArgs>(numkeys: i64, key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LMPOP");
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv
     }
 
     /// LPOP
@@ -1221,8 +1426,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @fast
-    fn lpop<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, count: Option<i64>) -> RedisResult<RV> {
-        Cmd::lpop(key, count).query(self)
+    pub fn lpop<K0: ToRedisArgs>(key: K0, count: Option<i64>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LPOP");
+        rv.arg(key);
+        rv.arg(count);
+        rv
     }
 
     /// LPOS
@@ -1238,8 +1447,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @list
     /// * @slow
-    fn lpos<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, element: T0) -> RedisResult<RV> {
-        Cmd::lpos(key, element).query(self)
+    pub fn lpos<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LPOS");
+        rv.arg(key);
+        rv.arg(element);
+        rv
     }
 
     /// LPUSH
@@ -1257,8 +1470,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @fast
-    fn lpush<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, element: &'a [T0]) -> RedisResult<RV> {
-        Cmd::lpush(key, element).query(self)
+    pub fn lpush<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LPUSH");
+        rv.arg(key);
+        rv.arg(element);
+        rv
     }
 
     /// LPUSHX
@@ -1276,8 +1493,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @fast
-    fn lpushx<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, element: &'a [T0]) -> RedisResult<RV> {
-        Cmd::lpushx(key, element).query(self)
+    pub fn lpushx<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LPUSHX");
+        rv.arg(key);
+        rv.arg(element);
+        rv
     }
 
     /// LRANGE
@@ -1293,8 +1514,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @list
     /// * @slow
-    fn lrange<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, start: i64, stop: i64) -> RedisResult<RV> {
-        Cmd::lrange(key, start, stop).query(self)
+    pub fn lrange<K0: ToRedisArgs>(key: K0, start: i64, stop: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LRANGE");
+        rv.arg(key);
+        rv.arg(start);
+        rv.arg(stop);
+        rv
     }
 
     /// LREM
@@ -1310,8 +1536,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @slow
-    fn lrem<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, count: i64, element: T0) -> RedisResult<RV> {
-        Cmd::lrem(key, count, element).query(self)
+    pub fn lrem<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, count: i64, element: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LREM");
+        rv.arg(key);
+        rv.arg(count);
+        rv.arg(element);
+        rv
     }
 
     /// LSET
@@ -1328,8 +1559,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @slow
-    fn lset<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, index: i64, element: T0) -> RedisResult<RV> {
-        Cmd::lset(key, index, element).query(self)
+    pub fn lset<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, index: i64, element: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LSET");
+        rv.arg(key);
+        rv.arg(index);
+        rv.arg(element);
+        rv
     }
 
     /// LTRIM
@@ -1345,8 +1581,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @slow
-    fn ltrim<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, start: i64, stop: i64) -> RedisResult<RV> {
-        Cmd::ltrim(key, start, stop).query(self)
+    pub fn ltrim<K0: ToRedisArgs>(key: K0, start: i64, stop: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LTRIM");
+        rv.arg(key);
+        rv.arg(start);
+        rv.arg(stop);
+        rv
     }
 
     /// RPOP
@@ -1363,8 +1604,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @fast
-    fn rpop<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, count: Option<i64>) -> RedisResult<RV> {
-        Cmd::rpop(key, count).query(self)
+    pub fn rpop<K0: ToRedisArgs>(key: K0, count: Option<i64>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("RPOP");
+        rv.arg(key);
+        rv.arg(count);
+        rv
     }
 
     /// RPOPLPUSH
@@ -1384,8 +1629,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @list
     /// * @slow
     #[deprecated]
-    fn rpoplpush<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, source: K0, destination: K1) -> RedisResult<RV> {
-        Cmd::rpoplpush(source, destination).query(self)
+    pub fn rpoplpush<K0: ToRedisArgs, K1: ToRedisArgs>(source: K0, destination: K1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("RPOPLPUSH");
+        rv.arg(source);
+        rv.arg(destination);
+        rv
     }
 
     /// RPUSH
@@ -1403,8 +1652,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @fast
-    fn rpush<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, element: &'a [T0]) -> RedisResult<RV> {
-        Cmd::rpush(key, element).query(self)
+    pub fn rpush<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("RPUSH");
+        rv.arg(key);
+        rv.arg(element);
+        rv
     }
 
     /// RPUSHX
@@ -1422,8 +1675,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @fast
-    fn rpushx<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, element: &'a [T0]) -> RedisResult<RV> {
-        Cmd::rpushx(key, element).query(self)
+    pub fn rpushx<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("RPUSHX");
+        rv.arg(key);
+        rv.arg(element);
+        rv
     }
 
     /// SADD
@@ -1441,8 +1698,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @set
     /// * @fast
-    fn sadd<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &'a [T0]) -> RedisResult<RV> {
-        Cmd::sadd(key, member).query(self)
+    pub fn sadd<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SADD");
+        rv.arg(key);
+        rv.arg(member);
+        rv
     }
 
     /// SCARD
@@ -1459,8 +1720,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @set
     /// * @fast
-    fn scard<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::scard(key).query(self)
+    pub fn scard<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SCARD");
+        rv.arg(key);
+        rv
     }
 
     /// SDIFF
@@ -1476,8 +1740,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @set
     /// * @slow
-    fn sdiff<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::sdiff(key).query(self)
+    pub fn sdiff<'a, K0: ToRedisArgs>(key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SDIFF");
+        rv.arg(key);
+        rv
     }
 
     /// SDIFFSTORE
@@ -1494,8 +1761,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @set
     /// * @slow
-    fn sdiffstore<'a, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, key: &'a [K1]) -> RedisResult<RV> {
-        Cmd::sdiffstore(destination, key).query(self)
+    pub fn sdiffstore<'a, K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, key: &'a [K1]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SDIFFSTORE");
+        rv.arg(destination);
+        rv.arg(key);
+        rv
     }
 
     /// SINTER
@@ -1511,8 +1782,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @set
     /// * @slow
-    fn sinter<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::sinter(key).query(self)
+    pub fn sinter<'a, K0: ToRedisArgs>(key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SINTER");
+        rv.arg(key);
+        rv
     }
 
     /// SINTERCARD
@@ -1529,8 +1803,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @set
     /// * @slow
-    fn sintercard<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::sintercard(numkeys, key).query(self)
+    pub fn sintercard<'a, K0: ToRedisArgs>(numkeys: i64, key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SINTERCARD");
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv
     }
 
     /// SINTERSTORE
@@ -1547,8 +1825,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @set
     /// * @slow
-    fn sinterstore<'a, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, key: &'a [K1]) -> RedisResult<RV> {
-        Cmd::sinterstore(destination, key).query(self)
+    pub fn sinterstore<'a, K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, key: &'a [K1]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SINTERSTORE");
+        rv.arg(destination);
+        rv.arg(key);
+        rv
     }
 
     /// SISMEMBER
@@ -1565,8 +1847,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @set
     /// * @fast
-    fn sismember<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: T0) -> RedisResult<RV> {
-        Cmd::sismember(key, member).query(self)
+    pub fn sismember<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SISMEMBER");
+        rv.arg(key);
+        rv.arg(member);
+        rv
     }
 
     /// SMEMBERS
@@ -1582,8 +1868,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @set
     /// * @slow
-    fn smembers<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::smembers(key).query(self)
+    pub fn smembers<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SMEMBERS");
+        rv.arg(key);
+        rv
     }
 
     /// SMISMEMBER
@@ -1600,8 +1889,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @set
     /// * @fast
-    fn smismember<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &'a [T0]) -> RedisResult<RV> {
-        Cmd::smismember(key, member).query(self)
+    pub fn smismember<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SMISMEMBER");
+        rv.arg(key);
+        rv.arg(member);
+        rv
     }
 
     /// SMOVE
@@ -1618,8 +1911,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @set
     /// * @fast
-    fn smove<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, source: K0, destination: K1, member: T0) -> RedisResult<RV> {
-        Cmd::smove(source, destination, member).query(self)
+    pub fn smove<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs>(source: K0, destination: K1, member: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SMOVE");
+        rv.arg(source);
+        rv.arg(destination);
+        rv.arg(member);
+        rv
     }
 
     /// SPOP
@@ -1636,8 +1934,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @set
     /// * @fast
-    fn spop<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, count: Option<i64>) -> RedisResult<RV> {
-        Cmd::spop(key, count).query(self)
+    pub fn spop<K0: ToRedisArgs>(key: K0, count: Option<i64>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SPOP");
+        rv.arg(key);
+        rv.arg(count);
+        rv
     }
 
     /// SRANDMEMBER
@@ -1653,8 +1955,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @set
     /// * @slow
-    fn srandmember<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, count: Option<i64>) -> RedisResult<RV> {
-        Cmd::srandmember(key, count).query(self)
+    pub fn srandmember<K0: ToRedisArgs>(key: K0, count: Option<i64>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SRANDMEMBER");
+        rv.arg(key);
+        rv.arg(count);
+        rv
     }
 
     /// SREM
@@ -1671,8 +1977,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @set
     /// * @fast
-    fn srem<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &'a [T0]) -> RedisResult<RV> {
-        Cmd::srem(key, member).query(self)
+    pub fn srem<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SREM");
+        rv.arg(key);
+        rv.arg(member);
+        rv
     }
 
     /// SUNION
@@ -1688,8 +1998,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @set
     /// * @slow
-    fn sunion<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::sunion(key).query(self)
+    pub fn sunion<'a, K0: ToRedisArgs>(key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SUNION");
+        rv.arg(key);
+        rv
     }
 
     /// SUNIONSTORE
@@ -1706,8 +2019,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @set
     /// * @slow
-    fn sunionstore<'a, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, key: &'a [K1]) -> RedisResult<RV> {
-        Cmd::sunionstore(destination, key).query(self)
+    pub fn sunionstore<'a, K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, key: &'a [K1]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SUNIONSTORE");
+        rv.arg(destination);
+        rv.arg(key);
+        rv
     }
 
     /// BZMPOP
@@ -1726,8 +2043,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @sortedset
     /// * @slow
     /// * @blocking
-    fn bzmpop<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, timeout: f64, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::bzmpop(timeout, numkeys, key).query(self)
+    pub fn bzmpop<'a, K0: ToRedisArgs>(timeout: f64, numkeys: i64, key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("BZMPOP");
+        rv.arg(timeout);
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv
     }
 
     /// BZPOPMAX
@@ -1747,8 +2069,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @sortedset
     /// * @fast
     /// * @blocking
-    fn bzpopmax<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0], timeout: f64) -> RedisResult<RV> {
-        Cmd::bzpopmax(key, timeout).query(self)
+    pub fn bzpopmax<'a, K0: ToRedisArgs>(key: &'a [K0], timeout: f64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("BZPOPMAX");
+        rv.arg(key);
+        rv.arg(timeout);
+        rv
     }
 
     /// BZPOPMIN
@@ -1768,8 +2094,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @sortedset
     /// * @fast
     /// * @blocking
-    fn bzpopmin<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0], timeout: f64) -> RedisResult<RV> {
-        Cmd::bzpopmin(key, timeout).query(self)
+    pub fn bzpopmin<'a, K0: ToRedisArgs>(key: &'a [K0], timeout: f64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("BZPOPMIN");
+        rv.arg(key);
+        rv.arg(timeout);
+        rv
     }
 
     /// ZADD
@@ -1787,8 +2117,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @fast
-    fn zadd<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, score_member: &'a [T0]) -> RedisResult<RV> {
-        Cmd::zadd(key, score_member).query(self)
+    pub fn zadd<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, score_member: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZADD");
+        rv.arg(key);
+        rv.arg(score_member);
+        rv
     }
 
     /// ZCARD
@@ -1805,8 +2139,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @fast
-    fn zcard<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::zcard(key).query(self)
+    pub fn zcard<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZCARD");
+        rv.arg(key);
+        rv
     }
 
     /// ZCOUNT
@@ -1823,8 +2160,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @fast
-    fn zcount<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, min: f64, max: f64) -> RedisResult<RV> {
-        Cmd::zcount(key, min, max).query(self)
+    pub fn zcount<K0: ToRedisArgs>(key: K0, min: f64, max: f64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZCOUNT");
+        rv.arg(key);
+        rv.arg(min);
+        rv.arg(max);
+        rv
     }
 
     /// ZDIFF
@@ -1841,8 +2183,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zdiff<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::zdiff(numkeys, key).query(self)
+    pub fn zdiff<'a, K0: ToRedisArgs>(numkeys: i64, key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZDIFF");
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv
     }
 
     /// ZDIFFSTORE
@@ -1860,8 +2206,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zdiffstore<'a, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, numkeys: i64, key: &'a [K1]) -> RedisResult<RV> {
-        Cmd::zdiffstore(destination, numkeys, key).query(self)
+    pub fn zdiffstore<'a, K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, numkeys: i64, key: &'a [K1]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZDIFFSTORE");
+        rv.arg(destination);
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv
     }
 
     /// ZINCRBY
@@ -1879,8 +2230,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @fast
-    fn zincrby<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, increment: i64, member: T0) -> RedisResult<RV> {
-        Cmd::zincrby(key, increment, member).query(self)
+    pub fn zincrby<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, increment: i64, member: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZINCRBY");
+        rv.arg(key);
+        rv.arg(increment);
+        rv.arg(member);
+        rv
     }
 
     /// ZINTER
@@ -1897,8 +2253,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zinter<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::zinter(numkeys, key).query(self)
+    pub fn zinter<'a, K0: ToRedisArgs>(numkeys: i64, key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZINTER");
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv
     }
 
     /// ZINTERCARD
@@ -1915,8 +2275,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zintercard<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::zintercard(numkeys, key).query(self)
+    pub fn zintercard<'a, K0: ToRedisArgs>(numkeys: i64, key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZINTERCARD");
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv
     }
 
     /// ZINTERSTORE
@@ -1934,8 +2298,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zinterstore<'a, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, numkeys: i64, key: &'a [K1]) -> RedisResult<RV> {
-        Cmd::zinterstore(destination, numkeys, key).query(self)
+    pub fn zinterstore<'a, K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, numkeys: i64, key: &'a [K1]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZINTERSTORE");
+        rv.arg(destination);
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv
     }
 
     /// ZLEXCOUNT
@@ -1952,8 +2321,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @fast
-    fn zlexcount<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, min: T0, max: T1) -> RedisResult<RV> {
-        Cmd::zlexcount(key, min, max).query(self)
+    pub fn zlexcount<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZLEXCOUNT");
+        rv.arg(key);
+        rv.arg(min);
+        rv.arg(max);
+        rv
     }
 
     /// ZMPOP
@@ -1970,8 +2344,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zmpop<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::zmpop(numkeys, key).query(self)
+    pub fn zmpop<'a, K0: ToRedisArgs>(numkeys: i64, key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZMPOP");
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv
     }
 
     /// ZMSCORE
@@ -1988,8 +2366,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @fast
-    fn zmscore<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &'a [T0]) -> RedisResult<RV> {
-        Cmd::zmscore(key, member).query(self)
+    pub fn zmscore<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZMSCORE");
+        rv.arg(key);
+        rv.arg(member);
+        rv
     }
 
     /// ZPOPMAX
@@ -2006,8 +2388,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @fast
-    fn zpopmax<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, count: Option<i64>) -> RedisResult<RV> {
-        Cmd::zpopmax(key, count).query(self)
+    pub fn zpopmax<K0: ToRedisArgs>(key: K0, count: Option<i64>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZPOPMAX");
+        rv.arg(key);
+        rv.arg(count);
+        rv
     }
 
     /// ZPOPMIN
@@ -2024,8 +2410,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @fast
-    fn zpopmin<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, count: Option<i64>) -> RedisResult<RV> {
-        Cmd::zpopmin(key, count).query(self)
+    pub fn zpopmin<K0: ToRedisArgs>(key: K0, count: Option<i64>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZPOPMIN");
+        rv.arg(key);
+        rv.arg(count);
+        rv
     }
 
     /// ZRANDMEMBER
@@ -2041,8 +2431,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zrandmember<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, options: Option<T0>) -> RedisResult<RV> {
-        Cmd::zrandmember(key, options).query(self)
+    pub fn zrandmember<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, options: Option<T0>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZRANDMEMBER");
+        rv.arg(key);
+        rv.arg(options);
+        rv
     }
 
     /// ZRANGE
@@ -2058,8 +2452,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, min: T0, max: T1) -> RedisResult<RV> {
-        Cmd::zrange(key, min, max).query(self)
+    pub fn zrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZRANGE");
+        rv.arg(key);
+        rv.arg(min);
+        rv.arg(max);
+        rv
     }
 
     /// ZRANGEBYLEX
@@ -2078,8 +2477,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @sortedset
     /// * @slow
     #[deprecated]
-    fn zrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, min: T0, max: T1) -> RedisResult<RV> {
-        Cmd::zrangebylex(key, min, max).query(self)
+    pub fn zrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZRANGEBYLEX");
+        rv.arg(key);
+        rv.arg(min);
+        rv.arg(max);
+        rv
     }
 
     /// ZRANGEBYSCORE
@@ -2098,8 +2502,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @sortedset
     /// * @slow
     #[deprecated]
-    fn zrangebyscore<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, min: f64, max: f64) -> RedisResult<RV> {
-        Cmd::zrangebyscore(key, min, max).query(self)
+    pub fn zrangebyscore<K0: ToRedisArgs>(key: K0, min: f64, max: f64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZRANGEBYSCORE");
+        rv.arg(key);
+        rv.arg(min);
+        rv.arg(max);
+        rv
     }
 
     /// ZRANGESTORE
@@ -2116,8 +2525,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zrangestore<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, dst: K0, src: K1, min: T0, max: T1) -> RedisResult<RV> {
-        Cmd::zrangestore(dst, src, min, max).query(self)
+    pub fn zrangestore<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(dst: K0, src: K1, min: T0, max: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZRANGESTORE");
+        rv.arg(dst);
+        rv.arg(src);
+        rv.arg(min);
+        rv.arg(max);
+        rv
     }
 
     /// ZRANK
@@ -2134,8 +2549,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @fast
-    fn zrank<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: T0) -> RedisResult<RV> {
-        Cmd::zrank(key, member).query(self)
+    pub fn zrank<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZRANK");
+        rv.arg(key);
+        rv.arg(member);
+        rv
     }
 
     /// ZREM
@@ -2152,8 +2571,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @fast
-    fn zrem<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &'a [T0]) -> RedisResult<RV> {
-        Cmd::zrem(key, member).query(self)
+    pub fn zrem<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZREM");
+        rv.arg(key);
+        rv.arg(member);
+        rv
     }
 
     /// ZREMRANGEBYLEX
@@ -2169,8 +2592,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zremrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, min: T0, max: T1) -> RedisResult<RV> {
-        Cmd::zremrangebylex(key, min, max).query(self)
+    pub fn zremrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZREMRANGEBYLEX");
+        rv.arg(key);
+        rv.arg(min);
+        rv.arg(max);
+        rv
     }
 
     /// ZREMRANGEBYLEX
@@ -2186,8 +2614,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zrembylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, min: T0, max: T1) -> RedisResult<RV> {
-        Cmd::zrembylex(key, min, max).query(self)
+    pub fn zrembylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZREMRANGEBYLEX");
+        rv.arg(key);
+        rv.arg(min);
+        rv.arg(max);
+        rv
     }
 
     /// ZREMRANGEBYRANK
@@ -2203,8 +2636,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zremrangebyrank<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, start: i64, stop: i64) -> RedisResult<RV> {
-        Cmd::zremrangebyrank(key, start, stop).query(self)
+    pub fn zremrangebyrank<K0: ToRedisArgs>(key: K0, start: i64, stop: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZREMRANGEBYRANK");
+        rv.arg(key);
+        rv.arg(start);
+        rv.arg(stop);
+        rv
     }
 
     /// ZREMRANGEBYSCORE
@@ -2220,8 +2658,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zremrangebyscore<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, min: f64, max: f64) -> RedisResult<RV> {
-        Cmd::zremrangebyscore(key, min, max).query(self)
+    pub fn zremrangebyscore<K0: ToRedisArgs>(key: K0, min: f64, max: f64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZREMRANGEBYSCORE");
+        rv.arg(key);
+        rv.arg(min);
+        rv.arg(max);
+        rv
     }
 
     /// ZREVRANGE
@@ -2240,8 +2683,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @sortedset
     /// * @slow
     #[deprecated]
-    fn zrevrange<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, start: i64, stop: i64) -> RedisResult<RV> {
-        Cmd::zrevrange(key, start, stop).query(self)
+    pub fn zrevrange<K0: ToRedisArgs>(key: K0, start: i64, stop: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZREVRANGE");
+        rv.arg(key);
+        rv.arg(start);
+        rv.arg(stop);
+        rv
     }
 
     /// ZREVRANGEBYLEX
@@ -2260,8 +2708,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @sortedset
     /// * @slow
     #[deprecated]
-    fn zrevrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, max: T0, min: T1) -> RedisResult<RV> {
-        Cmd::zrevrangebylex(key, max, min).query(self)
+    pub fn zrevrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, max: T0, min: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZREVRANGEBYLEX");
+        rv.arg(key);
+        rv.arg(max);
+        rv.arg(min);
+        rv
     }
 
     /// ZREVRANGEBYSCORE
@@ -2280,8 +2733,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @sortedset
     /// * @slow
     #[deprecated]
-    fn zrevrangebyscore<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, max: f64, min: f64) -> RedisResult<RV> {
-        Cmd::zrevrangebyscore(key, max, min).query(self)
+    pub fn zrevrangebyscore<K0: ToRedisArgs>(key: K0, max: f64, min: f64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZREVRANGEBYSCORE");
+        rv.arg(key);
+        rv.arg(max);
+        rv.arg(min);
+        rv
     }
 
     /// ZREVRANK
@@ -2298,8 +2756,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @fast
-    fn zrevrank<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: T0) -> RedisResult<RV> {
-        Cmd::zrevrank(key, member).query(self)
+    pub fn zrevrank<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZREVRANK");
+        rv.arg(key);
+        rv.arg(member);
+        rv
     }
 
     /// ZSCORE
@@ -2316,8 +2778,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @fast
-    fn zscore<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: T0) -> RedisResult<RV> {
-        Cmd::zscore(key, member).query(self)
+    pub fn zscore<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZSCORE");
+        rv.arg(key);
+        rv.arg(member);
+        rv
     }
 
     /// ZUNION
@@ -2334,8 +2800,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zunion<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::zunion(numkeys, key).query(self)
+    pub fn zunion<'a, K0: ToRedisArgs>(numkeys: i64, key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZUNION");
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv
     }
 
     /// ZUNIONSTORE
@@ -2353,8 +2823,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zunionstore<'a, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, numkeys: i64, key: &'a [K1]) -> RedisResult<RV> {
-        Cmd::zunionstore(destination, numkeys, key).query(self)
+    pub fn zunionstore<'a, K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, numkeys: i64, key: &'a [K1]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZUNIONSTORE");
+        rv.arg(destination);
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv
     }
 
     /// HDEL
@@ -2371,8 +2846,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @hash
     /// * @fast
-    fn hdel<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field: &'a [T0]) -> RedisResult<RV> {
-        Cmd::hdel(key, field).query(self)
+    pub fn hdel<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HDEL");
+        rv.arg(key);
+        rv.arg(field);
+        rv
     }
 
     /// HEXISTS
@@ -2389,8 +2868,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @hash
     /// * @fast
-    fn hexists<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field: T0) -> RedisResult<RV> {
-        Cmd::hexists(key, field).query(self)
+    pub fn hexists<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HEXISTS");
+        rv.arg(key);
+        rv.arg(field);
+        rv
     }
 
     /// HGET
@@ -2407,8 +2890,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @hash
     /// * @fast
-    fn hget<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field: T0) -> RedisResult<RV> {
-        Cmd::hget(key, field).query(self)
+    pub fn hget<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HGET");
+        rv.arg(key);
+        rv.arg(field);
+        rv
     }
 
     /// HGETALL
@@ -2424,8 +2911,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @hash
     /// * @slow
-    fn hgetall<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::hgetall(key).query(self)
+    pub fn hgetall<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HGETALL");
+        rv.arg(key);
+        rv
     }
 
     /// HINCRBY
@@ -2443,8 +2933,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @hash
     /// * @fast
-    fn hincrby<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field: T0, increment: i64) -> RedisResult<RV> {
-        Cmd::hincrby(key, field, increment).query(self)
+    pub fn hincrby<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field: T0, increment: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HINCRBY");
+        rv.arg(key);
+        rv.arg(field);
+        rv.arg(increment);
+        rv
     }
 
     /// HINCRBYFLOAT
@@ -2462,8 +2957,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @hash
     /// * @fast
-    fn hincrbyfloat<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field: T0, increment: f64) -> RedisResult<RV> {
-        Cmd::hincrbyfloat(key, field, increment).query(self)
+    pub fn hincrbyfloat<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field: T0, increment: f64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HINCRBYFLOAT");
+        rv.arg(key);
+        rv.arg(field);
+        rv.arg(increment);
+        rv
     }
 
     /// HKEYS
@@ -2479,8 +2979,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @hash
     /// * @slow
-    fn hkeys<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::hkeys(key).query(self)
+    pub fn hkeys<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HKEYS");
+        rv.arg(key);
+        rv
     }
 
     /// HLEN
@@ -2497,8 +3000,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @hash
     /// * @fast
-    fn hlen<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::hlen(key).query(self)
+    pub fn hlen<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HLEN");
+        rv.arg(key);
+        rv
     }
 
     /// HMGET
@@ -2515,8 +3021,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @hash
     /// * @fast
-    fn hmget<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field: &'a [T0]) -> RedisResult<RV> {
-        Cmd::hmget(key, field).query(self)
+    pub fn hmget<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HMGET");
+        rv.arg(key);
+        rv.arg(field);
+        rv
     }
 
     /// HMSET
@@ -2537,8 +3047,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @hash
     /// * @fast
     #[deprecated]
-    fn hmset<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field_value: &'a [T0]) -> RedisResult<RV> {
-        Cmd::hmset(key, field_value).query(self)
+    pub fn hmset<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field_value: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HMSET");
+        rv.arg(key);
+        rv.arg(field_value);
+        rv
     }
 
     /// HRANDFIELD
@@ -2554,8 +3068,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @hash
     /// * @slow
-    fn hrandfield<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, options: Option<T0>) -> RedisResult<RV> {
-        Cmd::hrandfield(key, options).query(self)
+    pub fn hrandfield<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, options: Option<T0>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HRANDFIELD");
+        rv.arg(key);
+        rv.arg(options);
+        rv
     }
 
     /// HSET
@@ -2573,8 +3091,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @hash
     /// * @fast
-    fn hset<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field_value: &'a [T0]) -> RedisResult<RV> {
-        Cmd::hset(key, field_value).query(self)
+    pub fn hset<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field_value: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HSET");
+        rv.arg(key);
+        rv.arg(field_value);
+        rv
     }
 
     /// HSETNX
@@ -2592,8 +3114,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @hash
     /// * @fast
-    fn hsetnx<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field: T0, value: T1) -> RedisResult<RV> {
-        Cmd::hsetnx(key, field, value).query(self)
+    pub fn hsetnx<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, field: T0, value: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HSETNX");
+        rv.arg(key);
+        rv.arg(field);
+        rv.arg(value);
+        rv
     }
 
     /// HSTRLEN
@@ -2610,8 +3137,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @hash
     /// * @fast
-    fn hstrlen<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field: T0) -> RedisResult<RV> {
-        Cmd::hstrlen(key, field).query(self)
+    pub fn hstrlen<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, field: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HSTRLEN");
+        rv.arg(key);
+        rv.arg(field);
+        rv
     }
 
     /// HVALS
@@ -2627,8 +3158,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @hash
     /// * @slow
-    fn hvals<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::hvals(key).query(self)
+    pub fn hvals<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HVALS");
+        rv.arg(key);
+        rv
     }
 
     /// PSUBSCRIBE
@@ -2646,8 +3180,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn psubscribe<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, pattern: &'a [T0]) -> RedisResult<RV> {
-        Cmd::psubscribe(pattern).query(self)
+    pub fn psubscribe<'a, T0: ToRedisArgs>(pattern: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PSUBSCRIBE");
+        rv.arg(pattern);
+        rv
     }
 
     /// PUBLISH
@@ -2665,8 +3202,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @fast
-    fn publish<T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, channel: T0, message: T1) -> RedisResult<RV> {
-        Cmd::publish(channel, message).query(self)
+    pub fn publish<T0: ToRedisArgs, T1: ToRedisArgs>(channel: T0, message: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PUBLISH");
+        rv.arg(channel);
+        rv.arg(message);
+        rv
     }
 
     /// PUBSUB
@@ -2678,8 +3219,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// Complexity: Depends on subcommand.
     /// ACL Categories:
     /// * @slow
-    fn pubsub<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::pubsub().query(self)
+    pub fn pubsub() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PUBSUB");
+        rv
     }
 
     /// PUBSUB CHANNELS
@@ -2696,8 +3239,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn pubsub_channels<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, pattern: Option<K0>) -> RedisResult<RV> {
-        Cmd::pubsub_channels(pattern).query(self)
+    pub fn pubsub_channels<K0: ToRedisArgs>(pattern: Option<K0>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PUBSUB CHANNELS");
+        rv.arg(pattern);
+        rv
     }
 
     /// PUBSUB HELP
@@ -2712,8 +3258,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Stale: This command is allowed while a replica has stale data.
     /// ACL Categories:
     /// * @slow
-    fn pubsub_help<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::pubsub_help().query(self)
+    pub fn pubsub_help() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PUBSUB HELP");
+        rv
     }
 
     /// PUBSUB NUMPAT
@@ -2730,8 +3278,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn pubsub_numpat<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::pubsub_numpat().query(self)
+    pub fn pubsub_numpat() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PUBSUB NUMPAT");
+        rv
     }
 
     /// PUBSUB NUMSUB
@@ -2748,8 +3298,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn pubsub_numsub<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, channel: Option<&'a [T0]>) -> RedisResult<RV> {
-        Cmd::pubsub_numsub(channel).query(self)
+    pub fn pubsub_numsub<'a, T0: ToRedisArgs>(channel: Option<&'a [T0]>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PUBSUB NUMSUB");
+        rv.arg(channel);
+        rv
     }
 
     /// PUBSUB SHARDCHANNELS
@@ -2766,8 +3319,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn pubsub_shardchannels<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, pattern: Option<K0>) -> RedisResult<RV> {
-        Cmd::pubsub_shardchannels(pattern).query(self)
+    pub fn pubsub_shardchannels<K0: ToRedisArgs>(pattern: Option<K0>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PUBSUB SHARDCHANNELS");
+        rv.arg(pattern);
+        rv
     }
 
     /// PUBSUB SHARDNUMSUB
@@ -2784,8 +3340,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn pubsub_shardnumsub<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, shardchannel: Option<&'a [T0]>) -> RedisResult<RV> {
-        Cmd::pubsub_shardnumsub(shardchannel).query(self)
+    pub fn pubsub_shardnumsub<'a, T0: ToRedisArgs>(shardchannel: Option<&'a [T0]>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PUBSUB SHARDNUMSUB");
+        rv.arg(shardchannel);
+        rv
     }
 
     /// PUNSUBSCRIBE
@@ -2803,8 +3362,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn punsubscribe<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, pattern: Option<&'a [K0]>) -> RedisResult<RV> {
-        Cmd::punsubscribe(pattern).query(self)
+    pub fn punsubscribe<'a, K0: ToRedisArgs>(pattern: Option<&'a [K0]>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PUNSUBSCRIBE");
+        rv.arg(pattern);
+        rv
     }
 
     /// SPUBLISH
@@ -2822,8 +3384,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @fast
-    fn spublish<T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, shardchannel: T0, message: T1) -> RedisResult<RV> {
-        Cmd::spublish(shardchannel, message).query(self)
+    pub fn spublish<T0: ToRedisArgs, T1: ToRedisArgs>(shardchannel: T0, message: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SPUBLISH");
+        rv.arg(shardchannel);
+        rv.arg(message);
+        rv
     }
 
     /// SSUBSCRIBE
@@ -2841,8 +3407,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn ssubscribe<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, shardchannel: &'a [T0]) -> RedisResult<RV> {
-        Cmd::ssubscribe(shardchannel).query(self)
+    pub fn ssubscribe<'a, T0: ToRedisArgs>(shardchannel: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SSUBSCRIBE");
+        rv.arg(shardchannel);
+        rv
     }
 
     /// SUBSCRIBE
@@ -2860,8 +3429,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn subscribe<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, channel: &'a [T0]) -> RedisResult<RV> {
-        Cmd::subscribe(channel).query(self)
+    pub fn subscribe<'a, T0: ToRedisArgs>(channel: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SUBSCRIBE");
+        rv.arg(channel);
+        rv
     }
 
     /// SUNSUBSCRIBE
@@ -2879,8 +3451,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn sunsubscribe<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, shardchannel: Option<&'a [T0]>) -> RedisResult<RV> {
-        Cmd::sunsubscribe(shardchannel).query(self)
+    pub fn sunsubscribe<'a, T0: ToRedisArgs>(shardchannel: Option<&'a [T0]>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SUNSUBSCRIBE");
+        rv.arg(shardchannel);
+        rv
     }
 
     /// UNSUBSCRIBE
@@ -2898,8 +3473,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn unsubscribe<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, channel: Option<&'a [T0]>) -> RedisResult<RV> {
-        Cmd::unsubscribe(channel).query(self)
+    pub fn unsubscribe<'a, T0: ToRedisArgs>(channel: Option<&'a [T0]>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("UNSUBSCRIBE");
+        rv.arg(channel);
+        rv
     }
 
     /// DISCARD
@@ -2918,8 +3496,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @fast
     /// * @transaction
-    fn discard<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::discard().query(self)
+    pub fn discard() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("DISCARD");
+        rv
     }
 
     /// EXEC
@@ -2937,8 +3517,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @transaction
-    fn exec<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::exec().query(self)
+    pub fn exec() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("EXEC");
+        rv
     }
 
     /// MULTI
@@ -2957,8 +3539,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @fast
     /// * @transaction
-    fn multi<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::multi().query(self)
+    pub fn multi() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MULTI");
+        rv
     }
 
     /// UNWATCH
@@ -2977,8 +3561,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @fast
     /// * @transaction
-    fn unwatch<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::unwatch().query(self)
+    pub fn unwatch() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("UNWATCH");
+        rv
     }
 
     /// WATCH
@@ -2997,8 +3583,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @fast
     /// * @transaction
-    fn watch<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::watch(key).query(self)
+    pub fn watch<'a, K0: ToRedisArgs>(key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("WATCH");
+        rv.arg(key);
+        rv
     }
 
     /// AUTH
@@ -3018,8 +3607,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @fast
     /// * @connection
-    fn auth<T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, username: Option<T0>, password: T1) -> RedisResult<RV> {
-        Cmd::auth(username, password).query(self)
+    pub fn auth<T0: ToRedisArgs, T1: ToRedisArgs>(username: Option<T0>, password: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("AUTH");
+        rv.arg(username);
+        rv.arg(password);
+        rv
     }
 
     /// CLIENT
@@ -3031,8 +3624,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// Complexity: Depends on subcommand.
     /// ACL Categories:
     /// * @slow
-    fn client<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::client().query(self)
+    pub fn client() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLIENT");
+        rv
     }
 
     /// CLIENT CACHING
@@ -3049,8 +3644,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn client_caching<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::client_caching().query(self)
+    pub fn client_caching() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLIENT CACHING");
+        rv
     }
 
     /// CLIENT GETNAME
@@ -3067,8 +3664,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn client_getname<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::client_getname().query(self)
+    pub fn client_getname() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLIENT GETNAME");
+        rv
     }
 
     /// CLIENT GETREDIR
@@ -3085,8 +3684,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn client_getredir<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::client_getredir().query(self)
+    pub fn client_getredir() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLIENT GETREDIR");
+        rv
     }
 
     /// CLIENT HELP
@@ -3102,8 +3703,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn client_help<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::client_help().query(self)
+    pub fn client_help() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLIENT HELP");
+        rv
     }
 
     /// CLIENT ID
@@ -3120,8 +3723,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn client_id<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::client_id().query(self)
+    pub fn client_id() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLIENT ID");
+        rv
     }
 
     /// CLIENT INFO
@@ -3138,8 +3743,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn client_info<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::client_info().query(self)
+    pub fn client_info() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLIENT INFO");
+        rv
     }
 
     /// CLIENT LIST
@@ -3159,8 +3766,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    fn client_list<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::client_list().query(self)
+    pub fn client_list() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLIENT LIST");
+        rv
     }
 
     /// CLIENT NO-EVICT
@@ -3180,8 +3789,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    fn client_no_evict<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::client_no_evict().query(self)
+    pub fn client_no_evict() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLIENT NO-EVICT");
+        rv
     }
 
     /// CLIENT PAUSE
@@ -3201,8 +3812,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    fn client_pause<RV: FromRedisValue>(&mut self, timeout: i64) -> RedisResult<RV> {
-        Cmd::client_pause(timeout).query(self)
+    pub fn client_pause(timeout: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLIENT PAUSE");
+        rv.arg(timeout);
+        rv
     }
 
     /// CLIENT REPLY
@@ -3219,8 +3833,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn client_reply<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::client_reply().query(self)
+    pub fn client_reply() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLIENT REPLY");
+        rv
     }
 
     /// CLIENT SETNAME
@@ -3237,8 +3853,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn client_setname<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, connection_name: T0) -> RedisResult<RV> {
-        Cmd::client_setname(connection_name).query(self)
+    pub fn client_setname<T0: ToRedisArgs>(connection_name: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLIENT SETNAME");
+        rv.arg(connection_name);
+        rv
     }
 
     /// CLIENT TRACKING
@@ -3255,8 +3874,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn client_tracking<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::client_tracking().query(self)
+    pub fn client_tracking() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLIENT TRACKING");
+        rv
     }
 
     /// CLIENT TRACKINGINFO
@@ -3273,8 +3894,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn client_trackinginfo<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::client_trackinginfo().query(self)
+    pub fn client_trackinginfo() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLIENT TRACKINGINFO");
+        rv
     }
 
     /// CLIENT UNBLOCK
@@ -3294,8 +3917,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    fn client_unblock<RV: FromRedisValue>(&mut self, client_id: i64) -> RedisResult<RV> {
-        Cmd::client_unblock(client_id).query(self)
+    pub fn client_unblock(client_id: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLIENT UNBLOCK");
+        rv.arg(client_id);
+        rv
     }
 
     /// CLIENT UNPAUSE
@@ -3315,8 +3941,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    fn client_unpause<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::client_unpause().query(self)
+    pub fn client_unpause() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLIENT UNPAUSE");
+        rv
     }
 
     /// ECHO
@@ -3331,8 +3959,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @fast
     /// * @connection
-    fn echo<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, message: T0) -> RedisResult<RV> {
-        Cmd::echo(message).query(self)
+    pub fn echo<T0: ToRedisArgs>(message: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ECHO");
+        rv.arg(message);
+        rv
     }
 
     /// HELLO
@@ -3352,8 +3983,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @fast
     /// * @connection
-    fn hello<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, arguments: Option<T0>) -> RedisResult<RV> {
-        Cmd::hello(arguments).query(self)
+    pub fn hello<T0: ToRedisArgs>(arguments: Option<T0>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HELLO");
+        rv.arg(arguments);
+        rv
     }
 
     /// PING
@@ -3368,8 +4002,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @fast
     /// * @connection
-    fn ping<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, message: Option<T0>) -> RedisResult<RV> {
-        Cmd::ping(message).query(self)
+    pub fn ping<T0: ToRedisArgs>(message: Option<T0>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PING");
+        rv.arg(message);
+        rv
     }
 
     /// QUIT
@@ -3389,8 +4026,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @fast
     /// * @connection
-    fn quit<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::quit().query(self)
+    pub fn quit() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("QUIT");
+        rv
     }
 
     /// RESET
@@ -3410,8 +4049,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @fast
     /// * @connection
-    fn reset<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::reset().query(self)
+    pub fn reset() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("RESET");
+        rv
     }
 
     /// SELECT
@@ -3428,8 +4069,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @fast
     /// * @connection
-    fn select<RV: FromRedisValue>(&mut self, index: i64) -> RedisResult<RV> {
-        Cmd::select(index).query(self)
+    pub fn select(index: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SELECT");
+        rv.arg(index);
+        rv
     }
 
     /// ACL
@@ -3443,8 +4087,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::acl().query(self)
+    pub fn acl() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ACL");
+        rv
     }
 
     /// ACL CAT
@@ -3462,8 +4108,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_cat<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, categoryname: Option<T0>) -> RedisResult<RV> {
-        Cmd::acl_cat(categoryname).query(self)
+    pub fn acl_cat<T0: ToRedisArgs>(categoryname: Option<T0>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ACL CAT");
+        rv.arg(categoryname);
+        rv
     }
 
     /// ACL DELUSER
@@ -3484,8 +4133,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_deluser<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, username: &'a [T0]) -> RedisResult<RV> {
-        Cmd::acl_deluser(username).query(self)
+    pub fn acl_deluser<'a, T0: ToRedisArgs>(username: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ACL DELUSER");
+        rv.arg(username);
+        rv
     }
 
     /// ACL DRYRUN
@@ -3506,8 +4158,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_dryrun<'a, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, RV: FromRedisValue>(&mut self, username: T0, command: T1, arg: Option<&'a [T2]>) -> RedisResult<RV> {
-        Cmd::acl_dryrun(username, command, arg).query(self)
+    pub fn acl_dryrun<'a, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs>(username: T0, command: T1, arg: Option<&'a [T2]>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ACL DRYRUN");
+        rv.arg(username);
+        rv.arg(command);
+        rv.arg(arg);
+        rv
     }
 
     /// ACL GENPASS
@@ -3525,8 +4182,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_genpass<RV: FromRedisValue>(&mut self, bits: Option<i64>) -> RedisResult<RV> {
-        Cmd::acl_genpass(bits).query(self)
+    pub fn acl_genpass(bits: Option<i64>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ACL GENPASS");
+        rv.arg(bits);
+        rv
     }
 
     /// ACL GETUSER
@@ -3547,8 +4207,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_getuser<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, username: T0) -> RedisResult<RV> {
-        Cmd::acl_getuser(username).query(self)
+    pub fn acl_getuser<T0: ToRedisArgs>(username: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ACL GETUSER");
+        rv.arg(username);
+        rv
     }
 
     /// ACL HELP
@@ -3565,8 +4228,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_help<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::acl_help().query(self)
+    pub fn acl_help() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ACL HELP");
+        rv
     }
 
     /// ACL LIST
@@ -3587,8 +4252,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_list<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::acl_list().query(self)
+    pub fn acl_list() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ACL LIST");
+        rv
     }
 
     /// ACL LOAD
@@ -3609,8 +4276,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_load<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::acl_load().query(self)
+    pub fn acl_load() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ACL LOAD");
+        rv
     }
 
     /// ACL LOG
@@ -3631,8 +4300,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_log<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::acl_log().query(self)
+    pub fn acl_log() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ACL LOG");
+        rv
     }
 
     /// ACL SAVE
@@ -3653,8 +4324,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_save<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::acl_save().query(self)
+    pub fn acl_save() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ACL SAVE");
+        rv
     }
 
     /// ACL SETUSER
@@ -3675,8 +4348,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_setuser<'a, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, username: T0, rule: Option<&'a [T1]>) -> RedisResult<RV> {
-        Cmd::acl_setuser(username, rule).query(self)
+    pub fn acl_setuser<'a, T0: ToRedisArgs, T1: ToRedisArgs>(username: T0, rule: Option<&'a [T1]>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ACL SETUSER");
+        rv.arg(username);
+        rv.arg(rule);
+        rv
     }
 
     /// ACL USERS
@@ -3697,8 +4374,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_users<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::acl_users().query(self)
+    pub fn acl_users() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ACL USERS");
+        rv
     }
 
     /// ACL WHOAMI
@@ -3716,8 +4395,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_whoami<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::acl_whoami().query(self)
+    pub fn acl_whoami() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ACL WHOAMI");
+        rv
     }
 
     /// BGREWRITEAOF
@@ -3735,8 +4416,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn bgrewriteaof<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::bgrewriteaof().query(self)
+    pub fn bgrewriteaof() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("BGREWRITEAOF");
+        rv
     }
 
     /// BGSAVE
@@ -3754,8 +4437,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn bgsave<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::bgsave().query(self)
+    pub fn bgsave() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("BGSAVE");
+        rv
     }
 
     /// COMMAND
@@ -3771,8 +4456,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn command<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::command().query(self)
+    pub fn command() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("COMMAND");
+        rv
     }
 
     /// COMMAND COUNT
@@ -3788,8 +4475,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn command_count<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::command_count().query(self)
+    pub fn command_count() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("COMMAND COUNT");
+        rv
     }
 
     /// COMMAND DOCS
@@ -3805,8 +4494,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn command_docs<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, command_name: Option<&'a [T0]>) -> RedisResult<RV> {
-        Cmd::command_docs(command_name).query(self)
+    pub fn command_docs<'a, T0: ToRedisArgs>(command_name: Option<&'a [T0]>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("COMMAND DOCS");
+        rv.arg(command_name);
+        rv
     }
 
     /// COMMAND GETKEYS
@@ -3822,8 +4514,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn command_getkeys<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::command_getkeys().query(self)
+    pub fn command_getkeys() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("COMMAND GETKEYS");
+        rv
     }
 
     /// COMMAND GETKEYSANDFLAGS
@@ -3839,8 +4533,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn command_getkeysandflags<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::command_getkeysandflags().query(self)
+    pub fn command_getkeysandflags() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("COMMAND GETKEYSANDFLAGS");
+        rv
     }
 
     /// COMMAND HELP
@@ -3856,8 +4552,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn command_help<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::command_help().query(self)
+    pub fn command_help() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("COMMAND HELP");
+        rv
     }
 
     /// COMMAND INFO
@@ -3873,8 +4571,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn command_info<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, command_name: Option<&'a [T0]>) -> RedisResult<RV> {
-        Cmd::command_info(command_name).query(self)
+    pub fn command_info<'a, T0: ToRedisArgs>(command_name: Option<&'a [T0]>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("COMMAND INFO");
+        rv.arg(command_name);
+        rv
     }
 
     /// COMMAND LIST
@@ -3890,8 +4591,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn command_list<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::command_list().query(self)
+    pub fn command_list() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("COMMAND LIST");
+        rv
     }
 
     /// CONFIG
@@ -3903,8 +4606,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// Complexity: Depends on subcommand.
     /// ACL Categories:
     /// * @slow
-    fn config<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::config().query(self)
+    pub fn config() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CONFIG");
+        rv
     }
 
     /// CONFIG GET
@@ -3923,8 +4628,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn config_get<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, parameter: &'a [T0]) -> RedisResult<RV> {
-        Cmd::config_get(parameter).query(self)
+    pub fn config_get<'a, T0: ToRedisArgs>(parameter: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CONFIG GET");
+        rv.arg(parameter);
+        rv
     }
 
     /// CONFIG HELP
@@ -3939,8 +4647,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Stale: This command is allowed while a replica has stale data.
     /// ACL Categories:
     /// * @slow
-    fn config_help<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::config_help().query(self)
+    pub fn config_help() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CONFIG HELP");
+        rv
     }
 
     /// CONFIG RESETSTAT
@@ -3959,8 +4669,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn config_resetstat<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::config_resetstat().query(self)
+    pub fn config_resetstat() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CONFIG RESETSTAT");
+        rv
     }
 
     /// CONFIG REWRITE
@@ -3979,8 +4691,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn config_rewrite<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::config_rewrite().query(self)
+    pub fn config_rewrite() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CONFIG REWRITE");
+        rv
     }
 
     /// CONFIG SET
@@ -3999,8 +4713,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn config_set<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, parameter_value: &'a [T0]) -> RedisResult<RV> {
-        Cmd::config_set(parameter_value).query(self)
+    pub fn config_set<'a, T0: ToRedisArgs>(parameter_value: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CONFIG SET");
+        rv.arg(parameter_value);
+        rv
     }
 
     /// DBSIZE
@@ -4017,8 +4734,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @read
     /// * @fast
-    fn dbsize<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::dbsize().query(self)
+    pub fn dbsize() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("DBSIZE");
+        rv
     }
 
     /// DEBUG
@@ -4037,8 +4756,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn debug<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::debug().query(self)
+    pub fn debug() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("DEBUG");
+        rv
     }
 
     /// FAILOVER
@@ -4056,8 +4777,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn failover<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::failover().query(self)
+    pub fn failover() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("FAILOVER");
+        rv
     }
 
     /// FLUSHALL
@@ -4074,8 +4797,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @slow
     /// * @dangerous
-    fn flushall<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::flushall().query(self)
+    pub fn flushall() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("FLUSHALL");
+        rv
     }
 
     /// FLUSHDB
@@ -4092,8 +4817,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @slow
     /// * @dangerous
-    fn flushdb<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::flushdb().query(self)
+    pub fn flushdb() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("FLUSHDB");
+        rv
     }
 
     /// INFO
@@ -4109,8 +4836,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @dangerous
-    fn info<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, section: Option<&'a [T0]>) -> RedisResult<RV> {
-        Cmd::info(section).query(self)
+    pub fn info<'a, T0: ToRedisArgs>(section: Option<&'a [T0]>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("INFO");
+        rv.arg(section);
+        rv
     }
 
     /// LASTSAVE
@@ -4128,8 +4858,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @fast
     /// * @dangerous
-    fn lastsave<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::lastsave().query(self)
+    pub fn lastsave() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LASTSAVE");
+        rv
     }
 
     /// LATENCY
@@ -4141,8 +4873,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// Complexity: Depends on subcommand.
     /// ACL Categories:
     /// * @slow
-    fn latency<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::latency().query(self)
+    pub fn latency() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LATENCY");
+        rv
     }
 
     /// LATENCY DOCTOR
@@ -4161,8 +4895,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn latency_doctor<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::latency_doctor().query(self)
+    pub fn latency_doctor() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LATENCY DOCTOR");
+        rv
     }
 
     /// LATENCY GRAPH
@@ -4181,8 +4917,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn latency_graph<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, event: T0) -> RedisResult<RV> {
-        Cmd::latency_graph(event).query(self)
+    pub fn latency_graph<T0: ToRedisArgs>(event: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LATENCY GRAPH");
+        rv.arg(event);
+        rv
     }
 
     /// LATENCY HELP
@@ -4197,8 +4936,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Stale: This command is allowed while a replica has stale data.
     /// ACL Categories:
     /// * @slow
-    fn latency_help<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::latency_help().query(self)
+    pub fn latency_help() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LATENCY HELP");
+        rv
     }
 
     /// LATENCY HISTOGRAM
@@ -4217,8 +4958,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn latency_histogram<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, command: Option<&'a [T0]>) -> RedisResult<RV> {
-        Cmd::latency_histogram(command).query(self)
+    pub fn latency_histogram<'a, T0: ToRedisArgs>(command: Option<&'a [T0]>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LATENCY HISTOGRAM");
+        rv.arg(command);
+        rv
     }
 
     /// LATENCY HISTORY
@@ -4237,8 +4981,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn latency_history<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, event: T0) -> RedisResult<RV> {
-        Cmd::latency_history(event).query(self)
+    pub fn latency_history<T0: ToRedisArgs>(event: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LATENCY HISTORY");
+        rv.arg(event);
+        rv
     }
 
     /// LATENCY LATEST
@@ -4257,8 +5004,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn latency_latest<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::latency_latest().query(self)
+    pub fn latency_latest() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LATENCY LATEST");
+        rv
     }
 
     /// LATENCY RESET
@@ -4277,8 +5026,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn latency_reset<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, event: Option<&'a [T0]>) -> RedisResult<RV> {
-        Cmd::latency_reset(event).query(self)
+    pub fn latency_reset<'a, T0: ToRedisArgs>(event: Option<&'a [T0]>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LATENCY RESET");
+        rv.arg(event);
+        rv
     }
 
     /// LOLWUT
@@ -4293,8 +5045,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @read
     /// * @fast
-    fn lolwut<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::lolwut().query(self)
+    pub fn lolwut() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("LOLWUT");
+        rv
     }
 
     /// MEMORY
@@ -4306,8 +5060,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// Complexity: Depends on subcommand.
     /// ACL Categories:
     /// * @slow
-    fn memory<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::memory().query(self)
+    pub fn memory() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MEMORY");
+        rv
     }
 
     /// MEMORY DOCTOR
@@ -4319,8 +5075,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// Complexity: O(1)
     /// ACL Categories:
     /// * @slow
-    fn memory_doctor<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::memory_doctor().query(self)
+    pub fn memory_doctor() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MEMORY DOCTOR");
+        rv
     }
 
     /// MEMORY HELP
@@ -4335,8 +5093,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Stale: This command is allowed while a replica has stale data.
     /// ACL Categories:
     /// * @slow
-    fn memory_help<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::memory_help().query(self)
+    pub fn memory_help() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MEMORY HELP");
+        rv
     }
 
     /// MEMORY MALLOC-STATS
@@ -4348,8 +5108,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// Complexity: Depends on how much memory is allocated, could be slow
     /// ACL Categories:
     /// * @slow
-    fn memory_malloc_stats<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::memory_malloc_stats().query(self)
+    pub fn memory_malloc_stats() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MEMORY MALLOC-STATS");
+        rv
     }
 
     /// MEMORY PURGE
@@ -4361,8 +5123,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// Complexity: Depends on how much memory is allocated, could be slow
     /// ACL Categories:
     /// * @slow
-    fn memory_purge<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::memory_purge().query(self)
+    pub fn memory_purge() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MEMORY PURGE");
+        rv
     }
 
     /// MEMORY STATS
@@ -4374,8 +5138,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// Complexity: O(1)
     /// ACL Categories:
     /// * @slow
-    fn memory_stats<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::memory_stats().query(self)
+    pub fn memory_stats() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MEMORY STATS");
+        rv
     }
 
     /// MEMORY USAGE
@@ -4390,8 +5156,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @read
     /// * @slow
-    fn memory_usage<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::memory_usage(key).query(self)
+    pub fn memory_usage<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MEMORY USAGE");
+        rv.arg(key);
+        rv
     }
 
     /// MODULE
@@ -4403,8 +5172,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// Complexity: Depends on subcommand.
     /// ACL Categories:
     /// * @slow
-    fn module<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::module().query(self)
+    pub fn module() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MODULE");
+        rv
     }
 
     /// MODULE HELP
@@ -4419,8 +5190,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Stale: This command is allowed while a replica has stale data.
     /// ACL Categories:
     /// * @slow
-    fn module_help<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::module_help().query(self)
+    pub fn module_help() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MODULE HELP");
+        rv
     }
 
     /// MODULE LIST
@@ -4437,8 +5210,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn module_list<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::module_list().query(self)
+    pub fn module_list() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MODULE LIST");
+        rv
     }
 
     /// MODULE LOAD
@@ -4456,8 +5231,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn module_load<'a, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, path: T0, arg: Option<&'a [T1]>) -> RedisResult<RV> {
-        Cmd::module_load(path, arg).query(self)
+    pub fn module_load<'a, T0: ToRedisArgs, T1: ToRedisArgs>(path: T0, arg: Option<&'a [T1]>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MODULE LOAD");
+        rv.arg(path);
+        rv.arg(arg);
+        rv
     }
 
     /// MODULE LOADEX
@@ -4475,8 +5254,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn module_loadex<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, path: T0) -> RedisResult<RV> {
-        Cmd::module_loadex(path).query(self)
+    pub fn module_loadex<T0: ToRedisArgs>(path: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MODULE LOADEX");
+        rv.arg(path);
+        rv
     }
 
     /// MODULE UNLOAD
@@ -4494,8 +5276,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn module_unload<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, name: T0) -> RedisResult<RV> {
-        Cmd::module_unload(name).query(self)
+    pub fn module_unload<T0: ToRedisArgs>(name: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MODULE UNLOAD");
+        rv.arg(name);
+        rv
     }
 
     /// MONITOR
@@ -4513,8 +5298,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn monitor<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::monitor().query(self)
+    pub fn monitor() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("MONITOR");
+        rv
     }
 
     /// PSYNC
@@ -4532,8 +5319,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn psync<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, replicationid: T0, offset: i64) -> RedisResult<RV> {
-        Cmd::psync(replicationid, offset).query(self)
+    pub fn psync<T0: ToRedisArgs>(replicationid: T0, offset: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PSYNC");
+        rv.arg(replicationid);
+        rv.arg(offset);
+        rv
     }
 
     /// REPLCONF
@@ -4553,8 +5344,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn replconf<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::replconf().query(self)
+    pub fn replconf() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("REPLCONF");
+        rv
     }
 
     /// REPLICAOF
@@ -4573,8 +5366,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn replicaof<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, host: T0, port: i64) -> RedisResult<RV> {
-        Cmd::replicaof(host, port).query(self)
+    pub fn replicaof<T0: ToRedisArgs>(host: T0, port: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("REPLICAOF");
+        rv.arg(host);
+        rv.arg(port);
+        rv
     }
 
     /// RESTORE-ASKING
@@ -4593,8 +5390,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @slow
     /// * @dangerous
-    fn restore_asking<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, ttl: i64, serialized_value: T0) -> RedisResult<RV> {
-        Cmd::restore_asking(key, ttl, serialized_value).query(self)
+    pub fn restore_asking<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, ttl: i64, serialized_value: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("RESTORE-ASKING");
+        rv.arg(key);
+        rv.arg(ttl);
+        rv.arg(serialized_value);
+        rv
     }
 
     /// ROLE
@@ -4613,8 +5415,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @fast
     /// * @dangerous
-    fn role<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::role().query(self)
+    pub fn role() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ROLE");
+        rv
     }
 
     /// SAVE
@@ -4633,8 +5437,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn save<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::save().query(self)
+    pub fn save() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SAVE");
+        rv
     }
 
     /// SHUTDOWN
@@ -4655,8 +5461,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn shutdown<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::shutdown().query(self)
+    pub fn shutdown() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SHUTDOWN");
+        rv
     }
 
     /// SLAVEOF
@@ -4678,8 +5486,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     /// * @dangerous
     #[deprecated]
-    fn slaveof<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, host: T0, port: i64) -> RedisResult<RV> {
-        Cmd::slaveof(host, port).query(self)
+    pub fn slaveof<T0: ToRedisArgs>(host: T0, port: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SLAVEOF");
+        rv.arg(host);
+        rv.arg(port);
+        rv
     }
 
     /// SLOWLOG
@@ -4691,8 +5503,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// Complexity: Depends on subcommand.
     /// ACL Categories:
     /// * @slow
-    fn slowlog<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::slowlog().query(self)
+    pub fn slowlog() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SLOWLOG");
+        rv
     }
 
     /// SLOWLOG GET
@@ -4710,8 +5524,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn slowlog_get<RV: FromRedisValue>(&mut self, count: Option<i64>) -> RedisResult<RV> {
-        Cmd::slowlog_get(count).query(self)
+    pub fn slowlog_get(count: Option<i64>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SLOWLOG GET");
+        rv.arg(count);
+        rv
     }
 
     /// SLOWLOG HELP
@@ -4726,8 +5543,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Stale: This command is allowed while a replica has stale data.
     /// ACL Categories:
     /// * @slow
-    fn slowlog_help<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::slowlog_help().query(self)
+    pub fn slowlog_help() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SLOWLOG HELP");
+        rv
     }
 
     /// SLOWLOG LEN
@@ -4745,8 +5564,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn slowlog_len<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::slowlog_len().query(self)
+    pub fn slowlog_len() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SLOWLOG LEN");
+        rv
     }
 
     /// SLOWLOG RESET
@@ -4764,8 +5585,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn slowlog_reset<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::slowlog_reset().query(self)
+    pub fn slowlog_reset() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SLOWLOG RESET");
+        rv
     }
 
     /// SWAPDB
@@ -4783,8 +5606,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @fast
     /// * @dangerous
-    fn swapdb<RV: FromRedisValue>(&mut self, index1: i64, index2: i64) -> RedisResult<RV> {
-        Cmd::swapdb(index1, index2).query(self)
+    pub fn swapdb(index1: i64, index2: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SWAPDB");
+        rv.arg(index1);
+        rv.arg(index2);
+        rv
     }
 
     /// SYNC
@@ -4802,8 +5629,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn sync<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::sync().query(self)
+    pub fn sync() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SYNC");
+        rv
     }
 
     /// TIME
@@ -4819,8 +5648,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
     /// ACL Categories:
     /// * @fast
-    fn time<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::time().query(self)
+    pub fn time() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("TIME");
+        rv
     }
 
     /// EVAL
@@ -4839,8 +5670,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn eval<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, script: T0, numkeys: i64, key: Option<&'a [K0]>, arg: Option<&'a [T1]>) -> RedisResult<RV> {
-        Cmd::eval(script, numkeys, key, arg).query(self)
+    pub fn eval<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs>(script: T0, numkeys: i64, key: Option<&'a [K0]>, arg: Option<&'a [T1]>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("EVAL");
+        rv.arg(script);
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv.arg(arg);
+        rv
     }
 
     /// EVALSHA
@@ -4859,8 +5696,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn evalsha<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, sha1: T0, numkeys: i64, key: Option<&'a [K0]>, arg: Option<&'a [T1]>) -> RedisResult<RV> {
-        Cmd::evalsha(sha1, numkeys, key, arg).query(self)
+    pub fn evalsha<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs>(sha1: T0, numkeys: i64, key: Option<&'a [K0]>, arg: Option<&'a [T1]>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("EVALSHA");
+        rv.arg(sha1);
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv.arg(arg);
+        rv
     }
 
     /// EVALSHA_RO
@@ -4880,8 +5723,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn evalsha_ro<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, sha1: T0, numkeys: i64, key: &'a [K0], arg: &'a [T1]) -> RedisResult<RV> {
-        Cmd::evalsha_ro(sha1, numkeys, key, arg).query(self)
+    pub fn evalsha_ro<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs>(sha1: T0, numkeys: i64, key: &'a [K0], arg: &'a [T1]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("EVALSHA_RO");
+        rv.arg(sha1);
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv.arg(arg);
+        rv
     }
 
     /// EVAL_RO
@@ -4901,8 +5750,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn eval_ro<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, script: T0, numkeys: i64, key: &'a [K0], arg: &'a [T1]) -> RedisResult<RV> {
-        Cmd::eval_ro(script, numkeys, key, arg).query(self)
+    pub fn eval_ro<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs>(script: T0, numkeys: i64, key: &'a [K0], arg: &'a [T1]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("EVAL_RO");
+        rv.arg(script);
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv.arg(arg);
+        rv
     }
 
     /// FCALL
@@ -4921,8 +5776,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn fcall<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, function: T0, numkeys: i64, key: &'a [K0], arg: &'a [T1]) -> RedisResult<RV> {
-        Cmd::fcall(function, numkeys, key, arg).query(self)
+    pub fn fcall<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs>(function: T0, numkeys: i64, key: &'a [K0], arg: &'a [T1]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("FCALL");
+        rv.arg(function);
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv.arg(arg);
+        rv
     }
 
     /// FCALL_RO
@@ -4942,8 +5803,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn fcall_ro<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, function: T0, numkeys: i64, key: &'a [K0], arg: &'a [T1]) -> RedisResult<RV> {
-        Cmd::fcall_ro(function, numkeys, key, arg).query(self)
+    pub fn fcall_ro<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs>(function: T0, numkeys: i64, key: &'a [K0], arg: &'a [T1]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("FCALL_RO");
+        rv.arg(function);
+        rv.arg(numkeys);
+        rv.arg(key);
+        rv.arg(arg);
+        rv
     }
 
     /// FUNCTION
@@ -4955,8 +5822,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// Complexity: Depends on subcommand.
     /// ACL Categories:
     /// * @slow
-    fn function<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::function().query(self)
+    pub fn function() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("FUNCTION");
+        rv
     }
 
     /// FUNCTION DELETE
@@ -4973,8 +5842,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @slow
     /// * @scripting
-    fn function_delete<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, library_name: T0) -> RedisResult<RV> {
-        Cmd::function_delete(library_name).query(self)
+    pub fn function_delete<T0: ToRedisArgs>(library_name: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("FUNCTION DELETE");
+        rv.arg(library_name);
+        rv
     }
 
     /// FUNCTION DUMP
@@ -4989,8 +5861,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn function_dump<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::function_dump().query(self)
+    pub fn function_dump() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("FUNCTION DUMP");
+        rv
     }
 
     /// FUNCTION FLUSH
@@ -5007,8 +5881,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @slow
     /// * @scripting
-    fn function_flush<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::function_flush().query(self)
+    pub fn function_flush() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("FUNCTION FLUSH");
+        rv
     }
 
     /// FUNCTION HELP
@@ -5024,8 +5900,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn function_help<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::function_help().query(self)
+    pub fn function_help() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("FUNCTION HELP");
+        rv
     }
 
     /// FUNCTION KILL
@@ -5041,8 +5919,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn function_kill<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::function_kill().query(self)
+    pub fn function_kill() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("FUNCTION KILL");
+        rv
     }
 
     /// FUNCTION LIST
@@ -5057,8 +5937,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn function_list<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::function_list().query(self)
+    pub fn function_list() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("FUNCTION LIST");
+        rv
     }
 
     /// FUNCTION LOAD
@@ -5076,8 +5958,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @slow
     /// * @scripting
-    fn function_load<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, function_code: T0) -> RedisResult<RV> {
-        Cmd::function_load(function_code).query(self)
+    pub fn function_load<T0: ToRedisArgs>(function_code: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("FUNCTION LOAD");
+        rv.arg(function_code);
+        rv
     }
 
     /// FUNCTION RESTORE
@@ -5095,8 +5980,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @slow
     /// * @scripting
-    fn function_restore<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, serialized_value: T0) -> RedisResult<RV> {
-        Cmd::function_restore(serialized_value).query(self)
+    pub fn function_restore<T0: ToRedisArgs>(serialized_value: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("FUNCTION RESTORE");
+        rv.arg(serialized_value);
+        rv
     }
 
     /// FUNCTION STATS
@@ -5112,8 +6000,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn function_stats<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::function_stats().query(self)
+    pub fn function_stats() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("FUNCTION STATS");
+        rv
     }
 
     /// SCRIPT
@@ -5125,8 +6015,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// Complexity: Depends on subcommand.
     /// ACL Categories:
     /// * @slow
-    fn script<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::script().query(self)
+    pub fn script() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SCRIPT");
+        rv
     }
 
     /// SCRIPT DEBUG
@@ -5141,8 +6033,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn script_debug<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::script_debug().query(self)
+    pub fn script_debug() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SCRIPT DEBUG");
+        rv
     }
 
     /// SCRIPT EXISTS
@@ -5157,8 +6051,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn script_exists<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, sha1: &'a [T0]) -> RedisResult<RV> {
-        Cmd::script_exists(sha1).query(self)
+    pub fn script_exists<'a, T0: ToRedisArgs>(sha1: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SCRIPT EXISTS");
+        rv.arg(sha1);
+        rv
     }
 
     /// SCRIPT FLUSH
@@ -5173,8 +6070,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn script_flush<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::script_flush().query(self)
+    pub fn script_flush() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SCRIPT FLUSH");
+        rv
     }
 
     /// SCRIPT HELP
@@ -5190,8 +6089,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn script_help<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::script_help().query(self)
+    pub fn script_help() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SCRIPT HELP");
+        rv
     }
 
     /// SCRIPT KILL
@@ -5207,8 +6108,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn script_kill<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::script_kill().query(self)
+    pub fn script_kill() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SCRIPT KILL");
+        rv
     }
 
     /// SCRIPT LOAD
@@ -5224,8 +6127,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn script_load<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, script: T0) -> RedisResult<RV> {
-        Cmd::script_load(script).query(self)
+    pub fn script_load<T0: ToRedisArgs>(script: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SCRIPT LOAD");
+        rv.arg(script);
+        rv
     }
 
     /// PFADD
@@ -5243,8 +6149,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @hyperloglog
     /// * @fast
-    fn pfadd<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, element: Option<&'a [T0]>) -> RedisResult<RV> {
-        Cmd::pfadd(key, element).query(self)
+    pub fn pfadd<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: Option<&'a [T0]>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PFADD");
+        rv.arg(key);
+        rv.arg(element);
+        rv
     }
 
     /// PFCOUNT
@@ -5260,8 +6170,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @hyperloglog
     /// * @slow
-    fn pfcount<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
-        Cmd::pfcount(key).query(self)
+    pub fn pfcount<'a, K0: ToRedisArgs>(key: &'a [K0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PFCOUNT");
+        rv.arg(key);
+        rv
     }
 
     /// PFDEBUG
@@ -5281,8 +6194,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn pfdebug<T0: ToRedisArgs, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, subcommand: T0, key: K0) -> RedisResult<RV> {
-        Cmd::pfdebug(subcommand, key).query(self)
+    pub fn pfdebug<T0: ToRedisArgs, K0: ToRedisArgs>(subcommand: T0, key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PFDEBUG");
+        rv.arg(subcommand);
+        rv.arg(key);
+        rv
     }
 
     /// PFMERGE
@@ -5299,8 +6216,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @hyperloglog
     /// * @slow
-    fn pfmerge<'a, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destkey: K0, sourcekey: &'a [K1]) -> RedisResult<RV> {
-        Cmd::pfmerge(destkey, sourcekey).query(self)
+    pub fn pfmerge<'a, K0: ToRedisArgs, K1: ToRedisArgs>(destkey: K0, sourcekey: &'a [K1]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PFMERGE");
+        rv.arg(destkey);
+        rv.arg(sourcekey);
+        rv
     }
 
     /// PFSELFTEST
@@ -5317,8 +6238,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn pfselftest<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::pfselftest().query(self)
+    pub fn pfselftest() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("PFSELFTEST");
+        rv
     }
 
     /// ASKING
@@ -5333,8 +6256,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @fast
     /// * @connection
-    fn asking<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::asking().query(self)
+    pub fn asking() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ASKING");
+        rv
     }
 
     /// CLUSTER
@@ -5346,8 +6271,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// Complexity: Depends on subcommand.
     /// ACL Categories:
     /// * @slow
-    fn cluster<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::cluster().query(self)
+    pub fn cluster() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER");
+        rv
     }
 
     /// CLUSTER ADDSLOTS
@@ -5365,8 +6292,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_addslots<'a, RV: FromRedisValue>(&mut self, slot: &'a [i64]) -> RedisResult<RV> {
-        Cmd::cluster_addslots(slot).query(self)
+    pub fn cluster_addslots<'a>(slot: &'a [i64]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER ADDSLOTS");
+        rv.arg(slot);
+        rv
     }
 
     /// CLUSTER ADDSLOTSRANGE
@@ -5384,8 +6314,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_addslotsrange<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, start_slot_end_slot: &'a [T0]) -> RedisResult<RV> {
-        Cmd::cluster_addslotsrange(start_slot_end_slot).query(self)
+    pub fn cluster_addslotsrange<'a, T0: ToRedisArgs>(start_slot_end_slot: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER ADDSLOTSRANGE");
+        rv.arg(start_slot_end_slot);
+        rv
     }
 
     /// CLUSTER BUMPEPOCH
@@ -5403,8 +6336,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_bumpepoch<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::cluster_bumpepoch().query(self)
+    pub fn cluster_bumpepoch() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER BUMPEPOCH");
+        rv
     }
 
     /// CLUSTER COUNT-FAILURE-REPORTS
@@ -5421,8 +6356,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_count_failure_reports<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, node_id: T0) -> RedisResult<RV> {
-        Cmd::cluster_count_failure_reports(node_id).query(self)
+    pub fn cluster_count_failure_reports<T0: ToRedisArgs>(node_id: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER COUNT-FAILURE-REPORTS");
+        rv.arg(node_id);
+        rv
     }
 
     /// CLUSTER COUNTKEYSINSLOT
@@ -5436,8 +6374,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Stale: This command is allowed while a replica has stale data.
     /// ACL Categories:
     /// * @slow
-    fn cluster_countkeysinslot<RV: FromRedisValue>(&mut self, slot: i64) -> RedisResult<RV> {
-        Cmd::cluster_countkeysinslot(slot).query(self)
+    pub fn cluster_countkeysinslot(slot: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER COUNTKEYSINSLOT");
+        rv.arg(slot);
+        rv
     }
 
     /// CLUSTER DELSLOTS
@@ -5455,8 +6396,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_delslots<'a, RV: FromRedisValue>(&mut self, slot: &'a [i64]) -> RedisResult<RV> {
-        Cmd::cluster_delslots(slot).query(self)
+    pub fn cluster_delslots<'a>(slot: &'a [i64]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER DELSLOTS");
+        rv.arg(slot);
+        rv
     }
 
     /// CLUSTER DELSLOTSRANGE
@@ -5474,8 +6418,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_delslotsrange<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, start_slot_end_slot: &'a [T0]) -> RedisResult<RV> {
-        Cmd::cluster_delslotsrange(start_slot_end_slot).query(self)
+    pub fn cluster_delslotsrange<'a, T0: ToRedisArgs>(start_slot_end_slot: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER DELSLOTSRANGE");
+        rv.arg(start_slot_end_slot);
+        rv
     }
 
     /// CLUSTER FAILOVER
@@ -5493,8 +6440,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_failover<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::cluster_failover().query(self)
+    pub fn cluster_failover() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER FAILOVER");
+        rv
     }
 
     /// CLUSTER FLUSHSLOTS
@@ -5512,8 +6461,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_flushslots<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::cluster_flushslots().query(self)
+    pub fn cluster_flushslots() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER FLUSHSLOTS");
+        rv
     }
 
     /// CLUSTER FORGET
@@ -5531,8 +6482,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_forget<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, node_id: T0) -> RedisResult<RV> {
-        Cmd::cluster_forget(node_id).query(self)
+    pub fn cluster_forget<T0: ToRedisArgs>(node_id: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER FORGET");
+        rv.arg(node_id);
+        rv
     }
 
     /// CLUSTER GETKEYSINSLOT
@@ -5546,8 +6500,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Stale: This command is allowed while a replica has stale data.
     /// ACL Categories:
     /// * @slow
-    fn cluster_getkeysinslot<RV: FromRedisValue>(&mut self, slot: i64, count: i64) -> RedisResult<RV> {
-        Cmd::cluster_getkeysinslot(slot, count).query(self)
+    pub fn cluster_getkeysinslot(slot: i64, count: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER GETKEYSINSLOT");
+        rv.arg(slot);
+        rv.arg(count);
+        rv
     }
 
     /// CLUSTER HELP
@@ -5562,8 +6520,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Stale: This command is allowed while a replica has stale data.
     /// ACL Categories:
     /// * @slow
-    fn cluster_help<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::cluster_help().query(self)
+    pub fn cluster_help() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER HELP");
+        rv
     }
 
     /// CLUSTER INFO
@@ -5577,8 +6537,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Stale: This command is allowed while a replica has stale data.
     /// ACL Categories:
     /// * @slow
-    fn cluster_info<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::cluster_info().query(self)
+    pub fn cluster_info() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER INFO");
+        rv
     }
 
     /// CLUSTER KEYSLOT
@@ -5592,8 +6554,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Stale: This command is allowed while a replica has stale data.
     /// ACL Categories:
     /// * @slow
-    fn cluster_keyslot<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: T0) -> RedisResult<RV> {
-        Cmd::cluster_keyslot(key).query(self)
+    pub fn cluster_keyslot<T0: ToRedisArgs>(key: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER KEYSLOT");
+        rv.arg(key);
+        rv
     }
 
     /// CLUSTER LINKS
@@ -5607,8 +6572,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Stale: This command is allowed while a replica has stale data.
     /// ACL Categories:
     /// * @slow
-    fn cluster_links<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::cluster_links().query(self)
+    pub fn cluster_links() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER LINKS");
+        rv
     }
 
     /// CLUSTER MEET
@@ -5626,8 +6593,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_meet<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, ip: T0, port: i64) -> RedisResult<RV> {
-        Cmd::cluster_meet(ip, port).query(self)
+    pub fn cluster_meet<T0: ToRedisArgs>(ip: T0, port: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER MEET");
+        rv.arg(ip);
+        rv.arg(port);
+        rv
     }
 
     /// CLUSTER MYID
@@ -5641,8 +6612,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Stale: This command is allowed while a replica has stale data.
     /// ACL Categories:
     /// * @slow
-    fn cluster_myid<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::cluster_myid().query(self)
+    pub fn cluster_myid() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER MYID");
+        rv
     }
 
     /// CLUSTER NODES
@@ -5656,8 +6629,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Stale: This command is allowed while a replica has stale data.
     /// ACL Categories:
     /// * @slow
-    fn cluster_nodes<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::cluster_nodes().query(self)
+    pub fn cluster_nodes() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER NODES");
+        rv
     }
 
     /// CLUSTER REPLICAS
@@ -5674,8 +6649,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_replicas<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, node_id: T0) -> RedisResult<RV> {
-        Cmd::cluster_replicas(node_id).query(self)
+    pub fn cluster_replicas<T0: ToRedisArgs>(node_id: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER REPLICAS");
+        rv.arg(node_id);
+        rv
     }
 
     /// CLUSTER REPLICATE
@@ -5693,8 +6671,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_replicate<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, node_id: T0) -> RedisResult<RV> {
-        Cmd::cluster_replicate(node_id).query(self)
+    pub fn cluster_replicate<T0: ToRedisArgs>(node_id: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER REPLICATE");
+        rv.arg(node_id);
+        rv
     }
 
     /// CLUSTER RESET
@@ -5712,8 +6693,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_reset<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::cluster_reset().query(self)
+    pub fn cluster_reset() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER RESET");
+        rv
     }
 
     /// CLUSTER SAVECONFIG
@@ -5731,8 +6714,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_saveconfig<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::cluster_saveconfig().query(self)
+    pub fn cluster_saveconfig() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER SAVECONFIG");
+        rv
     }
 
     /// CLUSTER SET-CONFIG-EPOCH
@@ -5750,8 +6735,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_set_config_epoch<RV: FromRedisValue>(&mut self, config_epoch: i64) -> RedisResult<RV> {
-        Cmd::cluster_set_config_epoch(config_epoch).query(self)
+    pub fn cluster_set_config_epoch(config_epoch: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER SET-CONFIG-EPOCH");
+        rv.arg(config_epoch);
+        rv
     }
 
     /// CLUSTER SETSLOT
@@ -5769,8 +6757,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_setslot<RV: FromRedisValue>(&mut self, slot: i64) -> RedisResult<RV> {
-        Cmd::cluster_setslot(slot).query(self)
+    pub fn cluster_setslot(slot: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER SETSLOT");
+        rv.arg(slot);
+        rv
     }
 
     /// CLUSTER SHARDS
@@ -5784,8 +6775,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Stale: This command is allowed while a replica has stale data.
     /// ACL Categories:
     /// * @slow
-    fn cluster_shards<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::cluster_shards().query(self)
+    pub fn cluster_shards() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER SHARDS");
+        rv
     }
 
     /// CLUSTER SLAVES
@@ -5805,8 +6798,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     /// * @dangerous
     #[deprecated]
-    fn cluster_slaves<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, node_id: T0) -> RedisResult<RV> {
-        Cmd::cluster_slaves(node_id).query(self)
+    pub fn cluster_slaves<T0: ToRedisArgs>(node_id: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER SLAVES");
+        rv.arg(node_id);
+        rv
     }
 
     /// CLUSTER SLOTS
@@ -5823,8 +6819,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     #[deprecated]
-    fn cluster_slots<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::cluster_slots().query(self)
+    pub fn cluster_slots() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("CLUSTER SLOTS");
+        rv
     }
 
     /// READONLY
@@ -5841,8 +6839,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @fast
     /// * @connection
-    fn readonly<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::readonly().query(self)
+    pub fn readonly() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("READONLY");
+        rv
     }
 
     /// READWRITE
@@ -5859,8 +6859,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @fast
     /// * @connection
-    fn readwrite<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::readwrite().query(self)
+    pub fn readwrite() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("READWRITE");
+        rv
     }
 
     /// GEOADD
@@ -5879,8 +6881,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geoadd<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, longitude_latitude_member: &'a [T0]) -> RedisResult<RV> {
-        Cmd::geoadd(key, longitude_latitude_member).query(self)
+    pub fn geoadd<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, longitude_latitude_member: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GEOADD");
+        rv.arg(key);
+        rv.arg(longitude_latitude_member);
+        rv
     }
 
     /// GEODIST
@@ -5898,8 +6904,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geodist<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member1: T0, member2: T1) -> RedisResult<RV> {
-        Cmd::geodist(key, member1, member2).query(self)
+    pub fn geodist<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, member1: T0, member2: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GEODIST");
+        rv.arg(key);
+        rv.arg(member1);
+        rv.arg(member2);
+        rv
     }
 
     /// GEOHASH
@@ -5917,8 +6928,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geohash<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &'a [T0]) -> RedisResult<RV> {
-        Cmd::geohash(key, member).query(self)
+    pub fn geohash<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GEOHASH");
+        rv.arg(key);
+        rv.arg(member);
+        rv
     }
 
     /// GEOPOS
@@ -5936,8 +6951,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geopos<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &'a [T0]) -> RedisResult<RV> {
-        Cmd::geopos(key, member).query(self)
+    pub fn geopos<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GEOPOS");
+        rv.arg(key);
+        rv.arg(member);
+        rv
     }
 
     /// GEORADIUS
@@ -5960,8 +6979,15 @@ pub trait Commands : ConnectionLike + Sized {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated]
-    fn georadius<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, longitude: f64, latitude: f64, radius: f64, count: Option<T0>) -> RedisResult<RV> {
-        Cmd::georadius(key, longitude, latitude, radius, count).query(self)
+    pub fn georadius<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, longitude: f64, latitude: f64, radius: f64, count: Option<T0>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GEORADIUS");
+        rv.arg(key);
+        rv.arg(longitude);
+        rv.arg(latitude);
+        rv.arg(radius);
+        rv.arg(count);
+        rv
     }
 
     /// GEORADIUSBYMEMBER
@@ -5984,8 +7010,14 @@ pub trait Commands : ConnectionLike + Sized {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated]
-    fn georadiusbymember<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: T0, radius: f64, count: Option<T1>) -> RedisResult<RV> {
-        Cmd::georadiusbymember(key, member, radius, count).query(self)
+    pub fn georadiusbymember<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, member: T0, radius: f64, count: Option<T1>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GEORADIUSBYMEMBER");
+        rv.arg(key);
+        rv.arg(member);
+        rv.arg(radius);
+        rv.arg(count);
+        rv
     }
 
     /// GEORADIUSBYMEMBER_RO
@@ -6006,8 +7038,14 @@ pub trait Commands : ConnectionLike + Sized {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated]
-    fn georadiusbymember_ro<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: T0, radius: f64, count: Option<T1>) -> RedisResult<RV> {
-        Cmd::georadiusbymember_ro(key, member, radius, count).query(self)
+    pub fn georadiusbymember_ro<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, member: T0, radius: f64, count: Option<T1>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GEORADIUSBYMEMBER_RO");
+        rv.arg(key);
+        rv.arg(member);
+        rv.arg(radius);
+        rv.arg(count);
+        rv
     }
 
     /// GEORADIUS_RO
@@ -6028,8 +7066,15 @@ pub trait Commands : ConnectionLike + Sized {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated]
-    fn georadius_ro<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, longitude: f64, latitude: f64, radius: f64, count: Option<T0>) -> RedisResult<RV> {
-        Cmd::georadius_ro(key, longitude, latitude, radius, count).query(self)
+    pub fn georadius_ro<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, longitude: f64, latitude: f64, radius: f64, count: Option<T0>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GEORADIUS_RO");
+        rv.arg(key);
+        rv.arg(longitude);
+        rv.arg(latitude);
+        rv.arg(radius);
+        rv.arg(count);
+        rv
     }
 
     /// GEOSEARCH
@@ -6047,8 +7092,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geosearch<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, count: Option<T0>) -> RedisResult<RV> {
-        Cmd::geosearch(key, count).query(self)
+    pub fn geosearch<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, count: Option<T0>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GEOSEARCH");
+        rv.arg(key);
+        rv.arg(count);
+        rv
     }
 
     /// GEOSEARCHSTORE
@@ -6067,8 +7116,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geosearchstore<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, source: K1, count: Option<T0>) -> RedisResult<RV> {
-        Cmd::geosearchstore(destination, source, count).query(self)
+    pub fn geosearchstore<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs>(destination: K0, source: K1, count: Option<T0>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GEOSEARCHSTORE");
+        rv.arg(destination);
+        rv.arg(source);
+        rv.arg(count);
+        rv
     }
 
     /// XACK
@@ -6087,8 +7141,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xack<'a, K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, group: T0, id: &'a [T1]) -> RedisResult<RV> {
-        Cmd::xack(key, group, id).query(self)
+    pub fn xack<'a, K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, group: T0, id: &'a [T1]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XACK");
+        rv.arg(key);
+        rv.arg(group);
+        rv.arg(id);
+        rv
     }
 
     /// XADD
@@ -6108,8 +7167,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xadd<'a, K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, trim: Option<T0>, field_value: &'a [T1]) -> RedisResult<RV> {
-        Cmd::xadd(key, trim, field_value).query(self)
+    pub fn xadd<'a, K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, trim: Option<T0>, field_value: &'a [T1]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XADD");
+        rv.arg(key);
+        rv.arg(trim);
+        rv.arg(field_value);
+        rv
     }
 
     /// XAUTOCLAIM
@@ -6128,8 +7192,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xautoclaim<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, group: T0, consumer: T1, min_idle_time: T2, start: T3) -> RedisResult<RV> {
-        Cmd::xautoclaim(key, group, consumer, min_idle_time, start).query(self)
+    pub fn xautoclaim<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(key: K0, group: T0, consumer: T1, min_idle_time: T2, start: T3) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XAUTOCLAIM");
+        rv.arg(key);
+        rv.arg(group);
+        rv.arg(consumer);
+        rv.arg(min_idle_time);
+        rv.arg(start);
+        rv
     }
 
     /// XCLAIM
@@ -6148,8 +7219,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xclaim<'a, K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, group: T0, consumer: T1, min_idle_time: T2, id: &'a [T3]) -> RedisResult<RV> {
-        Cmd::xclaim(key, group, consumer, min_idle_time, id).query(self)
+    pub fn xclaim<'a, K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(key: K0, group: T0, consumer: T1, min_idle_time: T2, id: &'a [T3]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XCLAIM");
+        rv.arg(key);
+        rv.arg(group);
+        rv.arg(consumer);
+        rv.arg(min_idle_time);
+        rv.arg(id);
+        rv
     }
 
     /// XDEL
@@ -6168,8 +7246,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xdel<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, id: &'a [T0]) -> RedisResult<RV> {
-        Cmd::xdel(key, id).query(self)
+    pub fn xdel<'a, K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, id: &'a [T0]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XDEL");
+        rv.arg(key);
+        rv.arg(id);
+        rv
     }
 
     /// XGROUP
@@ -6183,8 +7265,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xgroup<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::xgroup().query(self)
+    pub fn xgroup() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XGROUP");
+        rv
     }
 
     /// XGROUP CREATE
@@ -6203,8 +7287,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xgroup_create<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, groupname: T0) -> RedisResult<RV> {
-        Cmd::xgroup_create(key, groupname).query(self)
+    pub fn xgroup_create<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, groupname: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XGROUP CREATE");
+        rv.arg(key);
+        rv.arg(groupname);
+        rv
     }
 
     /// XGROUP CREATECONSUMER
@@ -6223,8 +7311,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xgroup_createconsumer<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, groupname: T0, consumername: T1) -> RedisResult<RV> {
-        Cmd::xgroup_createconsumer(key, groupname, consumername).query(self)
+    pub fn xgroup_createconsumer<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, groupname: T0, consumername: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XGROUP CREATECONSUMER");
+        rv.arg(key);
+        rv.arg(groupname);
+        rv.arg(consumername);
+        rv
     }
 
     /// XGROUP DELCONSUMER
@@ -6242,8 +7335,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xgroup_delconsumer<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, groupname: T0, consumername: T1) -> RedisResult<RV> {
-        Cmd::xgroup_delconsumer(key, groupname, consumername).query(self)
+    pub fn xgroup_delconsumer<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, groupname: T0, consumername: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XGROUP DELCONSUMER");
+        rv.arg(key);
+        rv.arg(groupname);
+        rv.arg(consumername);
+        rv
     }
 
     /// XGROUP DESTROY
@@ -6261,8 +7359,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xgroup_destroy<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, groupname: T0) -> RedisResult<RV> {
-        Cmd::xgroup_destroy(key, groupname).query(self)
+    pub fn xgroup_destroy<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, groupname: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XGROUP DESTROY");
+        rv.arg(key);
+        rv.arg(groupname);
+        rv
     }
 
     /// XGROUP HELP
@@ -6280,8 +7382,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xgroup_help<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::xgroup_help().query(self)
+    pub fn xgroup_help() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XGROUP HELP");
+        rv
     }
 
     /// XGROUP SETID
@@ -6299,8 +7403,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xgroup_setid<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, groupname: T0) -> RedisResult<RV> {
-        Cmd::xgroup_setid(key, groupname).query(self)
+    pub fn xgroup_setid<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, groupname: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XGROUP SETID");
+        rv.arg(key);
+        rv.arg(groupname);
+        rv
     }
 
     /// XINFO
@@ -6314,8 +7422,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xinfo<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::xinfo().query(self)
+    pub fn xinfo() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XINFO");
+        rv
     }
 
     /// XINFO CONSUMERS
@@ -6333,8 +7443,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xinfo_consumers<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, groupname: T0) -> RedisResult<RV> {
-        Cmd::xinfo_consumers(key, groupname).query(self)
+    pub fn xinfo_consumers<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, groupname: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XINFO CONSUMERS");
+        rv.arg(key);
+        rv.arg(groupname);
+        rv
     }
 
     /// XINFO GROUPS
@@ -6352,8 +7466,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xinfo_groups<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::xinfo_groups(key).query(self)
+    pub fn xinfo_groups<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XINFO GROUPS");
+        rv.arg(key);
+        rv
     }
 
     /// XINFO HELP
@@ -6371,8 +7488,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xinfo_help<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::xinfo_help().query(self)
+    pub fn xinfo_help() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XINFO HELP");
+        rv
     }
 
     /// XINFO STREAM
@@ -6390,8 +7509,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xinfo_stream<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::xinfo_stream(key).query(self)
+    pub fn xinfo_stream<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XINFO STREAM");
+        rv.arg(key);
+        rv
     }
 
     /// XLEN
@@ -6410,8 +7532,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xlen<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::xlen(key).query(self)
+    pub fn xlen<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XLEN");
+        rv.arg(key);
+        rv
     }
 
     /// XPENDING
@@ -6429,8 +7554,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xpending<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, group: T0, filters: Option<T1>) -> RedisResult<RV> {
-        Cmd::xpending(key, group, filters).query(self)
+    pub fn xpending<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, group: T0, filters: Option<T1>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XPENDING");
+        rv.arg(key);
+        rv.arg(group);
+        rv.arg(filters);
+        rv
     }
 
     /// XRANGE
@@ -6448,8 +7578,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, start: T0, end: T1) -> RedisResult<RV> {
-        Cmd::xrange(key, start, end).query(self)
+    pub fn xrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, start: T0, end: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XRANGE");
+        rv.arg(key);
+        rv.arg(start);
+        rv.arg(end);
+        rv
     }
 
     /// XREAD
@@ -6470,8 +7605,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @blocking
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xread<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::xread().query(self)
+    pub fn xread() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XREAD");
+        rv
     }
 
     /// XREADGROUP
@@ -6492,8 +7629,10 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @blocking
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xreadgroup<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
-        Cmd::xreadgroup().query(self)
+    pub fn xreadgroup() -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XREADGROUP");
+        rv
     }
 
     /// XREVRANGE
@@ -6511,8 +7650,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xrevrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, end: T0, start: T1) -> RedisResult<RV> {
-        Cmd::xrevrange(key, end, start).query(self)
+    pub fn xrevrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, end: T0, start: T1) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XREVRANGE");
+        rv.arg(key);
+        rv.arg(end);
+        rv.arg(start);
+        rv
     }
 
     /// XSETID
@@ -6532,8 +7676,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xsetid<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, last_id: T0) -> RedisResult<RV> {
-        Cmd::xsetid(key, last_id).query(self)
+    pub fn xsetid<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, last_id: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XSETID");
+        rv.arg(key);
+        rv.arg(last_id);
+        rv
     }
 
     /// XTRIM
@@ -6551,8 +7699,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xtrim<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, trim: T0) -> RedisResult<RV> {
-        Cmd::xtrim(key, trim).query(self)
+    pub fn xtrim<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, trim: T0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("XTRIM");
+        rv.arg(key);
+        rv.arg(trim);
+        rv
     }
 
     /// BITCOUNT
@@ -6568,8 +7720,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @bitmap
     /// * @slow
-    fn bitcount<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, index: Option<T0>) -> RedisResult<RV> {
-        Cmd::bitcount(key, index).query(self)
+    pub fn bitcount<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, index: Option<T0>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("BITCOUNT");
+        rv.arg(key);
+        rv.arg(index);
+        rv
     }
 
     /// BITFIELD
@@ -6587,8 +7743,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @bitmap
     /// * @slow
-    fn bitfield<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::bitfield(key).query(self)
+    pub fn bitfield<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("BITFIELD");
+        rv.arg(key);
+        rv
     }
 
     /// BITFIELD_RO
@@ -6605,8 +7764,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @bitmap
     /// * @fast
-    fn bitfield_ro<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::bitfield_ro(key).query(self)
+    pub fn bitfield_ro<K0: ToRedisArgs>(key: K0) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("BITFIELD_RO");
+        rv.arg(key);
+        rv
     }
 
     /// BITOP
@@ -6623,8 +7785,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @bitmap
     /// * @slow
-    fn bitop<'a, T0: ToRedisArgs, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, operation: T0, destkey: K0, key: &'a [K1]) -> RedisResult<RV> {
-        Cmd::bitop(operation, destkey, key).query(self)
+    pub fn bitop<'a, T0: ToRedisArgs, K0: ToRedisArgs, K1: ToRedisArgs>(operation: T0, destkey: K0, key: &'a [K1]) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("BITOP");
+        rv.arg(operation);
+        rv.arg(destkey);
+        rv.arg(key);
+        rv
     }
 
     /// BITPOS
@@ -6640,8 +7807,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @bitmap
     /// * @slow
-    fn bitpos<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, bit: i64, index: Option<T0>) -> RedisResult<RV> {
-        Cmd::bitpos(key, bit, index).query(self)
+    pub fn bitpos<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, bit: i64, index: Option<T0>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("BITPOS");
+        rv.arg(key);
+        rv.arg(bit);
+        rv.arg(index);
+        rv
     }
 
     /// GETBIT
@@ -6658,8 +7830,12 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @bitmap
     /// * @fast
-    fn getbit<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, offset: i64) -> RedisResult<RV> {
-        Cmd::getbit(key, offset).query(self)
+    pub fn getbit<K0: ToRedisArgs>(key: K0, offset: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("GETBIT");
+        rv.arg(key);
+        rv.arg(offset);
+        rv
     }
 
     /// SETBIT
@@ -6676,8 +7852,13 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @bitmap
     /// * @slow
-    fn setbit<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, offset: i64, value: i64) -> RedisResult<RV> {
-        Cmd::setbit(key, offset, value).query(self)
+    pub fn setbit<K0: ToRedisArgs>(key: K0, offset: i64, value: i64) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SETBIT");
+        rv.arg(key);
+        rv.arg(offset);
+        rv.arg(value);
+        rv
     }
 
 }

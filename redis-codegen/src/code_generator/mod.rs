@@ -1,16 +1,33 @@
+use self::constants::{
+    ASYNC_COMMAND_TRAIT_DOCS, CLUSTER_PIPELINE_DOCS, COMMAND_TRAIT_DOCS, PIPELINE_DOCS,
+};
 use crate::commands::DocFlag;
 use crate::commands::{CommandDefinition, CommandSet};
 use crate::feature_gates::FeatureGate;
+use crate::GenerationType;
+use async_commands_generator::AsyncCommandsTrait;
+use cluster_pipeline_generator::ClusterPipelineImpl;
+use command_generator::CommandImpl;
 use commands::Command;
+use commands_generator::CommandsTrait;
+use comment::Comment;
 use itertools::Itertools;
+use pipeline_generator::PipelineImpl;
 
 mod arguments;
+mod async_commands_generator;
+mod cluster_pipeline_generator;
+mod command_generator;
 mod commands;
+mod commands_generator;
+mod comment;
+mod constants;
+mod pipeline_generator;
 
-pub static BLACKLIST: &[&str] = &["SCAN", "HSCAN", "SSCAN", "ZSCAN", "CLIENT KILL"];
-pub static COMMAND_NAME_OVERWRITE: &[(&str, &str)] = &[];
+pub static BLACKLIST: &[&str] = &["SCAN", "HSCAN", "SSCAN", "ZSCAN", "CLIENT KILL", "OBJECT"];
+pub static COMMAND_NAME_OVERWRITE: &[(&str, &str)] = &[("MOVE", "move_key")];
 pub static COMMAND_COMPATIBILITY: &[(&str, &str)] =
-    &[("GETDEL", "GET_DEL"), ("ZREMRANGEBYLEX", "ZREMBYLEX")];
+    &[("GETDEL", "get_del"), ("ZREMRANGEBYLEX", "zrembylex")];
 
 pub struct CodeGenerator<'a> {
     depth: u8,
@@ -28,79 +45,87 @@ pub(crate) enum GenerationKind {
     IgnoreMultiple,
 }
 
+pub(crate) trait Generator {
+    fn append_imports(&self, generator: &mut CodeGenerator);
+    fn append_preface(&self, generator: &mut CodeGenerator);
+    fn append_appendix(&self, generator: &mut CodeGenerator);
+    fn append_command(&self, generator: &mut super::CodeGenerator, command: &Command);
+}
+
 impl<'a> CodeGenerator<'a> {
-    pub fn generate(commands: CommandSet, buf: &mut String) {
+    pub fn generate(generation_type: GenerationType, commands: &CommandSet, buf: &mut String) {
         let mut code_gen = CodeGenerator { depth: 0, buf };
 
-        code_gen.buf.push_str("implement_commands! {\n");
-        code_gen.depth += 1;
-        code_gen.push_indent();
-        code_gen.buf.push_str("'a\n\n");
+        let generation_unit: Box<dyn Generator> = match generation_type {
+            GenerationType::CommandsTrait => Box::new(CommandsTrait::default()),
+            GenerationType::CommandImpl => Box::new(CommandImpl::default()),
+            GenerationType::AsyncCommandsTrait => Box::new(AsyncCommandsTrait::default()),
+            GenerationType::Pipeline => Box::new(PipelineImpl {}),
+            GenerationType::ClusterPipeline => Box::new(ClusterPipelineImpl {}),
+            // This GenerationType is special, as it won't generate commands but the needed tokens for the commands
+            GenerationType::Tokens => {
+                code_gen.append_oneof_tokens(commands);
+                return;
+            }
+        };
 
-        dbg!(commands
-            .clone()
-            .into_iter()
-            .filter(|(_, x)| x.arguments.iter().any(|x| x.multiple))
-            .collect::<Vec<_>>());
+        code_gen.append_general_imports();
+        generation_unit.append_imports(&mut code_gen);
+        code_gen.buf.push('\n');
+        generation_unit.append_preface(&mut code_gen);
+        code_gen.depth += 1;
 
         // Group commands by group and then by command name
-        for (command, definition) in commands
-            .into_iter()
+        for (command_name, definition) in commands
+            .iter()
             .sorted_by(|x, y| Ord::cmp(&x.1.group, &y.1.group).then(Ord::cmp(&x.0, &y.0)))
         {
-            if !BLACKLIST.contains(&&*command) {
-                code_gen.append_command(command.clone(), definition.clone(), GenerationKind::Full);
+            let command = Command::new(command_name.clone(), definition, GenerationKind::Full);
+            if !BLACKLIST.contains(&command_name.as_str()) {
+                generation_unit.append_command(&mut code_gen, &command);
+                code_gen.buf.push('\n')
             }
 
             // We would be better of instead of generating a whole implementation for this by just calling to the full generation, transforming in the fn body.
             // This needs to wait until we get rid of the macro that currently creates the trait impls.
-            if definition.accepts_multiple() {
-                code_gen.append_command(command.clone(), definition.clone(), GenerationKind::IgnoreMultiple);
-            }
+            // if definition.accepts_multiple() {
+            //     let command = Command::new(command_name.clone(), definition, GenerationKind::Full);
+            //     generation_unit.append_single_alt_command(&mut code_gen,
+            //         command.clone(),
+            //         definition,
+            //     );
+            // }
 
             if let Some(backwarts_compatible_name) = COMMAND_COMPATIBILITY
                 .iter()
-                .find(|(name, _)| name == &&command)
+                .find(|(name, _)| name == command_name)
             {
-                code_gen.append_command(backwarts_compatible_name.1.to_string(), definition, GenerationKind::Full);
+                generation_unit.append_command(
+                    &mut code_gen,
+                    &command.backwards_compatibiity(backwarts_compatible_name.1.to_string()),
+                );
+                code_gen.buf.push('\n')
             }
         }
-
         code_gen.depth -= 1;
-        code_gen.buf.push_str("}\n");
+        generation_unit.append_appendix(&mut code_gen);
     }
 
-    fn push_indent(&mut self) {
+    pub fn push_indent(&mut self) {
         push_indent(self.buf, self.depth);
     }
 
-    fn append_command(&mut self, name: String, definition: CommandDefinition, kind: GenerationKind) {
-        log::debug!("  command: {:?}", name);
-
-        let command = Command::new(name, &definition, kind);
-
-        self.append_doc(&command);
-        self.append_feature_gate(&command);
-
-        if definition.doc_flags.contains(&DocFlag::Deprecated) {
-            self.push_indent();
-            // Including the version might be hard here, as we want to put the crate version here in which this got deprecated.
-            self.buf.push_str("#[deprecated]");
-        }
-
-        self.append_fn_decl(&command);
-        self.depth += 1;
-
-        self.append_fn_body(&command);
-
-        self.depth -= 1;
-        self.buf.push('\n');
+    pub(crate) fn push_line(&mut self, line: &str) {
         self.push_indent();
-        self.buf.push_str("}\n");
-        self.buf.push('\n');
+        self.buf.push_str(line);
+        self.buf.push('\n')
     }
 
-
+    fn append_general_imports(&mut self) {
+        // General imports
+        self.push_line("use crate::types::{FromRedisValue, NumericBehavior, RedisResult, ToRedisArgs, RedisWrite, Expiry};");
+        self.push_line("use crate::connection::{Connection, ConnectionLike, Msg};");
+    }
 
     // Todo Improve docs. Add complexity group etc.
     fn append_doc(&mut self, command: &Command) {
@@ -108,42 +133,11 @@ impl<'a> CodeGenerator<'a> {
         let doc_comment = Comment(docs);
         doc_comment.append_with_indent(self.depth, self.buf);
     }
-
-    /// Appends the function declaration with trait bounds and arguments
-    fn append_fn_decl(&mut self, command: &Command) {
-        self.push_indent();
-
-        let mut trait_bounds = vec![];
-        let mut args = vec![];
-
-        for arg in command.arguments() {
-            trait_bounds.push(arg.trait_bound());
-            args.push(arg.to_string())
-        }
-
-        self.buf.push_str(&format!(
-            "fn {}<{}>({}) {{\n",
-            command.fn_name(),
-            trait_bounds
-                .iter()
-                .filter_map(|x| x.as_ref())
-                .map(|x| x.as_str())
-                .join(", "),
-            args.join(", ")
-        ));
-    }
-
-    /// Appends the function body
-    fn append_fn_body(&mut self, command: &Command) {
-        self.push_indent();
-
-        let mut args = command.arguments().map(|arg| format!(".arg({})", arg.name));
-        if args.len() == 0 {
-            self.buf
-                .push_str(&format!("cmd(\"{}\").as_mut()", command.command(),));
-        } else {
-            self.buf
-                .push_str(&format!("cmd(\"{}\"){}", command.command(), args.join("")));
+    fn append_fn_attributes(&mut self, command: &Command) {
+        self.append_feature_gate(command);
+        if command.deprecated {
+            // Including the version might be hard here, as we want to put the crate version here in which this got deprecated.
+            self.push_line("#[deprecated]");
         }
     }
 
@@ -162,20 +156,19 @@ impl<'a> CodeGenerator<'a> {
             ));
         }
     }
-}
 
-struct Comment(pub Vec<String>);
-
-impl Comment {
-    pub fn append_with_indent(&self, indent_level: u8, buf: &mut String) {
-        for line in &self.0 {
-            for _ in 0..indent_level {
-                buf.push_str("    ");
-            }
-            buf.push_str("/// ");
-            // TODO prost sanitizes comments first. Should we do this here as well?
-            buf.push_str(line);
-            buf.push('\n');
-        }
+    fn append_oneof_tokens(&mut self, commands: &CommandSet) {
+        let all_oneof_definitions = commands
+            .iter()
+            .filter(|(_, definition)| definition.takes_token())
+            .map(|(_, definition)| {
+                definition
+                    .arguments
+                    .iter()
+                    .filter(|arg| arg.r#type.is_oneof())
+            })
+            .flatten()
+            .collect::<Vec<_>>();
+        dbg!(all_oneof_definitions);
     }
 }

@@ -368,6 +368,7 @@ pub use crate::connection::{
 pub use crate::parser::{parse_redis_value, Parser};
 pub use crate::pipeline::Pipeline;
 
+
 #[cfg(feature = "script")]
 #[cfg_attr(docsrs, doc(cfg(feature = "script")))]
 pub use crate::script::{Script, ScriptInvocation};
@@ -448,3 +449,4 @@ mod connection;
 mod parser;
 mod script;
 mod types;
+mod generated;

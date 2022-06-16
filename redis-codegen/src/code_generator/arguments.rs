@@ -1,5 +1,6 @@
 use std::fmt;
 
+#[derive(Debug, Clone)]
 pub enum Type {
     Concrete(String),
     Trait { generic_ident: String, name: String },
@@ -9,6 +10,7 @@ pub enum Type {
 ///
 /// This bundles the name with the assigned trait ident and trait
 /// This is overly generic, to be able to generate more than the default ToRedisArgs trait bounds
+#[derive(Debug, Clone)]
 pub(crate) struct Argument {
     pub name: String,
     pub r#type: Type,

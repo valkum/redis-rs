@@ -8,9 +8,21 @@ fn generated_code_is_fresh() {
     fs::create_dir_all(&tmp_dir).unwrap();
     redis_codegen::generate_commands(&"docs/commands.json", Some(&tmp_dir)).unwrap();
 
-    // let mut root = String::new();
-    // root.push_str("pub mod commands;");
-    // fs::write(tmp_dir.path().join("mod.rs"), root).unwrap();
+    let mut modules = Vec::new();
+    for entry in fs::read_dir(&tmp_dir).unwrap() {
+        let path = entry.expect("tmp dir path to file").path();
+        let file_name_str = path.file_name().and_then(|s| s.to_str()).unwrap();
+        let module_name = file_name_str.rsplit_once(".").expect(".rs file");
+        modules.push(module_name.0.to_owned());
+    }
+    
+    let mut root = String::new();
+    for module in modules {
+        root.push_str("pub mod ");
+        root.push_str(&module);
+        root.push_str(";\n");
+    }
+    fs::write(tmp_dir.path().join("mod.rs"), root).unwrap();
 
     let versions = [SOURCE_DIR, tmp_dir.path().to_str().unwrap()]
         .iter()

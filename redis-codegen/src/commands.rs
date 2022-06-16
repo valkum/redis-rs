@@ -5,8 +5,8 @@ use std::fmt;
 #[derive(Debug, Clone, Deserialize)]
 pub struct CommandSet(HashMap<String, CommandDefinition>);
 impl CommandSet {
-    pub fn into_iter(self) -> hash_map::IntoIter<String, CommandDefinition> {
-        self.0.into_iter()
+    pub fn iter(&self) -> hash_map::Iter<String, CommandDefinition> {
+        self.0.iter()
     }
 }
 
@@ -35,12 +35,17 @@ pub struct CommandDefinition {
     pub(crate) hints: Vec<String>,
 }
 
-
 impl CommandDefinition {
+    /// Returns whether this command accepts any multiple arguments
     pub(crate) fn accepts_multiple(&self) -> bool {
         // This currently checks only if any of the top level arguments is marked as multiple
         // Arguments marked as multiple in
         self.arguments.iter().any(|arg| arg.multiple)
+    }
+
+    /// Returns whether this command accepts any token arguments
+    pub(crate) fn takes_token(&self) -> bool {
+        self.arguments.iter().any(|arg| arg.r#type.is_oneof())
     }
 }
 
@@ -311,7 +316,6 @@ pub(crate) struct CommandArgument {
     pub(crate) optional: bool,
 }
 
-
 /// The Argument Type
 ///
 /// Currently only String, Integer, Double, and Key are used to generate code
@@ -327,4 +331,20 @@ pub(crate) enum ArgType {
     PureToken,
     Oneof { arguments: Vec<CommandArgument> },
     Block { arguments: Vec<CommandArgument> },
+}
+
+impl ArgType {
+    pub(crate) fn is_oneof(&self) -> bool {
+        match self {
+            ArgType::Oneof { .. } => true,
+            _ => false,
+        }
+    }
+
+    pub(crate) fn is_block(&self) -> bool {
+        match self {
+            ArgType::Block { .. } => true,
+            _ => false,
+        }
+    }
 }

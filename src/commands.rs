@@ -1,9 +1,12 @@
 // can't use rustfmt here because it screws up the file.
 #![cfg_attr(rustfmt, rustfmt_skip)]
 use crate::cmd::{cmd, Cmd, Iter};
+
 use crate::connection::{Connection, ConnectionLike, Msg};
 use crate::pipeline::Pipeline;
-use crate::types::{FromRedisValue, NumericBehavior, RedisResult, ToRedisArgs, RedisWrite, Expiry};
+// use crate::types::{FromRedisValue, NumericBehavior, RedisResult, ToRedisArgs, RedisWrite, Expiry};
+
+use crate::types::{RedisResult, ToRedisArgs, RedisWrite};
 
 #[cfg(feature = "cluster")]
 use crate::cluster_pipeline::ClusterPipeline;
@@ -293,9 +296,15 @@ macro_rules! implement_commands {
     )
 }
 
+pub use crate::generated::commands::Commands;
+#[cfg(feature = "aio")]
+pub use crate::generated::async_commands::AsyncCommands;
+pub use crate::generated::command::*;
+pub use crate::generated::pipeline::*;
+#[cfg(feature = "cluster")]
+pub use crate::generated::cluster_pipeline::*;
+// include!("commands_old.rs");
 
-
-include!("generated/commands.rs");
 
 
 

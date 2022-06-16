@@ -2,20 +2,27 @@ use super::arguments::Argument;
 use super::GenerationKind;
 use super::COMMAND_NAME_OVERWRITE;
 use crate::commands::ArgType;
+use crate::commands::DocFlag;
 use crate::commands::{CommandArgument, CommandDefinition, CommandGroup};
 use crate::ident::to_snake;
 
 /// An abstract type representing a code generation unit for a command
+#[derive(Debug, Clone)]
 pub(crate) struct Command {
     name: String,
     command: String,
     docs: Vec<String>,
     group: CommandGroup,
     args: Vec<Argument>,
+    pub(crate) deprecated: bool,
 }
 
 impl Command {
-    pub(crate) fn new(mut name: String, definition: &CommandDefinition, kind: GenerationKind) -> Self {
+    pub(crate) fn new(
+        mut name: String,
+        definition: &CommandDefinition,
+        kind: GenerationKind,
+    ) -> Self {
         let command = name.clone();
 
         let mut kv_index: (u8, u8) = (0, 0);
@@ -29,16 +36,12 @@ impl Command {
 
         name = if let Some(&(_, name)) = COMMAND_NAME_OVERWRITE
             .iter()
-            .find(|(name, _)| name == name)
+            .find(|(ow_name, _)| ow_name == &name)
         {
             name.to_owned()
         } else {
             to_snake(&name)
         };
-
-        if kind == GenerationKind::IgnoreMultiple {
-            name = name + "_single";
-        }
 
         Self {
             name,
@@ -46,6 +49,7 @@ impl Command {
             docs,
             group: definition.group,
             args,
+            deprecated: definition.doc_flags.contains(&DocFlag::Deprecated),
         }
     }
 
@@ -68,6 +72,12 @@ impl Command {
     pub(crate) fn docs(&self) -> &[String] {
         &self.docs
     }
+
+    pub(crate) fn backwards_compatibiity(&self, alt_name: String) -> Self {
+        let mut alt = self.clone();
+        alt.name = alt_name;
+        alt
+    }
 }
 
 // Todo handle key_specs correctly
@@ -77,12 +87,12 @@ fn map_argument(
     kind: GenerationKind,
 ) -> Option<Argument> {
     // TODO Ignore argument until we have proper token handling.
-    // We propably want to generate a type for each token that implements ToRedisArgs and expands to the wrapped type and the Token
+    // We probably want to generate a type for each token that implements ToRedisArgs and expands to the wrapped type and the Token
     if arg.token.is_some() {
         return None;
     }
 
-    let accecpts_multple = arg.multiple && (kind == GenerationKind::Full);
+    let accepts_multiple = arg.multiple && (kind == GenerationKind::Full);
 
     match arg.r#type {
         ArgType::Key { key_spec_index: _ } => {
@@ -98,10 +108,30 @@ fn map_argument(
                 format!("K{}", idx),
                 r#trait,
                 arg.optional,
-                accecpts_multple,
+                accepts_multiple,
             ))
         }
-        ArgType::String | ArgType::Integer | ArgType::Double => {
+        ArgType::Integer => {
+            let name = to_snake(&arg.name);
+
+            Some(Argument::new_concrete(
+                name,
+                "i64".to_owned(),
+                arg.optional,
+                accepts_multiple,
+            ))
+        }
+        ArgType::Double => {
+            let name = to_snake(&arg.name);
+
+            Some(Argument::new_concrete(
+                name,
+                "f64".to_owned(),
+                arg.optional,
+                accepts_multiple,
+            ))
+        }
+        ArgType::String => {
             let idx = *value_id;
             *value_id += 1;
 
@@ -121,7 +151,7 @@ fn map_argument(
                 format!("T{}", idx),
                 r#trait,
                 arg.optional,
-                accecpts_multple,
+                accepts_multiple,
             ))
         }
         ArgType::Pattern => {
@@ -137,7 +167,7 @@ fn map_argument(
                 format!("K{}", idx),
                 r#trait,
                 arg.optional,
-                accecpts_multple,
+                accepts_multiple,
             ))
         }
         // These should be tuples. ToRedisArgs should take care of it
@@ -154,7 +184,7 @@ fn map_argument(
                 format!("T{}", idx),
                 r#trait,
                 arg.optional,
-                accecpts_multple,
+                accepts_multiple,
             ))
         }
 
