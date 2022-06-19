@@ -15,7 +15,7 @@ fn generated_code_is_fresh() {
         let module_name = file_name_str.rsplit_once(".").expect(".rs file");
         modules.push(module_name.0.to_owned());
     }
-    
+
     let mut root = String::new();
     for module in modules {
         root.push_str("pub mod ");

@@ -6,10 +6,10 @@ use crate::cmd::{Cmd, Iter};
 /// allows you to send commands straight to a connection or client.  It
 /// is also implemented for redis results of clients which makes for
 /// very convenient access in some basic cases.
-/// 
+///
 /// This allows you to use nicer syntax for some common operations.
 /// For instance this code:
-/// 
+///
 /// ```rust,no_run
 /// # fn do_something() -> redis::RedisResult<()> {
 /// let client = redis::Client::open("redis://127.0.0.1/")?;
@@ -18,9 +18,9 @@ use crate::cmd::{Cmd, Iter};
 /// assert_eq!(redis::cmd("GET").arg("my_key").query(&mut con), Ok(42));
 /// # Ok(()) }
 /// ```
-/// 
+///
 /// Will become this:
-/// 
+///
 /// ```rust,no_run
 /// # fn do_something() -> redis::RedisResult<()> {
 /// use redis::Commands;
@@ -32,9 +32,9 @@ use crate::cmd::{Cmd, Iter};
 /// ```
 pub trait Commands : ConnectionLike + Sized {
     /// COPY
-    /// 
+    ///
     /// Copy a key
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: Generic
     /// Complexity: O(N) worst case for collections, where N is the number of nested items. O(1) for string values.
@@ -50,9 +50,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// DEL
-    /// 
+    ///
     /// Delete a key
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(N) where N is the number of keys that will be removed. When a key to remove holds a value other than a string, the individual complexity for this key is O(M) where M is the number of elements in the list, set, sorted set or hash. Removing a single key that holds a string value is O(1).
@@ -62,14 +62,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @write
     /// * @slow
-    fn del<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
+    fn del<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &[K0]) -> RedisResult<RV> {
         Cmd::del(key).query(self)
     }
 
     /// DUMP
-    /// 
+    ///
     /// Return a serialized version of the value stored at the specified key.
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Generic
     /// Complexity: O(1) to access the key and additional O(N*M) to serialize it, where N is the number of Redis objects composing the value and M their average size. For small string values the time complexity is thus O(1)+O(1*M) where M is small, so simply O(1).
@@ -84,9 +84,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// EXISTS
-    /// 
+    ///
     /// Determine if a key exists
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(N) where N is the number of keys to check.
@@ -97,14 +97,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @read
     /// * @fast
-    fn exists<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
+    fn exists<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &[K0]) -> RedisResult<RV> {
         Cmd::exists(key).query(self)
     }
 
     /// EXPIRE
-    /// 
+    ///
     /// Set a key's time to live in seconds
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -120,9 +120,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// EXPIREAT
-    /// 
+    ///
     /// Set the expiration for a key as a UNIX timestamp
-    /// 
+    ///
     /// Since: Redis 1.2.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -138,9 +138,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// EXPIRETIME
-    /// 
+    ///
     /// Get the expiration Unix timestamp for a key
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -156,9 +156,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// KEYS
-    /// 
+    ///
     /// Find all keys matching the given pattern
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(N) with N being the number of keys in the database, under the assumption that the key names in the database and the given pattern have limited length.
@@ -174,9 +174,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MIGRATE
-    /// 
+    ///
     /// Atomically transfer a key from a Redis instance to another one.
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Generic
     /// Complexity: This command actually executes a DUMP+DEL in the source instance, and a RESTORE in the target instance. See the pages of these commands for time complexity. Also an O(N) data transfer between the two instances is performed.
@@ -193,9 +193,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MOVE
-    /// 
+    ///
     /// Move a key to another database
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -211,9 +211,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// OBJECT ENCODING
-    /// 
+    ///
     /// Inspect the internal encoding of a Redis object
-    /// 
+    ///
     /// Since: Redis 2.2.3
     /// Group: Generic
     /// Complexity: O(1)
@@ -228,9 +228,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// OBJECT FREQ
-    /// 
+    ///
     /// Get the logarithmic access frequency counter of a Redis object
-    /// 
+    ///
     /// Since: Redis 4.0.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -245,9 +245,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// OBJECT HELP
-    /// 
+    ///
     /// Show helpful text about the different subcommands
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -262,9 +262,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// OBJECT IDLETIME
-    /// 
+    ///
     /// Get the time since a Redis object was last accessed
-    /// 
+    ///
     /// Since: Redis 2.2.3
     /// Group: Generic
     /// Complexity: O(1)
@@ -279,9 +279,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// OBJECT REFCOUNT
-    /// 
+    ///
     /// Get the number of references to the value of the key
-    /// 
+    ///
     /// Since: Redis 2.2.3
     /// Group: Generic
     /// Complexity: O(1)
@@ -296,9 +296,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// PERSIST
-    /// 
+    ///
     /// Remove the expiration from a key
-    /// 
+    ///
     /// Since: Redis 2.2.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -314,9 +314,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// PEXPIRE
-    /// 
+    ///
     /// Set a key's time to live in milliseconds
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -332,9 +332,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// PEXPIREAT
-    /// 
+    ///
     /// Set the expiration for a key as a UNIX timestamp specified in milliseconds
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -350,9 +350,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// PEXPIRETIME
-    /// 
+    ///
     /// Get the expiration Unix timestamp for a key in milliseconds
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -368,9 +368,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// PTTL
-    /// 
+    ///
     /// Get the time to live for a key in milliseconds
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -386,9 +386,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// RANDOMKEY
-    /// 
+    ///
     /// Return a random key from the keyspace
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -403,9 +403,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// RENAME
-    /// 
+    ///
     /// Rename a key
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -420,9 +420,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// RENAMENX
-    /// 
+    ///
     /// Rename a key, only if the new key does not exist
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -438,9 +438,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// RESTORE
-    /// 
+    ///
     /// Create a key using the provided serialized value, previously obtained using DUMP.
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Generic
     /// Complexity: O(1) to create the new key and additional O(N*M) to reconstruct the serialized value, where N is the number of Redis objects composing the value and M their average size. For small string values the time complexity is thus O(1)+O(1*M) where M is small, so simply O(1). However for sorted set values the complexity is O(N*M*log(N)) because inserting values into sorted sets is O(log(N)).
@@ -457,9 +457,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SORT
-    /// 
+    ///
     /// Sort the elements in a list, set or sorted set
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(N+M*log(M)) where N is the number of elements in the list or set to sort, and M the number of returned elements. When the elements are not sorted, complexity is O(N).
@@ -479,9 +479,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SORT_RO
-    /// 
+    ///
     /// Sort the elements in a list, set or sorted set. Read-only variant of SORT.
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Generic
     /// Complexity: O(N+M*log(M)) where N is the number of elements in the list or set to sort, and M the number of returned elements. When the elements are not sorted, complexity is O(N).
@@ -500,9 +500,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// TOUCH
-    /// 
+    ///
     /// Alters the last access time of a key(s). Returns the number of existing keys specified.
-    /// 
+    ///
     /// Since: Redis 3.2.1
     /// Group: Generic
     /// Complexity: O(N) where N is the number of keys that will be touched.
@@ -513,14 +513,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @read
     /// * @fast
-    fn touch<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
+    fn touch<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &[K0]) -> RedisResult<RV> {
         Cmd::touch(key).query(self)
     }
 
     /// TTL
-    /// 
+    ///
     /// Get the time to live for a key in seconds
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -536,9 +536,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// TYPE
-    /// 
+    ///
     /// Determine the type stored at key
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -554,9 +554,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// UNLINK
-    /// 
+    ///
     /// Delete a key asynchronously in another thread. Otherwise it is just as DEL, but non blocking.
-    /// 
+    ///
     /// Since: Redis 4.0.0
     /// Group: Generic
     /// Complexity: O(1) for each key removed regardless of its size. Then the command does O(N) work in a different thread in order to reclaim memory, where N is the number of allocations the deleted objects where composed of.
@@ -567,14 +567,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @keyspace
     /// * @write
     /// * @fast
-    fn unlink<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
+    fn unlink<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &[K0]) -> RedisResult<RV> {
         Cmd::unlink(key).query(self)
     }
 
     /// WAIT
-    /// 
+    ///
     /// Wait for the synchronous replication of all the write commands sent in the context of the current connection
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Generic
     /// Complexity: O(1)
@@ -588,9 +588,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// APPEND
-    /// 
+    ///
     /// Append a value to a key
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: String
     /// Complexity: O(1). The amortized time complexity is O(1) assuming the appended value is small and the already present value is of any size, since the dynamic string library used by Redis will double the free space available on every reallocation.
@@ -607,9 +607,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// DECR
-    /// 
+    ///
     /// Decrement the integer value of a key by one
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: String
     /// Complexity: O(1)
@@ -626,9 +626,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// DECRBY
-    /// 
+    ///
     /// Decrement the integer value of a key by the given number
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: String
     /// Complexity: O(1)
@@ -645,9 +645,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// GET
-    /// 
+    ///
     /// Get the value of a key
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: String
     /// Complexity: O(1)
@@ -663,9 +663,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// GETDEL
-    /// 
+    ///
     /// Get the value of a key and delete the key
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: String
     /// Complexity: O(1)
@@ -680,28 +680,16 @@ pub trait Commands : ConnectionLike + Sized {
         Cmd::getdel(key).query(self)
     }
 
-    /// GETDEL
-    /// 
-    /// Get the value of a key and delete the key
-    /// 
-    /// Since: Redis 6.2.0
-    /// Group: String
-    /// Complexity: O(1)
-    /// CommandFlags:
-    /// * Write: This command may modify data.
-    /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
-    /// ACL Categories:
-    /// * @write
-    /// * @string
-    /// * @fast
+    #[deprecated(since = "0.22.0", note = "With version 0.22.0 redis crate switched to a generated api. This is a deprecated old handwritten function that now aliases to the generated on and will be removed in a future update. ")]
+    /// This is an alias for [`getdel`]
     fn get_del<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
-        Cmd::get_del(key).query(self)
+        self.getdel(key)
     }
 
     /// GETEX
-    /// 
+    ///
     /// Get the value of a key and optionally set its expiration
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: String
     /// Complexity: O(1)
@@ -717,9 +705,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// GETRANGE
-    /// 
+    ///
     /// Get a substring of the string stored at a key
-    /// 
+    ///
     /// Since: Redis 2.4.0
     /// Group: String
     /// Complexity: O(N) where N is the length of the returned string. The complexity is ultimately determined by the returned length, but because creating a substring from an existing string is very cheap, it can be considered O(1) for small strings.
@@ -734,9 +722,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// GETSET
-    /// 
+    ///
     /// Set the string value of a key and return its old value
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: String
     /// Replaced By: `SET` with the `!GET` argument
@@ -750,15 +738,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @fast
-    #[deprecated]
+    #[deprecated = "Deprecated in redis since redis version 6.2.0."]
     fn getset<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, value: T0) -> RedisResult<RV> {
         Cmd::getset(key, value).query(self)
     }
 
     /// INCR
-    /// 
+    ///
     /// Increment the integer value of a key by one
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: String
     /// Complexity: O(1)
@@ -775,9 +763,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// INCRBY
-    /// 
+    ///
     /// Increment the integer value of a key by the given amount
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: String
     /// Complexity: O(1)
@@ -794,9 +782,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// INCRBYFLOAT
-    /// 
+    ///
     /// Increment the float value of a key by the given amount
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: String
     /// Complexity: O(1)
@@ -813,9 +801,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LCS
-    /// 
+    ///
     /// Find longest common substring
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: String
     /// Complexity: O(N*M) where N and M are the lengths of s1 and s2, respectively
@@ -830,9 +818,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MGET
-    /// 
+    ///
     /// Get the values of all the given keys
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: String
     /// Complexity: O(N) where N is the number of keys to retrieve.
@@ -843,14 +831,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @string
     /// * @fast
-    fn mget<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
+    fn mget<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &[K0]) -> RedisResult<RV> {
         Cmd::mget(key).query(self)
     }
 
     /// MSET
-    /// 
+    ///
     /// Set multiple keys to multiple values
-    /// 
+    ///
     /// Since: Redis 1.0.1
     /// Group: String
     /// Complexity: O(N) where N is the number of keys to set.
@@ -861,14 +849,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @slow
-    fn mset<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key_value: &'a [T0]) -> RedisResult<RV> {
+    fn mset<K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key_value: &[(K0, T1)]) -> RedisResult<RV> {
         Cmd::mset(key_value).query(self)
     }
 
     /// MSETNX
-    /// 
+    ///
     /// Set multiple keys to multiple values, only if none of the keys exist
-    /// 
+    ///
     /// Since: Redis 1.0.1
     /// Group: String
     /// Complexity: O(N) where N is the number of keys to set.
@@ -879,14 +867,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @string
     /// * @slow
-    fn msetnx<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key_value: &'a [T0]) -> RedisResult<RV> {
+    fn msetnx<K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key_value: &[(K0, T1)]) -> RedisResult<RV> {
         Cmd::msetnx(key_value).query(self)
     }
 
     /// PSETEX
-    /// 
+    ///
     /// Set the value and expiration in milliseconds of a key
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: String
     /// Complexity: O(1)
@@ -902,9 +890,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SET
-    /// 
+    ///
     /// Set the string value of a key
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: String
     /// Complexity: O(1)
@@ -921,9 +909,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SETEX
-    /// 
+    ///
     /// Set the value and expiration of a key
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: String
     /// Complexity: O(1)
@@ -939,9 +927,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SETNX
-    /// 
+    ///
     /// Set the value of a key, only if the key does not exist
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: String
     /// Complexity: O(1)
@@ -958,9 +946,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SETRANGE
-    /// 
+    ///
     /// Overwrite part of a string at key starting at the specified offset
-    /// 
+    ///
     /// Since: Redis 2.2.0
     /// Group: String
     /// Complexity: O(1), not counting the time taken to copy the new string in place. Usually, this string is very small so the amortized complexity is O(1). Otherwise, complexity is O(M) with M being the length of the value argument.
@@ -976,9 +964,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// STRLEN
-    /// 
+    ///
     /// Get the length of the value stored in a key
-    /// 
+    ///
     /// Since: Redis 2.2.0
     /// Group: String
     /// Complexity: O(1)
@@ -994,9 +982,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SUBSTR
-    /// 
+    ///
     /// Get a substring of the string stored at a key
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: String
     /// Replaced By: `GETRANGE`
@@ -1008,15 +996,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @string
     /// * @slow
-    #[deprecated]
+    #[deprecated = "Deprecated in redis since redis version 2.0.0."]
     fn substr<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, start: i64, end: i64) -> RedisResult<RV> {
         Cmd::substr(key, start, end).query(self)
     }
 
     /// BLMOVE
-    /// 
+    ///
     /// Pop an element from a list, push it to another list and return it; or block until one is available
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: List
     /// Complexity: O(1)
@@ -1035,9 +1023,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// BLMPOP
-    /// 
+    ///
     /// Pop elements from a list, or block until one is available
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: List
     /// Complexity: O(N+M) where N is the number of provided keys and M is the number of elements returned.
@@ -1050,14 +1038,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @list
     /// * @slow
     /// * @blocking
-    fn blmpop<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, timeout: f64, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
+    fn blmpop<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, timeout: f64, numkeys: i64, key: &[K0]) -> RedisResult<RV> {
         Cmd::blmpop(timeout, numkeys, key).query(self)
     }
 
     /// BLPOP
-    /// 
+    ///
     /// Remove and get the first element in a list, or block until one is available
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: List
     /// Complexity: O(N) where N is the number of provided keys.
@@ -1070,14 +1058,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @list
     /// * @slow
     /// * @blocking
-    fn blpop<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0], timeout: f64) -> RedisResult<RV> {
+    fn blpop<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &[K0], timeout: f64) -> RedisResult<RV> {
         Cmd::blpop(key, timeout).query(self)
     }
 
     /// BRPOP
-    /// 
+    ///
     /// Remove and get the last element in a list, or block until one is available
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: List
     /// Complexity: O(N) where N is the number of provided keys.
@@ -1090,14 +1078,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @list
     /// * @slow
     /// * @blocking
-    fn brpop<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0], timeout: f64) -> RedisResult<RV> {
+    fn brpop<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &[K0], timeout: f64) -> RedisResult<RV> {
         Cmd::brpop(key, timeout).query(self)
     }
 
     /// BRPOPLPUSH
-    /// 
+    ///
     /// Pop an element from a list, push it to another list and return it; or block until one is available
-    /// 
+    ///
     /// Since: Redis 2.2.0
     /// Group: List
     /// Replaced By: `BLMOVE` with the `RIGHT` and `LEFT` arguments
@@ -1113,15 +1101,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @list
     /// * @slow
     /// * @blocking
-    #[deprecated]
+    #[deprecated = "Deprecated in redis since redis version 6.2.0."]
     fn brpoplpush<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, source: K0, destination: K1, timeout: f64) -> RedisResult<RV> {
         Cmd::brpoplpush(source, destination, timeout).query(self)
     }
 
     /// LINDEX
-    /// 
+    ///
     /// Get an element from a list by its index
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(N) where N is the number of elements to traverse to get to the element at index. This makes asking for the first or the last element of the list O(1).
@@ -1136,9 +1124,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LINSERT
-    /// 
+    ///
     /// Insert an element before or after another element in a list
-    /// 
+    ///
     /// Since: Redis 2.2.0
     /// Group: List
     /// Complexity: O(N) where N is the number of elements to traverse before seeing the value pivot. This means that inserting somewhere on the left end on the list (head) can be considered O(1) and inserting somewhere on the right end (tail) is O(N).
@@ -1154,9 +1142,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LLEN
-    /// 
+    ///
     /// Get the length of a list
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(1)
@@ -1172,9 +1160,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LMOVE
-    /// 
+    ///
     /// Pop an element from a list, push it to another list and return it
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: List
     /// Complexity: O(1)
@@ -1190,9 +1178,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LMPOP
-    /// 
+    ///
     /// Pop elements from a list
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: List
     /// Complexity: O(N+M) where N is the number of provided keys and M is the number of elements returned.
@@ -1203,14 +1191,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @slow
-    fn lmpop<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
+    fn lmpop<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &[K0]) -> RedisResult<RV> {
         Cmd::lmpop(numkeys, key).query(self)
     }
 
     /// LPOP
-    /// 
+    ///
     /// Remove and get the first elements in a list
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(N) where N is the number of elements returned
@@ -1226,9 +1214,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LPOS
-    /// 
+    ///
     /// Return the index of matching elements on a list
-    /// 
+    ///
     /// Since: Redis 6.0.6
     /// Group: List
     /// Complexity: O(N) where N is the number of elements in the list, for the average case. When searching for elements near the head or the tail of the list, or when the MAXLEN option is provided, the command may run in constant time.
@@ -1243,9 +1231,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LPUSH
-    /// 
+    ///
     /// Prepend one or multiple elements to a list
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.
@@ -1257,14 +1245,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @fast
-    fn lpush<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, element: &'a [T0]) -> RedisResult<RV> {
+    fn lpush<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, element: &[T0]) -> RedisResult<RV> {
         Cmd::lpush(key, element).query(self)
     }
 
     /// LPUSHX
-    /// 
+    ///
     /// Prepend an element to a list, only if the list exists
-    /// 
+    ///
     /// Since: Redis 2.2.0
     /// Group: List
     /// Complexity: O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.
@@ -1276,14 +1264,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @fast
-    fn lpushx<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, element: &'a [T0]) -> RedisResult<RV> {
+    fn lpushx<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, element: &[T0]) -> RedisResult<RV> {
         Cmd::lpushx(key, element).query(self)
     }
 
     /// LRANGE
-    /// 
+    ///
     /// Get a range of elements from a list
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(S+N) where S is the distance of start offset from HEAD for small lists, from nearest end (HEAD or TAIL) for large lists; and N is the number of elements in the specified range.
@@ -1298,9 +1286,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LREM
-    /// 
+    ///
     /// Remove elements from a list
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(N+M) where N is the length of the list and M is the number of elements removed.
@@ -1315,9 +1303,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LSET
-    /// 
+    ///
     /// Set the value of an element in a list by its index
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(N) where N is the length of the list. Setting either the first or the last element of the list is O(1).
@@ -1333,9 +1321,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LTRIM
-    /// 
+    ///
     /// Trim a list to the specified range
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(N) where N is the number of elements to be removed by the operation.
@@ -1350,9 +1338,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// RPOP
-    /// 
+    ///
     /// Remove and get the last elements in a list
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(N) where N is the number of elements returned
@@ -1368,9 +1356,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// RPOPLPUSH
-    /// 
+    ///
     /// Remove the last element in a list, prepend it to another list and return it
-    /// 
+    ///
     /// Since: Redis 1.2.0
     /// Group: List
     /// Replaced By: `LMOVE` with the `RIGHT` and `LEFT` arguments
@@ -1383,15 +1371,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @slow
-    #[deprecated]
+    #[deprecated = "Deprecated in redis since redis version 6.2.0."]
     fn rpoplpush<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, source: K0, destination: K1) -> RedisResult<RV> {
         Cmd::rpoplpush(source, destination).query(self)
     }
 
     /// RPUSH
-    /// 
+    ///
     /// Append one or multiple elements to a list
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: List
     /// Complexity: O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.
@@ -1403,14 +1391,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @fast
-    fn rpush<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, element: &'a [T0]) -> RedisResult<RV> {
+    fn rpush<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, element: &[T0]) -> RedisResult<RV> {
         Cmd::rpush(key, element).query(self)
     }
 
     /// RPUSHX
-    /// 
+    ///
     /// Append an element to a list, only if the list exists
-    /// 
+    ///
     /// Since: Redis 2.2.0
     /// Group: List
     /// Complexity: O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.
@@ -1422,14 +1410,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @list
     /// * @fast
-    fn rpushx<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, element: &'a [T0]) -> RedisResult<RV> {
+    fn rpushx<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, element: &[T0]) -> RedisResult<RV> {
         Cmd::rpushx(key, element).query(self)
     }
 
     /// SADD
-    /// 
+    ///
     /// Add one or more members to a set
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.
@@ -1441,14 +1429,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @set
     /// * @fast
-    fn sadd<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &'a [T0]) -> RedisResult<RV> {
+    fn sadd<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &[T0]) -> RedisResult<RV> {
         Cmd::sadd(key, member).query(self)
     }
 
     /// SCARD
-    /// 
+    ///
     /// Get the number of members in a set
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(1)
@@ -1464,9 +1452,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SDIFF
-    /// 
+    ///
     /// Subtract multiple sets
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(N) where N is the total number of elements in all given sets.
@@ -1476,14 +1464,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @set
     /// * @slow
-    fn sdiff<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
+    fn sdiff<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &[K0]) -> RedisResult<RV> {
         Cmd::sdiff(key).query(self)
     }
 
     /// SDIFFSTORE
-    /// 
+    ///
     /// Subtract multiple sets and store the resulting set in a key
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(N) where N is the total number of elements in all given sets.
@@ -1494,14 +1482,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @set
     /// * @slow
-    fn sdiffstore<'a, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, key: &'a [K1]) -> RedisResult<RV> {
+    fn sdiffstore<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, key: &[K1]) -> RedisResult<RV> {
         Cmd::sdiffstore(destination, key).query(self)
     }
 
     /// SINTER
-    /// 
+    ///
     /// Intersect multiple sets
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(N*M) worst case where N is the cardinality of the smallest set and M is the number of sets.
@@ -1511,14 +1499,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @set
     /// * @slow
-    fn sinter<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
+    fn sinter<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &[K0]) -> RedisResult<RV> {
         Cmd::sinter(key).query(self)
     }
 
     /// SINTERCARD
-    /// 
+    ///
     /// Intersect multiple sets and return the cardinality of the result
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Set
     /// Complexity: O(N*M) worst case where N is the cardinality of the smallest set and M is the number of sets.
@@ -1529,14 +1517,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @set
     /// * @slow
-    fn sintercard<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
+    fn sintercard<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &[K0]) -> RedisResult<RV> {
         Cmd::sintercard(numkeys, key).query(self)
     }
 
     /// SINTERSTORE
-    /// 
+    ///
     /// Intersect multiple sets and store the resulting set in a key
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(N*M) worst case where N is the cardinality of the smallest set and M is the number of sets.
@@ -1547,14 +1535,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @set
     /// * @slow
-    fn sinterstore<'a, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, key: &'a [K1]) -> RedisResult<RV> {
+    fn sinterstore<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, key: &[K1]) -> RedisResult<RV> {
         Cmd::sinterstore(destination, key).query(self)
     }
 
     /// SISMEMBER
-    /// 
+    ///
     /// Determine if a given value is a member of a set
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(1)
@@ -1570,9 +1558,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SMEMBERS
-    /// 
+    ///
     /// Get all the members in a set
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(N) where N is the set cardinality.
@@ -1587,9 +1575,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SMISMEMBER
-    /// 
+    ///
     /// Returns the membership associated with the given elements for a set
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: Set
     /// Complexity: O(N) where N is the number of elements being checked for membership
@@ -1600,14 +1588,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @set
     /// * @fast
-    fn smismember<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &'a [T0]) -> RedisResult<RV> {
+    fn smismember<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &[T0]) -> RedisResult<RV> {
         Cmd::smismember(key, member).query(self)
     }
 
     /// SMOVE
-    /// 
+    ///
     /// Move a member from one set to another
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(1)
@@ -1623,9 +1611,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SPOP
-    /// 
+    ///
     /// Remove and return one or multiple random members from a set
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: Without the count argument O(1), otherwise O(N) where N is the value of the passed count.
@@ -1641,9 +1629,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SRANDMEMBER
-    /// 
+    ///
     /// Get one or multiple random members from a set
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: Without the count argument O(1), otherwise O(N) where N is the absolute value of the passed count.
@@ -1658,9 +1646,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SREM
-    /// 
+    ///
     /// Remove one or more members from a set
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(N) where N is the number of members to be removed.
@@ -1671,14 +1659,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @set
     /// * @fast
-    fn srem<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &'a [T0]) -> RedisResult<RV> {
+    fn srem<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &[T0]) -> RedisResult<RV> {
         Cmd::srem(key, member).query(self)
     }
 
     /// SUNION
-    /// 
+    ///
     /// Add multiple sets
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(N) where N is the total number of elements in all given sets.
@@ -1688,14 +1676,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @set
     /// * @slow
-    fn sunion<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
+    fn sunion<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &[K0]) -> RedisResult<RV> {
         Cmd::sunion(key).query(self)
     }
 
     /// SUNIONSTORE
-    /// 
+    ///
     /// Add multiple sets and store the resulting set in a key
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Set
     /// Complexity: O(N) where N is the total number of elements in all given sets.
@@ -1706,14 +1694,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @set
     /// * @slow
-    fn sunionstore<'a, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, key: &'a [K1]) -> RedisResult<RV> {
+    fn sunionstore<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, key: &[K1]) -> RedisResult<RV> {
         Cmd::sunionstore(destination, key).query(self)
     }
 
     /// BZMPOP
-    /// 
+    ///
     /// Remove and return members with scores in a sorted set or block until one is available
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: SortedSet
     /// Complexity: O(K) + O(N*log(M)) where K is the number of provided keys, N being the number of elements in the sorted set, and M being the number of elements popped.
@@ -1726,14 +1714,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @sortedset
     /// * @slow
     /// * @blocking
-    fn bzmpop<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, timeout: f64, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
+    fn bzmpop<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, timeout: f64, numkeys: i64, key: &[K0]) -> RedisResult<RV> {
         Cmd::bzmpop(timeout, numkeys, key).query(self)
     }
 
     /// BZPOPMAX
-    /// 
+    ///
     /// Remove and return the member with the highest score from one or more sorted sets, or block until one is available
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: SortedSet
     /// Complexity: O(log(N)) with N being the number of elements in the sorted set.
@@ -1747,14 +1735,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @sortedset
     /// * @fast
     /// * @blocking
-    fn bzpopmax<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0], timeout: f64) -> RedisResult<RV> {
+    fn bzpopmax<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &[K0], timeout: f64) -> RedisResult<RV> {
         Cmd::bzpopmax(key, timeout).query(self)
     }
 
     /// BZPOPMIN
-    /// 
+    ///
     /// Remove and return the member with the lowest score from one or more sorted sets, or block until one is available
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: SortedSet
     /// Complexity: O(log(N)) with N being the number of elements in the sorted set.
@@ -1768,14 +1756,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @sortedset
     /// * @fast
     /// * @blocking
-    fn bzpopmin<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0], timeout: f64) -> RedisResult<RV> {
+    fn bzpopmin<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &[K0], timeout: f64) -> RedisResult<RV> {
         Cmd::bzpopmin(key, timeout).query(self)
     }
 
     /// ZADD
-    /// 
+    ///
     /// Add one or more members to a sorted set, or update its score if it already exists
-    /// 
+    ///
     /// Since: Redis 1.2.0
     /// Group: SortedSet
     /// Complexity: O(log(N)) for each item added, where N is the number of elements in the sorted set.
@@ -1787,14 +1775,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @fast
-    fn zadd<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, score_member: &'a [T0]) -> RedisResult<RV> {
+    fn zadd<K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, score_member: &[(f64, T1)]) -> RedisResult<RV> {
         Cmd::zadd(key, score_member).query(self)
     }
 
     /// ZCARD
-    /// 
+    ///
     /// Get the number of members in a sorted set
-    /// 
+    ///
     /// Since: Redis 1.2.0
     /// Group: SortedSet
     /// Complexity: O(1)
@@ -1810,9 +1798,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ZCOUNT
-    /// 
+    ///
     /// Count the members in a sorted set with scores within the given values
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: SortedSet
     /// Complexity: O(log(N)) with N being the number of elements in the sorted set.
@@ -1828,9 +1816,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ZDIFF
-    /// 
+    ///
     /// Subtract multiple sorted sets
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: SortedSet
     /// Complexity: O(L + (N-K)log(N)) worst case where L is the total number of elements in all the sets, N is the size of the first set, and K is the size of the result set.
@@ -1841,14 +1829,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zdiff<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
+    fn zdiff<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &[K0]) -> RedisResult<RV> {
         Cmd::zdiff(numkeys, key).query(self)
     }
 
     /// ZDIFFSTORE
-    /// 
+    ///
     /// Subtract multiple sorted sets and store the resulting sorted set in a new key
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: SortedSet
     /// Complexity: O(L + (N-K)log(N)) worst case where L is the total number of elements in all the sets, N is the size of the first set, and K is the size of the result set.
@@ -1860,14 +1848,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zdiffstore<'a, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, numkeys: i64, key: &'a [K1]) -> RedisResult<RV> {
+    fn zdiffstore<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, numkeys: i64, key: &[K1]) -> RedisResult<RV> {
         Cmd::zdiffstore(destination, numkeys, key).query(self)
     }
 
     /// ZINCRBY
-    /// 
+    ///
     /// Increment the score of a member in a sorted set
-    /// 
+    ///
     /// Since: Redis 1.2.0
     /// Group: SortedSet
     /// Complexity: O(log(N)) where N is the number of elements in the sorted set.
@@ -1884,9 +1872,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ZINTER
-    /// 
+    ///
     /// Intersect multiple sorted sets
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: SortedSet
     /// Complexity: O(N*K)+O(M*log(M)) worst case with N being the smallest input sorted set, K being the number of input sorted sets and M being the number of elements in the resulting sorted set.
@@ -1897,14 +1885,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zinter<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
+    fn zinter<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &[K0]) -> RedisResult<RV> {
         Cmd::zinter(numkeys, key).query(self)
     }
 
     /// ZINTERCARD
-    /// 
+    ///
     /// Intersect multiple sorted sets and return the cardinality of the result
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: SortedSet
     /// Complexity: O(N*K) worst case with N being the smallest input sorted set, K being the number of input sorted sets.
@@ -1915,14 +1903,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zintercard<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
+    fn zintercard<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &[K0]) -> RedisResult<RV> {
         Cmd::zintercard(numkeys, key).query(self)
     }
 
     /// ZINTERSTORE
-    /// 
+    ///
     /// Intersect multiple sorted sets and store the resulting sorted set in a new key
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: SortedSet
     /// Complexity: O(N*K)+O(M*log(M)) worst case with N being the smallest input sorted set, K being the number of input sorted sets and M being the number of elements in the resulting sorted set.
@@ -1934,14 +1922,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zinterstore<'a, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, numkeys: i64, key: &'a [K1]) -> RedisResult<RV> {
+    fn zinterstore<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, numkeys: i64, key: &[K1]) -> RedisResult<RV> {
         Cmd::zinterstore(destination, numkeys, key).query(self)
     }
 
     /// ZLEXCOUNT
-    /// 
+    ///
     /// Count the number of members in a sorted set between a given lexicographical range
-    /// 
+    ///
     /// Since: Redis 2.8.9
     /// Group: SortedSet
     /// Complexity: O(log(N)) with N being the number of elements in the sorted set.
@@ -1957,9 +1945,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ZMPOP
-    /// 
+    ///
     /// Remove and return members with scores in a sorted set
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: SortedSet
     /// Complexity: O(K) + O(N*log(M)) where K is the number of provided keys, N being the number of elements in the sorted set, and M being the number of elements popped.
@@ -1970,14 +1958,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zmpop<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
+    fn zmpop<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &[K0]) -> RedisResult<RV> {
         Cmd::zmpop(numkeys, key).query(self)
     }
 
     /// ZMSCORE
-    /// 
+    ///
     /// Get the score associated with the given members in a sorted set
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: SortedSet
     /// Complexity: O(N) where N is the number of members being requested.
@@ -1988,14 +1976,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @fast
-    fn zmscore<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &'a [T0]) -> RedisResult<RV> {
+    fn zmscore<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &[T0]) -> RedisResult<RV> {
         Cmd::zmscore(key, member).query(self)
     }
 
     /// ZPOPMAX
-    /// 
+    ///
     /// Remove and return members with the highest scores in a sorted set
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: SortedSet
     /// Complexity: O(log(N)*M) with N being the number of elements in the sorted set, and M being the number of elements popped.
@@ -2011,9 +1999,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ZPOPMIN
-    /// 
+    ///
     /// Remove and return members with the lowest scores in a sorted set
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: SortedSet
     /// Complexity: O(log(N)*M) with N being the number of elements in the sorted set, and M being the number of elements popped.
@@ -2029,9 +2017,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ZRANDMEMBER
-    /// 
+    ///
     /// Get one or multiple random elements from a sorted set
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: SortedSet
     /// Complexity: O(N) where N is the number of elements returned
@@ -2046,9 +2034,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ZRANGE
-    /// 
+    ///
     /// Return a range of members in a sorted set
-    /// 
+    ///
     /// Since: Redis 1.2.0
     /// Group: SortedSet
     /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements returned.
@@ -2063,9 +2051,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ZRANGEBYLEX
-    /// 
+    ///
     /// Return a range of members in a sorted set, by lexicographical range
-    /// 
+    ///
     /// Since: Redis 2.8.9
     /// Group: SortedSet
     /// Replaced By: `ZRANGE` with the `BYLEX` argument
@@ -2077,15 +2065,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    #[deprecated]
+    #[deprecated = "Deprecated in redis since redis version 6.2.0."]
     fn zrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, min: T0, max: T1) -> RedisResult<RV> {
         Cmd::zrangebylex(key, min, max).query(self)
     }
 
     /// ZRANGEBYSCORE
-    /// 
+    ///
     /// Return a range of members in a sorted set, by score
-    /// 
+    ///
     /// Since: Redis 1.0.5
     /// Group: SortedSet
     /// Replaced By: `ZRANGE` with the `BYSCORE` argument
@@ -2097,15 +2085,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    #[deprecated]
+    #[deprecated = "Deprecated in redis since redis version 6.2.0."]
     fn zrangebyscore<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, min: f64, max: f64) -> RedisResult<RV> {
         Cmd::zrangebyscore(key, min, max).query(self)
     }
 
     /// ZRANGESTORE
-    /// 
+    ///
     /// Store a range of members from sorted set into another key
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: SortedSet
     /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements stored into the destination key.
@@ -2121,9 +2109,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ZRANK
-    /// 
+    ///
     /// Determine the index of a member in a sorted set
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: SortedSet
     /// Complexity: O(log(N))
@@ -2139,9 +2127,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ZREM
-    /// 
+    ///
     /// Remove one or more members from a sorted set
-    /// 
+    ///
     /// Since: Redis 1.2.0
     /// Group: SortedSet
     /// Complexity: O(M*log(N)) with N being the number of elements in the sorted set and M the number of elements to be removed.
@@ -2152,14 +2140,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @fast
-    fn zrem<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &'a [T0]) -> RedisResult<RV> {
+    fn zrem<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &[T0]) -> RedisResult<RV> {
         Cmd::zrem(key, member).query(self)
     }
 
     /// ZREMRANGEBYLEX
-    /// 
+    ///
     /// Remove all members in a sorted set between the given lexicographical range
-    /// 
+    ///
     /// Since: Redis 2.8.9
     /// Group: SortedSet
     /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements removed by the operation.
@@ -2173,27 +2161,16 @@ pub trait Commands : ConnectionLike + Sized {
         Cmd::zremrangebylex(key, min, max).query(self)
     }
 
-    /// ZREMRANGEBYLEX
-    /// 
-    /// Remove all members in a sorted set between the given lexicographical range
-    /// 
-    /// Since: Redis 2.8.9
-    /// Group: SortedSet
-    /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements removed by the operation.
-    /// CommandFlags:
-    /// * Write: This command may modify data.
-    /// ACL Categories:
-    /// * @write
-    /// * @sortedset
-    /// * @slow
+    #[deprecated(since = "0.22.0", note = "With version 0.22.0 redis crate switched to a generated api. This is a deprecated old handwritten function that now aliases to the generated on and will be removed in a future update. ")]
+    /// This is an alias for [`zremrangebylex`]
     fn zrembylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, min: T0, max: T1) -> RedisResult<RV> {
-        Cmd::zrembylex(key, min, max).query(self)
+        self.zremrangebylex(key, min, max)
     }
 
     /// ZREMRANGEBYRANK
-    /// 
+    ///
     /// Remove all members in a sorted set within the given indexes
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: SortedSet
     /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements removed by the operation.
@@ -2208,9 +2185,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ZREMRANGEBYSCORE
-    /// 
+    ///
     /// Remove all members in a sorted set within the given scores
-    /// 
+    ///
     /// Since: Redis 1.2.0
     /// Group: SortedSet
     /// Complexity: O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements removed by the operation.
@@ -2225,9 +2202,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ZREVRANGE
-    /// 
+    ///
     /// Return a range of members in a sorted set, by index, with scores ordered from high to low
-    /// 
+    ///
     /// Since: Redis 1.2.0
     /// Group: SortedSet
     /// Replaced By: `ZRANGE` with the `REV` argument
@@ -2239,15 +2216,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    #[deprecated]
+    #[deprecated = "Deprecated in redis since redis version 6.2.0."]
     fn zrevrange<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, start: i64, stop: i64) -> RedisResult<RV> {
         Cmd::zrevrange(key, start, stop).query(self)
     }
 
     /// ZREVRANGEBYLEX
-    /// 
+    ///
     /// Return a range of members in a sorted set, by lexicographical range, ordered from higher to lower strings.
-    /// 
+    ///
     /// Since: Redis 2.8.9
     /// Group: SortedSet
     /// Replaced By: `ZRANGE` with the `REV` and `BYLEX` arguments
@@ -2259,15 +2236,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    #[deprecated]
+    #[deprecated = "Deprecated in redis since redis version 6.2.0."]
     fn zrevrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, max: T0, min: T1) -> RedisResult<RV> {
         Cmd::zrevrangebylex(key, max, min).query(self)
     }
 
     /// ZREVRANGEBYSCORE
-    /// 
+    ///
     /// Return a range of members in a sorted set, by score, with scores ordered from high to low
-    /// 
+    ///
     /// Since: Redis 2.2.0
     /// Group: SortedSet
     /// Replaced By: `ZRANGE` with the `REV` and `BYSCORE` arguments
@@ -2279,15 +2256,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    #[deprecated]
+    #[deprecated = "Deprecated in redis since redis version 6.2.0."]
     fn zrevrangebyscore<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, max: f64, min: f64) -> RedisResult<RV> {
         Cmd::zrevrangebyscore(key, max, min).query(self)
     }
 
     /// ZREVRANK
-    /// 
+    ///
     /// Determine the index of a member in a sorted set, with scores ordered from high to low
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: SortedSet
     /// Complexity: O(log(N))
@@ -2303,9 +2280,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ZSCORE
-    /// 
+    ///
     /// Get the score associated with the given member in a sorted set
-    /// 
+    ///
     /// Since: Redis 1.2.0
     /// Group: SortedSet
     /// Complexity: O(1)
@@ -2321,9 +2298,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ZUNION
-    /// 
+    ///
     /// Add multiple sorted sets
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: SortedSet
     /// Complexity: O(N)+O(M*log(M)) with N being the sum of the sizes of the input sorted sets, and M being the number of elements in the resulting sorted set.
@@ -2334,14 +2311,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zunion<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &'a [K0]) -> RedisResult<RV> {
+    fn zunion<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, numkeys: i64, key: &[K0]) -> RedisResult<RV> {
         Cmd::zunion(numkeys, key).query(self)
     }
 
     /// ZUNIONSTORE
-    /// 
+    ///
     /// Add multiple sorted sets and store the resulting sorted set in a new key
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: SortedSet
     /// Complexity: O(N)+O(M log(M)) with N being the sum of the sizes of the input sorted sets, and M being the number of elements in the resulting sorted set.
@@ -2353,14 +2330,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zunionstore<'a, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, numkeys: i64, key: &'a [K1]) -> RedisResult<RV> {
+    fn zunionstore<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, numkeys: i64, key: &[K1]) -> RedisResult<RV> {
         Cmd::zunionstore(destination, numkeys, key).query(self)
     }
 
     /// HDEL
-    /// 
+    ///
     /// Delete one or more hash fields
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(N) where N is the number of fields to be removed.
@@ -2371,14 +2348,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @hash
     /// * @fast
-    fn hdel<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field: &'a [T0]) -> RedisResult<RV> {
+    fn hdel<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field: &[T0]) -> RedisResult<RV> {
         Cmd::hdel(key, field).query(self)
     }
 
     /// HEXISTS
-    /// 
+    ///
     /// Determine if a hash field exists
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(1)
@@ -2394,9 +2371,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// HGET
-    /// 
+    ///
     /// Get the value of a hash field
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(1)
@@ -2412,9 +2389,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// HGETALL
-    /// 
+    ///
     /// Get all the fields and values in a hash
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(N) where N is the size of the hash.
@@ -2429,9 +2406,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// HINCRBY
-    /// 
+    ///
     /// Increment the integer value of a hash field by the given number
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(1)
@@ -2448,9 +2425,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// HINCRBYFLOAT
-    /// 
+    ///
     /// Increment the float value of a hash field by the given amount
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Hash
     /// Complexity: O(1)
@@ -2467,9 +2444,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// HKEYS
-    /// 
+    ///
     /// Get all the fields in a hash
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(N) where N is the size of the hash.
@@ -2484,9 +2461,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// HLEN
-    /// 
+    ///
     /// Get the number of fields in a hash
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(1)
@@ -2502,9 +2479,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// HMGET
-    /// 
+    ///
     /// Get the values of all the given hash fields
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(N) where N is the number of fields being requested.
@@ -2515,14 +2492,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @hash
     /// * @fast
-    fn hmget<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field: &'a [T0]) -> RedisResult<RV> {
+    fn hmget<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field: &[T0]) -> RedisResult<RV> {
         Cmd::hmget(key, field).query(self)
     }
 
     /// HMSET
-    /// 
+    ///
     /// Set multiple hash fields to multiple values
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Replaced By: `HSET` with multiple field-value pairs
@@ -2536,15 +2513,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @hash
     /// * @fast
-    #[deprecated]
-    fn hmset<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field_value: &'a [T0]) -> RedisResult<RV> {
+    #[deprecated = "Deprecated in redis since redis version 4.0.0."]
+    fn hmset<K0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field_value: &[(T1, T2)]) -> RedisResult<RV> {
         Cmd::hmset(key, field_value).query(self)
     }
 
     /// HRANDFIELD
-    /// 
+    ///
     /// Get one or multiple random fields from a hash
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: Hash
     /// Complexity: O(N) where N is the number of fields returned
@@ -2559,9 +2536,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// HSET
-    /// 
+    ///
     /// Set the string value of a hash field
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(1) for each field/value pair added, so O(N) to add N field/value pairs when the command is called with multiple field/value pairs.
@@ -2573,14 +2550,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @hash
     /// * @fast
-    fn hset<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field_value: &'a [T0]) -> RedisResult<RV> {
+    fn hset<K0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, field_value: &[(T1, T2)]) -> RedisResult<RV> {
         Cmd::hset(key, field_value).query(self)
     }
 
     /// HSETNX
-    /// 
+    ///
     /// Set the value of a hash field, only if the field does not exist
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(1)
@@ -2597,9 +2574,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// HSTRLEN
-    /// 
+    ///
     /// Get the length of the value of a hash field
-    /// 
+    ///
     /// Since: Redis 3.2.0
     /// Group: Hash
     /// Complexity: O(1)
@@ -2615,9 +2592,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// HVALS
-    /// 
+    ///
     /// Get all the values in a hash
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Hash
     /// Complexity: O(N) where N is the size of the hash.
@@ -2632,9 +2609,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// PSUBSCRIBE
-    /// 
+    ///
     /// Listen for messages published to channels matching the given patterns
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Pubsub
     /// Complexity: O(N) where N is the number of patterns the client is already subscribed to.
@@ -2646,14 +2623,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn psubscribe<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, pattern: &'a [T0]) -> RedisResult<RV> {
+    fn psubscribe<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, pattern: &[(K0)]) -> RedisResult<RV> {
         Cmd::psubscribe(pattern).query(self)
     }
 
     /// PUBLISH
-    /// 
+    ///
     /// Post a message to a channel
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Pubsub
     /// Complexity: O(N+M) where N is the number of clients subscribed to the receiving channel and M is the total number of subscribed patterns (by any client).
@@ -2670,9 +2647,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// PUBSUB
-    /// 
+    ///
     /// A container for Pub/Sub commands
-    /// 
+    ///
     /// Since: Redis 2.8.0
     /// Group: Pubsub
     /// Complexity: Depends on subcommand.
@@ -2683,9 +2660,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// PUBSUB CHANNELS
-    /// 
+    ///
     /// List active channels
-    /// 
+    ///
     /// Since: Redis 2.8.0
     /// Group: Pubsub
     /// Complexity: O(N) where N is the number of active channels, and assuming constant time pattern matching (relatively short channels and patterns)
@@ -2701,9 +2678,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// PUBSUB HELP
-    /// 
+    ///
     /// Show helpful text about the different subcommands
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: Pubsub
     /// Complexity: O(1)
@@ -2717,9 +2694,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// PUBSUB NUMPAT
-    /// 
+    ///
     /// Get the count of unique patterns pattern subscriptions
-    /// 
+    ///
     /// Since: Redis 2.8.0
     /// Group: Pubsub
     /// Complexity: O(1)
@@ -2735,9 +2712,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// PUBSUB NUMSUB
-    /// 
+    ///
     /// Get the count of subscribers for channels
-    /// 
+    ///
     /// Since: Redis 2.8.0
     /// Group: Pubsub
     /// Complexity: O(N) for the NUMSUB subcommand, where N is the number of requested channels
@@ -2748,14 +2725,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn pubsub_numsub<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, channel: Option<&'a [T0]>) -> RedisResult<RV> {
+    fn pubsub_numsub<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, channel: Option<&[T0]>) -> RedisResult<RV> {
         Cmd::pubsub_numsub(channel).query(self)
     }
 
     /// PUBSUB SHARDCHANNELS
-    /// 
+    ///
     /// List active shard channels
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Pubsub
     /// Complexity: O(N) where N is the number of active shard channels, and assuming constant time pattern matching (relatively short shard channels).
@@ -2771,9 +2748,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// PUBSUB SHARDNUMSUB
-    /// 
+    ///
     /// Get the count of subscribers for shard channels
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Pubsub
     /// Complexity: O(N) for the SHARDNUMSUB subcommand, where N is the number of requested shard channels
@@ -2784,14 +2761,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn pubsub_shardnumsub<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, shardchannel: Option<&'a [T0]>) -> RedisResult<RV> {
+    fn pubsub_shardnumsub<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, shardchannel: Option<&[T0]>) -> RedisResult<RV> {
         Cmd::pubsub_shardnumsub(shardchannel).query(self)
     }
 
     /// PUNSUBSCRIBE
-    /// 
+    ///
     /// Stop listening for messages posted to channels matching the given patterns
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Pubsub
     /// Complexity: O(N+M) where N is the number of patterns the client is already subscribed and M is the number of total patterns subscribed in the system (by any client).
@@ -2803,14 +2780,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn punsubscribe<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, pattern: Option<&'a [K0]>) -> RedisResult<RV> {
+    fn punsubscribe<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, pattern: Option<&[K0]>) -> RedisResult<RV> {
         Cmd::punsubscribe(pattern).query(self)
     }
 
     /// SPUBLISH
-    /// 
+    ///
     /// Post a message to a shard channel
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Pubsub
     /// Complexity: O(N) where N is the number of clients subscribed to the receiving shard channel.
@@ -2827,9 +2804,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SSUBSCRIBE
-    /// 
+    ///
     /// Listen for messages published to the given shard channels
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Pubsub
     /// Complexity: O(N) where N is the number of shard channels to subscribe to.
@@ -2841,14 +2818,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn ssubscribe<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, shardchannel: &'a [T0]) -> RedisResult<RV> {
+    fn ssubscribe<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, shardchannel: &[T0]) -> RedisResult<RV> {
         Cmd::ssubscribe(shardchannel).query(self)
     }
 
     /// SUBSCRIBE
-    /// 
+    ///
     /// Listen for messages published to the given channels
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Pubsub
     /// Complexity: O(N) where N is the number of channels to subscribe to.
@@ -2860,14 +2837,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn subscribe<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, channel: &'a [T0]) -> RedisResult<RV> {
+    fn subscribe<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, channel: &[T0]) -> RedisResult<RV> {
         Cmd::subscribe(channel).query(self)
     }
 
     /// SUNSUBSCRIBE
-    /// 
+    ///
     /// Stop listening for messages posted to the given shard channels
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Pubsub
     /// Complexity: O(N) where N is the number of clients already subscribed to a shard channel.
@@ -2879,14 +2856,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn sunsubscribe<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, shardchannel: Option<&'a [T0]>) -> RedisResult<RV> {
+    fn sunsubscribe<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, shardchannel: Option<&[T0]>) -> RedisResult<RV> {
         Cmd::sunsubscribe(shardchannel).query(self)
     }
 
     /// UNSUBSCRIBE
-    /// 
+    ///
     /// Stop listening for messages posted to the given channels
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Pubsub
     /// Complexity: O(N) where N is the number of clients already subscribed to a channel.
@@ -2898,14 +2875,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn unsubscribe<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, channel: Option<&'a [T0]>) -> RedisResult<RV> {
+    fn unsubscribe<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, channel: Option<&[T0]>) -> RedisResult<RV> {
         Cmd::unsubscribe(channel).query(self)
     }
 
     /// DISCARD
-    /// 
+    ///
     /// Discard all commands issued after MULTI
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Transactions
     /// Complexity: O(N), when N is the number of queued commands
@@ -2923,9 +2900,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// EXEC
-    /// 
+    ///
     /// Execute all commands issued after MULTI
-    /// 
+    ///
     /// Since: Redis 1.2.0
     /// Group: Transactions
     /// Complexity: Depends on commands in the transaction
@@ -2942,9 +2919,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MULTI
-    /// 
+    ///
     /// Mark the start of a transaction block
-    /// 
+    ///
     /// Since: Redis 1.2.0
     /// Group: Transactions
     /// Complexity: O(1)
@@ -2962,9 +2939,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// UNWATCH
-    /// 
+    ///
     /// Forget about all watched keys
-    /// 
+    ///
     /// Since: Redis 2.2.0
     /// Group: Transactions
     /// Complexity: O(1)
@@ -2982,9 +2959,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// WATCH
-    /// 
+    ///
     /// Watch the given keys to determine execution of the MULTI/EXEC block
-    /// 
+    ///
     /// Since: Redis 2.2.0
     /// Group: Transactions
     /// Complexity: O(1) for every key.
@@ -2997,14 +2974,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @fast
     /// * @transaction
-    fn watch<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
+    fn watch<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &[K0]) -> RedisResult<RV> {
         Cmd::watch(key).query(self)
     }
 
     /// AUTH
-    /// 
+    ///
     /// Authenticate to the server
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Connection
     /// Complexity: O(N) where N is the number of passwords defined for the user
@@ -3023,9 +3000,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLIENT
-    /// 
+    ///
     /// A container for client connection commands
-    /// 
+    ///
     /// Since: Redis 2.4.0
     /// Group: Connection
     /// Complexity: Depends on subcommand.
@@ -3036,9 +3013,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLIENT CACHING
-    /// 
+    ///
     /// Instruct the server about tracking or not keys in the next request
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Connection
     /// Complexity: O(1)
@@ -3054,9 +3031,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLIENT GETNAME
-    /// 
+    ///
     /// Get the current connection name
-    /// 
+    ///
     /// Since: Redis 2.6.9
     /// Group: Connection
     /// Complexity: O(1)
@@ -3072,9 +3049,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLIENT GETREDIR
-    /// 
+    ///
     /// Get tracking notifications redirection client ID if any
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Connection
     /// Complexity: O(1)
@@ -3090,9 +3067,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLIENT HELP
-    /// 
+    ///
     /// Show helpful text about the different subcommands
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Connection
     /// Complexity: O(1)
@@ -3107,9 +3084,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLIENT ID
-    /// 
+    ///
     /// Returns the client ID for the current connection
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Connection
     /// Complexity: O(1)
@@ -3125,9 +3102,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLIENT INFO
-    /// 
+    ///
     /// Returns information about the current client connection.
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: Connection
     /// Complexity: O(1)
@@ -3143,9 +3120,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLIENT LIST
-    /// 
+    ///
     /// Get the list of client connections
-    /// 
+    ///
     /// Since: Redis 2.4.0
     /// Group: Connection
     /// Complexity: O(N) where N is the number of client connections
@@ -3164,9 +3141,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLIENT NO-EVICT
-    /// 
+    ///
     /// Set client eviction mode for the current connection
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Connection
     /// Complexity: O(1)
@@ -3185,9 +3162,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLIENT PAUSE
-    /// 
+    ///
     /// Stop processing commands from clients for some time
-    /// 
+    ///
     /// Since: Redis 2.9.50
     /// Group: Connection
     /// Complexity: O(1)
@@ -3206,9 +3183,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLIENT REPLY
-    /// 
+    ///
     /// Instruct the server whether to reply to commands
-    /// 
+    ///
     /// Since: Redis 3.2.0
     /// Group: Connection
     /// Complexity: O(1)
@@ -3224,9 +3201,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLIENT SETNAME
-    /// 
+    ///
     /// Set the current connection name
-    /// 
+    ///
     /// Since: Redis 2.6.9
     /// Group: Connection
     /// Complexity: O(1)
@@ -3242,9 +3219,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLIENT TRACKING
-    /// 
+    ///
     /// Enable or disable server assisted client side caching support
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Connection
     /// Complexity: O(1). Some options may introduce additional complexity.
@@ -3260,9 +3237,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLIENT TRACKINGINFO
-    /// 
+    ///
     /// Return information about server assisted client side caching for the current connection
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: Connection
     /// Complexity: O(1)
@@ -3278,9 +3255,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLIENT UNBLOCK
-    /// 
+    ///
     /// Unblock a client blocked in a blocking command from a different connection
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Connection
     /// Complexity: O(log N) where N is the number of client connections
@@ -3299,9 +3276,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLIENT UNPAUSE
-    /// 
+    ///
     /// Resume processing of clients that were paused
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: Connection
     /// Complexity: O(N) Where N is the number of paused clients
@@ -3320,9 +3297,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ECHO
-    /// 
+    ///
     /// Echo the given string
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Connection
     /// Complexity: O(1)
@@ -3336,9 +3313,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// HELLO
-    /// 
+    ///
     /// Handshake with Redis
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Connection
     /// Complexity: O(1)
@@ -3357,9 +3334,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// PING
-    /// 
+    ///
     /// Ping the server
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Connection
     /// Complexity: O(1)
@@ -3373,9 +3350,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// QUIT
-    /// 
+    ///
     /// Close the connection
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Connection
     /// Complexity: O(1)
@@ -3394,9 +3371,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// RESET
-    /// 
+    ///
     /// Reset the connection
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: Connection
     /// Complexity: O(1)
@@ -3415,9 +3392,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SELECT
-    /// 
+    ///
     /// Change the selected database for the current connection
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Connection
     /// Complexity: O(1)
@@ -3433,9 +3410,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ACL
-    /// 
+    ///
     /// A container for Access List Control commands 
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: Depends on subcommand.
@@ -3448,9 +3425,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ACL CAT
-    /// 
+    ///
     /// List the ACL categories or the commands inside a category
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(1) since the categories and commands are a fixed set.
@@ -3467,9 +3444,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ACL DELUSER
-    /// 
+    ///
     /// Remove the specified ACL users and the associated rules
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(1) amortized time considering the typical user.
@@ -3484,14 +3461,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_deluser<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, username: &'a [T0]) -> RedisResult<RV> {
+    fn acl_deluser<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, username: &[T0]) -> RedisResult<RV> {
         Cmd::acl_deluser(username).query(self)
     }
 
     /// ACL DRYRUN
-    /// 
+    ///
     /// Returns whether the user can execute the given command without executing the command.
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Server
     /// Complexity: O(1).
@@ -3506,14 +3483,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_dryrun<'a, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, RV: FromRedisValue>(&mut self, username: T0, command: T1, arg: Option<&'a [T2]>) -> RedisResult<RV> {
+    fn acl_dryrun<T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, RV: FromRedisValue>(&mut self, username: T0, command: T1, arg: Option<&[T2]>) -> RedisResult<RV> {
         Cmd::acl_dryrun(username, command, arg).query(self)
     }
 
     /// ACL GENPASS
-    /// 
+    ///
     /// Generate a pseudorandom secure password to use for ACL users
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -3530,9 +3507,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ACL GETUSER
-    /// 
+    ///
     /// Get the rules for a specific ACL user
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(N). Where N is the number of password, command and pattern rules that the user has.
@@ -3552,9 +3529,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ACL HELP
-    /// 
+    ///
     /// Show helpful text about the different subcommands
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -3570,9 +3547,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ACL LIST
-    /// 
+    ///
     /// List the current ACL rules in ACL config file format
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(N). Where N is the number of configured users.
@@ -3592,9 +3569,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ACL LOAD
-    /// 
+    ///
     /// Reload the ACLs from the configured ACL file
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(N). Where N is the number of configured users.
@@ -3614,9 +3591,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ACL LOG
-    /// 
+    ///
     /// List latest events denied because of ACLs in place
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(N) with N being the number of entries shown.
@@ -3636,9 +3613,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ACL SAVE
-    /// 
+    ///
     /// Save the current ACL rules in the configured ACL file
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(N). Where N is the number of configured users.
@@ -3658,9 +3635,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ACL SETUSER
-    /// 
+    ///
     /// Modify or create the rules for a specific ACL user
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(N). Where N is the number of rules provided.
@@ -3675,14 +3652,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_setuser<'a, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, username: T0, rule: Option<&'a [T1]>) -> RedisResult<RV> {
+    fn acl_setuser<T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, username: T0, rule: Option<&[T1]>) -> RedisResult<RV> {
         Cmd::acl_setuser(username, rule).query(self)
     }
 
     /// ACL USERS
-    /// 
+    ///
     /// List the username of all the configured ACL rules
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(N). Where N is the number of configured users.
@@ -3702,9 +3679,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ACL WHOAMI
-    /// 
+    ///
     /// Return the name of the user associated to the current connection
-    /// 
+    ///
     /// Since: Redis 6.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -3721,9 +3698,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// BGREWRITEAOF
-    /// 
+    ///
     /// Asynchronously rewrite the append-only file
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -3740,9 +3717,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// BGSAVE
-    /// 
+    ///
     /// Asynchronously save the dataset to disk
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -3759,9 +3736,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// COMMAND
-    /// 
+    ///
     /// Get array of Redis command details
-    /// 
+    ///
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(N) where N is the total number of Redis commands
@@ -3776,9 +3753,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// COMMAND COUNT
-    /// 
+    ///
     /// Get total number of Redis commands
-    /// 
+    ///
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(1)
@@ -3793,9 +3770,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// COMMAND DOCS
-    /// 
+    ///
     /// Get array of specific Redis command documentation
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the number of commands to look up
@@ -3805,14 +3782,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn command_docs<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, command_name: Option<&'a [T0]>) -> RedisResult<RV> {
+    fn command_docs<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, command_name: Option<&[T0]>) -> RedisResult<RV> {
         Cmd::command_docs(command_name).query(self)
     }
 
     /// COMMAND GETKEYS
-    /// 
+    ///
     /// Extract keys given a full Redis command
-    /// 
+    ///
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(N) where N is the number of arguments to the command
@@ -3827,9 +3804,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// COMMAND GETKEYSANDFLAGS
-    /// 
+    ///
     /// Extract keys and access flags given a full Redis command
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the number of arguments to the command
@@ -3844,9 +3821,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// COMMAND HELP
-    /// 
+    ///
     /// Show helpful text about the different subcommands
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -3861,9 +3838,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// COMMAND INFO
-    /// 
+    ///
     /// Get array of specific Redis command details, or all when no argument is given.
-    /// 
+    ///
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(N) where N is the number of commands to look up
@@ -3873,14 +3850,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn command_info<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, command_name: Option<&'a [T0]>) -> RedisResult<RV> {
+    fn command_info<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, command_name: Option<&[T0]>) -> RedisResult<RV> {
         Cmd::command_info(command_name).query(self)
     }
 
     /// COMMAND LIST
-    /// 
+    ///
     /// Get an array of Redis command names
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the total number of Redis commands
@@ -3895,9 +3872,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CONFIG
-    /// 
+    ///
     /// A container for server configuration commands
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Server
     /// Complexity: Depends on subcommand.
@@ -3908,9 +3885,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CONFIG GET
-    /// 
+    ///
     /// Get the values of configuration parameters
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Server
     /// Complexity: O(N) when N is the number of configuration parameters provided
@@ -3923,14 +3900,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn config_get<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, parameter: &'a [T0]) -> RedisResult<RV> {
+    fn config_get<T1: ToRedisArgs, RV: FromRedisValue>(&mut self, parameter: &[(T1)]) -> RedisResult<RV> {
         Cmd::config_get(parameter).query(self)
     }
 
     /// CONFIG HELP
-    /// 
+    ///
     /// Show helpful text about the different subcommands
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -3944,9 +3921,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CONFIG RESETSTAT
-    /// 
+    ///
     /// Reset the stats returned by INFO
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -3964,9 +3941,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CONFIG REWRITE
-    /// 
+    ///
     /// Rewrite the configuration file with the in memory configuration
-    /// 
+    ///
     /// Since: Redis 2.8.0
     /// Group: Server
     /// Complexity: O(1)
@@ -3984,9 +3961,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CONFIG SET
-    /// 
+    ///
     /// Set configuration parameters to the given values
-    /// 
+    ///
     /// Since: Redis 2.0.0
     /// Group: Server
     /// Complexity: O(N) when N is the number of configuration parameters provided
@@ -3999,14 +3976,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn config_set<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, parameter_value: &'a [T0]) -> RedisResult<RV> {
+    fn config_set<T1: ToRedisArgs, T2: ToRedisArgs, RV: FromRedisValue>(&mut self, parameter_value: &[(T1, T2)]) -> RedisResult<RV> {
         Cmd::config_set(parameter_value).query(self)
     }
 
     /// DBSIZE
-    /// 
+    ///
     /// Return the number of keys in the selected database
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -4022,9 +3999,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// DEBUG
-    /// 
+    ///
     /// A container for debugging commands
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: Depends on subcommand.
@@ -4042,9 +4019,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// FAILOVER
-    /// 
+    ///
     /// Start a coordinated failover between this server and one of its replicas.
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: Server
     /// Complexity: O(1)
@@ -4061,9 +4038,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// FLUSHALL
-    /// 
+    ///
     /// Remove all keys from all databases
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the total number of keys in all databases
@@ -4079,9 +4056,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// FLUSHDB
-    /// 
+    ///
     /// Remove all keys from the current database
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the number of keys in the selected database
@@ -4097,9 +4074,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// INFO
-    /// 
+    ///
     /// Get information and statistics about the server
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -4109,14 +4086,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @dangerous
-    fn info<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, section: Option<&'a [T0]>) -> RedisResult<RV> {
+    fn info<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, section: Option<&[T0]>) -> RedisResult<RV> {
         Cmd::info(section).query(self)
     }
 
     /// LASTSAVE
-    /// 
+    ///
     /// Get the UNIX time stamp of the last successful save to disk
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -4133,9 +4110,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LATENCY
-    /// 
+    ///
     /// A container for latency diagnostics commands
-    /// 
+    ///
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: Depends on subcommand.
@@ -4146,9 +4123,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LATENCY DOCTOR
-    /// 
+    ///
     /// Return a human readable latency analysis report.
-    /// 
+    ///
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(1)
@@ -4166,9 +4143,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LATENCY GRAPH
-    /// 
+    ///
     /// Return a latency graph for the event.
-    /// 
+    ///
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(1)
@@ -4186,9 +4163,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LATENCY HELP
-    /// 
+    ///
     /// Show helpful text about the different subcommands.
-    /// 
+    ///
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(1)
@@ -4202,9 +4179,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LATENCY HISTOGRAM
-    /// 
+    ///
     /// Return the cumulative distribution of latencies of a subset of commands or all.
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the number of commands with latency information being retrieved.
@@ -4217,14 +4194,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn latency_histogram<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, command: Option<&'a [T0]>) -> RedisResult<RV> {
+    fn latency_histogram<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, command: Option<&[T0]>) -> RedisResult<RV> {
         Cmd::latency_histogram(command).query(self)
     }
 
     /// LATENCY HISTORY
-    /// 
+    ///
     /// Return timestamp-latency samples for the event.
-    /// 
+    ///
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(1)
@@ -4242,9 +4219,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LATENCY LATEST
-    /// 
+    ///
     /// Return the latest latency samples for all events.
-    /// 
+    ///
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(1)
@@ -4262,9 +4239,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// LATENCY RESET
-    /// 
+    ///
     /// Reset latency data for one or more events.
-    /// 
+    ///
     /// Since: Redis 2.8.13
     /// Group: Server
     /// Complexity: O(1)
@@ -4277,14 +4254,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn latency_reset<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, event: Option<&'a [T0]>) -> RedisResult<RV> {
+    fn latency_reset<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, event: Option<&[T0]>) -> RedisResult<RV> {
         Cmd::latency_reset(event).query(self)
     }
 
     /// LOLWUT
-    /// 
+    ///
     /// Display some computer art and the Redis version
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Server
     /// CommandFlags:
@@ -4298,9 +4275,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MEMORY
-    /// 
+    ///
     /// A container for memory diagnostics commands
-    /// 
+    ///
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: Depends on subcommand.
@@ -4311,9 +4288,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MEMORY DOCTOR
-    /// 
+    ///
     /// Outputs memory problems report
-    /// 
+    ///
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -4324,9 +4301,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MEMORY HELP
-    /// 
+    ///
     /// Show helpful text about the different subcommands
-    /// 
+    ///
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -4340,9 +4317,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MEMORY MALLOC-STATS
-    /// 
+    ///
     /// Show allocator internal stats
-    /// 
+    ///
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: Depends on how much memory is allocated, could be slow
@@ -4353,9 +4330,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MEMORY PURGE
-    /// 
+    ///
     /// Ask the allocator to release memory
-    /// 
+    ///
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: Depends on how much memory is allocated, could be slow
@@ -4366,9 +4343,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MEMORY STATS
-    /// 
+    ///
     /// Show memory usage details
-    /// 
+    ///
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -4379,9 +4356,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MEMORY USAGE
-    /// 
+    ///
     /// Estimate the memory usage of a key
-    /// 
+    ///
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the number of samples.
@@ -4395,9 +4372,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MODULE
-    /// 
+    ///
     /// A container for module commands
-    /// 
+    ///
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: Depends on subcommand.
@@ -4408,9 +4385,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MODULE HELP
-    /// 
+    ///
     /// Show helpful text about the different subcommands
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -4424,9 +4401,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MODULE LIST
-    /// 
+    ///
     /// List all modules loaded by the server
-    /// 
+    ///
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the number of loaded modules.
@@ -4442,9 +4419,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MODULE LOAD
-    /// 
+    ///
     /// Load a module
-    /// 
+    ///
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -4456,14 +4433,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn module_load<'a, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, path: T0, arg: Option<&'a [T1]>) -> RedisResult<RV> {
+    fn module_load<T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, path: T0, arg: Option<&[T1]>) -> RedisResult<RV> {
         Cmd::module_load(path, arg).query(self)
     }
 
     /// MODULE LOADEX
-    /// 
+    ///
     /// Load a module with extended parameters
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -4480,9 +4457,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MODULE UNLOAD
-    /// 
+    ///
     /// Unload a module
-    /// 
+    ///
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -4499,9 +4476,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// MONITOR
-    /// 
+    ///
     /// Listen for all requests received by the server in real time
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Server
     /// CommandFlags:
@@ -4518,9 +4495,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// PSYNC
-    /// 
+    ///
     /// Internal command used for replication
-    /// 
+    ///
     /// Since: Redis 2.8.0
     /// Group: Server
     /// CommandFlags:
@@ -4537,9 +4514,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// REPLCONF
-    /// 
+    ///
     /// An internal command for configuring the replication stream
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -4558,9 +4535,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// REPLICAOF
-    /// 
+    ///
     /// Make the server a replica of another instance, or promote it as master.
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Server
     /// Complexity: O(1)
@@ -4578,9 +4555,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// RESTORE-ASKING
-    /// 
+    ///
     /// An internal command for migrating keys in a cluster
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Server
     /// Complexity: O(1) to create the new key and additional O(N*M) to reconstruct the serialized value, where N is the number of Redis objects composing the value and M their average size. For small string values the time complexity is thus O(1)+O(1*M) where M is small, so simply O(1). However for sorted set values the complexity is O(N*M*log(N)) because inserting values into sorted sets is O(log(N)).
@@ -4598,9 +4575,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ROLE
-    /// 
+    ///
     /// Return the role of the instance in the context of replication
-    /// 
+    ///
     /// Since: Redis 2.8.12
     /// Group: Server
     /// Complexity: O(1)
@@ -4618,9 +4595,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SAVE
-    /// 
+    ///
     /// Synchronously save the dataset to disk
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the total number of keys in all databases
@@ -4638,9 +4615,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SHUTDOWN
-    /// 
+    ///
     /// Synchronously save the dataset to disk and then shut down the server
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Complexity: O(N) when saving, where N is the total number of keys in all databases when saving data, otherwise O(1)
@@ -4660,9 +4637,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SLAVEOF
-    /// 
+    ///
     /// Make the server a replica of another instance, or promote it as master.
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Server
     /// Replaced By: `REPLICAOF`
@@ -4677,15 +4654,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    #[deprecated]
+    #[deprecated = "Deprecated in redis since redis version 5.0.0."]
     fn slaveof<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, host: T0, port: i64) -> RedisResult<RV> {
         Cmd::slaveof(host, port).query(self)
     }
 
     /// SLOWLOG
-    /// 
+    ///
     /// A container for slow log commands
-    /// 
+    ///
     /// Since: Redis 2.2.12
     /// Group: Server
     /// Complexity: Depends on subcommand.
@@ -4696,9 +4673,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SLOWLOG GET
-    /// 
+    ///
     /// Get the slow log's entries
-    /// 
+    ///
     /// Since: Redis 2.2.12
     /// Group: Server
     /// Complexity: O(N) where N is the number of entries returned
@@ -4715,9 +4692,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SLOWLOG HELP
-    /// 
+    ///
     /// Show helpful text about the different subcommands
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: Server
     /// Complexity: O(1)
@@ -4731,9 +4708,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SLOWLOG LEN
-    /// 
+    ///
     /// Get the slow log's length
-    /// 
+    ///
     /// Since: Redis 2.2.12
     /// Group: Server
     /// Complexity: O(1)
@@ -4750,9 +4727,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SLOWLOG RESET
-    /// 
+    ///
     /// Clear all entries from the slow log
-    /// 
+    ///
     /// Since: Redis 2.2.12
     /// Group: Server
     /// Complexity: O(N) where N is the number of entries in the slowlog
@@ -4769,9 +4746,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SWAPDB
-    /// 
+    ///
     /// Swaps two Redis databases
-    /// 
+    ///
     /// Since: Redis 4.0.0
     /// Group: Server
     /// Complexity: O(N) where N is the count of clients watching or blocking on keys from both databases.
@@ -4788,9 +4765,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SYNC
-    /// 
+    ///
     /// Internal command used for replication
-    /// 
+    ///
     /// Since: Redis 1.0.0
     /// Group: Server
     /// CommandFlags:
@@ -4807,9 +4784,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// TIME
-    /// 
+    ///
     /// Return the current server time
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Server
     /// Complexity: O(1)
@@ -4824,9 +4801,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// EVAL
-    /// 
+    ///
     /// Execute a Lua script server side
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Scripting
     /// Complexity: Depends on the script that is executed.
@@ -4839,14 +4816,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn eval<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, script: T0, numkeys: i64, key: Option<&'a [K0]>, arg: Option<&'a [T1]>) -> RedisResult<RV> {
+    fn eval<T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, script: T0, numkeys: i64, key: Option<&[K0]>, arg: Option<&[T1]>) -> RedisResult<RV> {
         Cmd::eval(script, numkeys, key, arg).query(self)
     }
 
     /// EVALSHA
-    /// 
+    ///
     /// Execute a Lua script server side
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Scripting
     /// Complexity: Depends on the script that is executed.
@@ -4859,14 +4836,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn evalsha<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, sha1: T0, numkeys: i64, key: Option<&'a [K0]>, arg: Option<&'a [T1]>) -> RedisResult<RV> {
+    fn evalsha<T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, sha1: T0, numkeys: i64, key: Option<&[K0]>, arg: Option<&[T1]>) -> RedisResult<RV> {
         Cmd::evalsha(sha1, numkeys, key, arg).query(self)
     }
 
     /// EVALSHA_RO
-    /// 
+    ///
     /// Execute a read-only Lua script server side
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: Depends on the script that is executed.
@@ -4880,14 +4857,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn evalsha_ro<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, sha1: T0, numkeys: i64, key: &'a [K0], arg: &'a [T1]) -> RedisResult<RV> {
+    fn evalsha_ro<T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, sha1: T0, numkeys: i64, key: &[K0], arg: &[T1]) -> RedisResult<RV> {
         Cmd::evalsha_ro(sha1, numkeys, key, arg).query(self)
     }
 
     /// EVAL_RO
-    /// 
+    ///
     /// Execute a read-only Lua script server side
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: Depends on the script that is executed.
@@ -4901,14 +4878,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn eval_ro<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, script: T0, numkeys: i64, key: &'a [K0], arg: &'a [T1]) -> RedisResult<RV> {
+    fn eval_ro<T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, script: T0, numkeys: i64, key: &[K0], arg: &[T1]) -> RedisResult<RV> {
         Cmd::eval_ro(script, numkeys, key, arg).query(self)
     }
 
     /// FCALL
-    /// 
+    ///
     /// Invoke a function
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: Depends on the function that is executed.
@@ -4921,14 +4898,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn fcall<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, function: T0, numkeys: i64, key: &'a [K0], arg: &'a [T1]) -> RedisResult<RV> {
+    fn fcall<T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, function: T0, numkeys: i64, key: &[K0], arg: &[T1]) -> RedisResult<RV> {
         Cmd::fcall(function, numkeys, key, arg).query(self)
     }
 
     /// FCALL_RO
-    /// 
+    ///
     /// Invoke a read-only function
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: Depends on the function that is executed.
@@ -4942,14 +4919,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn fcall_ro<'a, T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, function: T0, numkeys: i64, key: &'a [K0], arg: &'a [T1]) -> RedisResult<RV> {
+    fn fcall_ro<T0: ToRedisArgs, K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, function: T0, numkeys: i64, key: &[K0], arg: &[T1]) -> RedisResult<RV> {
         Cmd::fcall_ro(function, numkeys, key, arg).query(self)
     }
 
     /// FUNCTION
-    /// 
+    ///
     /// A container for function commands
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: Depends on subcommand.
@@ -4960,9 +4937,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// FUNCTION DELETE
-    /// 
+    ///
     /// Delete a function by name
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(1)
@@ -4978,9 +4955,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// FUNCTION DUMP
-    /// 
+    ///
     /// Dump all functions into a serialized binary payload
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(N) where N is the number of functions
@@ -4994,9 +4971,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// FUNCTION FLUSH
-    /// 
+    ///
     /// Deleting all functions
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(N) where N is the number of functions deleted
@@ -5012,9 +4989,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// FUNCTION HELP
-    /// 
+    ///
     /// Show helpful text about the different subcommands
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(1)
@@ -5029,9 +5006,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// FUNCTION KILL
-    /// 
+    ///
     /// Kill the function currently in execution.
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(1)
@@ -5046,9 +5023,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// FUNCTION LIST
-    /// 
+    ///
     /// List information about all the functions
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(N) where N is the number of functions
@@ -5062,9 +5039,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// FUNCTION LOAD
-    /// 
+    ///
     /// Create a function with the given arguments (name, code, description)
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(1) (considering compilation time is redundant)
@@ -5081,9 +5058,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// FUNCTION RESTORE
-    /// 
+    ///
     /// Restore all the functions on the given payload
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(N) where N is the number of functions on the payload
@@ -5100,9 +5077,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// FUNCTION STATS
-    /// 
+    ///
     /// Return information about the function currently running (name, description, duration)
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Scripting
     /// Complexity: O(1)
@@ -5117,9 +5094,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SCRIPT
-    /// 
+    ///
     /// A container for Lua scripts management commands
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Scripting
     /// Complexity: Depends on subcommand.
@@ -5130,9 +5107,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SCRIPT DEBUG
-    /// 
+    ///
     /// Set the debug mode for executed scripts.
-    /// 
+    ///
     /// Since: Redis 3.2.0
     /// Group: Scripting
     /// Complexity: O(1)
@@ -5146,9 +5123,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SCRIPT EXISTS
-    /// 
+    ///
     /// Check existence of scripts in the script cache.
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Scripting
     /// Complexity: O(N) with N being the number of scripts to check (so checking a single script is an O(1) operation).
@@ -5157,14 +5134,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn script_exists<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, sha1: &'a [T0]) -> RedisResult<RV> {
+    fn script_exists<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, sha1: &[T0]) -> RedisResult<RV> {
         Cmd::script_exists(sha1).query(self)
     }
 
     /// SCRIPT FLUSH
-    /// 
+    ///
     /// Remove all the scripts from the script cache.
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Scripting
     /// Complexity: O(N) with N being the number of scripts in cache
@@ -5178,9 +5155,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SCRIPT HELP
-    /// 
+    ///
     /// Show helpful text about the different subcommands
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Scripting
     /// Complexity: O(1)
@@ -5195,9 +5172,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SCRIPT KILL
-    /// 
+    ///
     /// Kill the script currently in execution.
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Scripting
     /// Complexity: O(1)
@@ -5212,9 +5189,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SCRIPT LOAD
-    /// 
+    ///
     /// Load the specified Lua script into the script cache.
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Scripting
     /// Complexity: O(N) with N being the length in bytes of the script body.
@@ -5229,9 +5206,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// PFADD
-    /// 
+    ///
     /// Adds the specified elements to the specified HyperLogLog.
-    /// 
+    ///
     /// Since: Redis 2.8.9
     /// Group: Hyperloglog
     /// Complexity: O(1) to add every element.
@@ -5243,14 +5220,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @hyperloglog
     /// * @fast
-    fn pfadd<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, element: Option<&'a [T0]>) -> RedisResult<RV> {
+    fn pfadd<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, element: Option<&[T0]>) -> RedisResult<RV> {
         Cmd::pfadd(key, element).query(self)
     }
 
     /// PFCOUNT
-    /// 
+    ///
     /// Return the approximated cardinality of the set(s) observed by the HyperLogLog at key(s).
-    /// 
+    ///
     /// Since: Redis 2.8.9
     /// Group: Hyperloglog
     /// Complexity: O(1) with a very small average constant time when called with a single key. O(N) with N being the number of keys, and much bigger constant times, when called with multiple keys.
@@ -5260,14 +5237,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @hyperloglog
     /// * @slow
-    fn pfcount<'a, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &'a [K0]) -> RedisResult<RV> {
+    fn pfcount<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: &[K0]) -> RedisResult<RV> {
         Cmd::pfcount(key).query(self)
     }
 
     /// PFDEBUG
-    /// 
+    ///
     /// Internal commands for debugging HyperLogLog values
-    /// 
+    ///
     /// Since: Redis 2.8.9
     /// Group: Hyperloglog
     /// Complexity: N/A
@@ -5286,9 +5263,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// PFMERGE
-    /// 
+    ///
     /// Merge N different HyperLogLogs into a single one.
-    /// 
+    ///
     /// Since: Redis 2.8.9
     /// Group: Hyperloglog
     /// Complexity: O(N) to merge N HyperLogLogs, but with high constant times.
@@ -5299,14 +5276,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @hyperloglog
     /// * @slow
-    fn pfmerge<'a, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destkey: K0, sourcekey: &'a [K1]) -> RedisResult<RV> {
+    fn pfmerge<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destkey: K0, sourcekey: &[K1]) -> RedisResult<RV> {
         Cmd::pfmerge(destkey, sourcekey).query(self)
     }
 
     /// PFSELFTEST
-    /// 
+    ///
     /// An internal command for testing HyperLogLog values
-    /// 
+    ///
     /// Since: Redis 2.8.9
     /// Group: Hyperloglog
     /// Complexity: N/A
@@ -5322,9 +5299,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// ASKING
-    /// 
+    ///
     /// Sent by cluster clients after an -ASK redirect
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5338,9 +5315,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER
-    /// 
+    ///
     /// A container for cluster commands
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: Depends on subcommand.
@@ -5351,9 +5328,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER ADDSLOTS
-    /// 
+    ///
     /// Assign new hash slots to receiving node
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the total number of hash slot arguments
@@ -5365,14 +5342,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_addslots<'a, RV: FromRedisValue>(&mut self, slot: &'a [i64]) -> RedisResult<RV> {
+    fn cluster_addslots<RV: FromRedisValue>(&mut self, slot: &[i64]) -> RedisResult<RV> {
         Cmd::cluster_addslots(slot).query(self)
     }
 
     /// CLUSTER ADDSLOTSRANGE
-    /// 
+    ///
     /// Assign new hash slots to receiving node
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the total number of the slots between the start slot and end slot arguments.
@@ -5384,14 +5361,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_addslotsrange<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, start_slot_end_slot: &'a [T0]) -> RedisResult<RV> {
+    fn cluster_addslotsrange<RV: FromRedisValue>(&mut self, start_slot_end_slot: &[(i64, i64)]) -> RedisResult<RV> {
         Cmd::cluster_addslotsrange(start_slot_end_slot).query(self)
     }
 
     /// CLUSTER BUMPEPOCH
-    /// 
+    ///
     /// Advance the cluster config epoch
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5408,9 +5385,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER COUNT-FAILURE-REPORTS
-    /// 
+    ///
     /// Return the number of failure reports active for a given node
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the number of failure reports
@@ -5426,9 +5403,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER COUNTKEYSINSLOT
-    /// 
+    ///
     /// Return the number of local keys in the specified hash slot
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5441,9 +5418,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER DELSLOTS
-    /// 
+    ///
     /// Set hash slots as unbound in receiving node
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the total number of hash slot arguments
@@ -5455,14 +5432,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_delslots<'a, RV: FromRedisValue>(&mut self, slot: &'a [i64]) -> RedisResult<RV> {
+    fn cluster_delslots<RV: FromRedisValue>(&mut self, slot: &[i64]) -> RedisResult<RV> {
         Cmd::cluster_delslots(slot).query(self)
     }
 
     /// CLUSTER DELSLOTSRANGE
-    /// 
+    ///
     /// Set hash slots as unbound in receiving node
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the total number of the slots between the start slot and end slot arguments.
@@ -5474,14 +5451,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_delslotsrange<'a, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, start_slot_end_slot: &'a [T0]) -> RedisResult<RV> {
+    fn cluster_delslotsrange<RV: FromRedisValue>(&mut self, start_slot_end_slot: &[(i64, i64)]) -> RedisResult<RV> {
         Cmd::cluster_delslotsrange(start_slot_end_slot).query(self)
     }
 
     /// CLUSTER FAILOVER
-    /// 
+    ///
     /// Forces a replica to perform a manual failover of its master.
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5498,9 +5475,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER FLUSHSLOTS
-    /// 
+    ///
     /// Delete a node's own slots information
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5517,9 +5494,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER FORGET
-    /// 
+    ///
     /// Remove a node from the nodes table
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5536,9 +5513,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER GETKEYSINSLOT
-    /// 
+    ///
     /// Return local key names in the specified hash slot
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(log(N)) where N is the number of requested keys
@@ -5551,9 +5528,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER HELP
-    /// 
+    ///
     /// Show helpful text about the different subcommands
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5567,9 +5544,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER INFO
-    /// 
+    ///
     /// Provides info about Redis Cluster node state
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5582,9 +5559,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER KEYSLOT
-    /// 
+    ///
     /// Returns the hash slot of the specified key
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the number of bytes in the key
@@ -5597,9 +5574,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER LINKS
-    /// 
+    ///
     /// Returns a list of all TCP links to and from peer nodes in cluster
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the total number of Cluster nodes
@@ -5612,9 +5589,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER MEET
-    /// 
+    ///
     /// Force a node cluster to handshake with another node
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5631,9 +5608,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER MYID
-    /// 
+    ///
     /// Return the node id
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5646,9 +5623,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER NODES
-    /// 
+    ///
     /// Get Cluster config for the node
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the total number of Cluster nodes
@@ -5661,9 +5638,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER REPLICAS
-    /// 
+    ///
     /// List replica nodes of the specified master node
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5679,9 +5656,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER REPLICATE
-    /// 
+    ///
     /// Reconfigure a node as a replica of the specified master node
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5698,9 +5675,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER RESET
-    /// 
+    ///
     /// Reset a Redis Cluster node
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the number of known nodes. The command may execute a FLUSHALL as a side effect.
@@ -5717,9 +5694,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER SAVECONFIG
-    /// 
+    ///
     /// Forces the node to save cluster state on disk
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5736,9 +5713,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER SET-CONFIG-EPOCH
-    /// 
+    ///
     /// Set the configuration epoch in a new node
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5755,9 +5732,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER SETSLOT
-    /// 
+    ///
     /// Bind a hash slot to a specific node
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5774,9 +5751,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER SHARDS
-    /// 
+    ///
     /// Get array of cluster slots to node mappings
-    /// 
+    ///
     /// Since: Redis 7.0.0
     /// Group: Cluster
     /// Complexity: O(N) where N is the total number of cluster nodes
@@ -5789,9 +5766,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// CLUSTER SLAVES
-    /// 
+    ///
     /// List replica nodes of the specified master node
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Replaced By: `CLUSTER REPLICAS`
@@ -5804,15 +5781,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    #[deprecated]
+    #[deprecated = "Deprecated in redis since redis version 5.0.0."]
     fn cluster_slaves<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, node_id: T0) -> RedisResult<RV> {
         Cmd::cluster_slaves(node_id).query(self)
     }
 
     /// CLUSTER SLOTS
-    /// 
+    ///
     /// Get array of Cluster slot to node mappings
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Replaced By: `CLUSTER SHARDS`
@@ -5822,15 +5799,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * Stale: This command is allowed while a replica has stale data.
     /// ACL Categories:
     /// * @slow
-    #[deprecated]
+    #[deprecated = "Deprecated in redis since redis version 7.0.0."]
     fn cluster_slots<RV: FromRedisValue>(&mut self) -> RedisResult<RV> {
         Cmd::cluster_slots().query(self)
     }
 
     /// READONLY
-    /// 
+    ///
     /// Enables read queries for a connection to a cluster replica node
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5846,9 +5823,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// READWRITE
-    /// 
+    ///
     /// Disables read queries for a connection to a cluster replica node
-    /// 
+    ///
     /// Since: Redis 3.0.0
     /// Group: Cluster
     /// Complexity: O(1)
@@ -5864,9 +5841,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// GEOADD
-    /// 
+    ///
     /// Add one or more geospatial items in the geospatial index represented using a sorted set
-    /// 
+    ///
     /// Since: Redis 3.2.0
     /// Group: Geo
     /// Complexity: O(log(N)) for each item added, where N is the number of elements in the sorted set.
@@ -5879,14 +5856,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geoadd<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, longitude_latitude_member: &'a [T0]) -> RedisResult<RV> {
+    fn geoadd<K0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, longitude_latitude_member: &[(f64, f64, T1)]) -> RedisResult<RV> {
         Cmd::geoadd(key, longitude_latitude_member).query(self)
     }
 
     /// GEODIST
-    /// 
+    ///
     /// Returns the distance between two members of a geospatial index
-    /// 
+    ///
     /// Since: Redis 3.2.0
     /// Group: Geo
     /// Complexity: O(log(N))
@@ -5903,9 +5880,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// GEOHASH
-    /// 
+    ///
     /// Returns members of a geospatial index as standard geohash strings
-    /// 
+    ///
     /// Since: Redis 3.2.0
     /// Group: Geo
     /// Complexity: O(log(N)) for each member requested, where N is the number of elements in the sorted set.
@@ -5917,14 +5894,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geohash<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &'a [T0]) -> RedisResult<RV> {
+    fn geohash<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &[T0]) -> RedisResult<RV> {
         Cmd::geohash(key, member).query(self)
     }
 
     /// GEOPOS
-    /// 
+    ///
     /// Returns longitude and latitude of members of a geospatial index
-    /// 
+    ///
     /// Since: Redis 3.2.0
     /// Group: Geo
     /// Complexity: O(N) where N is the number of members requested.
@@ -5936,14 +5913,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geopos<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &'a [T0]) -> RedisResult<RV> {
+    fn geopos<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: &[T0]) -> RedisResult<RV> {
         Cmd::geopos(key, member).query(self)
     }
 
     /// GEORADIUS
-    /// 
+    ///
     /// Query a sorted set representing a geospatial index to fetch members matching a given maximum distance from a point
-    /// 
+    ///
     /// Since: Redis 3.2.0
     /// Group: Geo
     /// Replaced By: `GEOSEARCH` and `GEOSEARCHSTORE` with the `BYRADIUS` argument
@@ -5959,15 +5936,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    #[deprecated]
+    #[deprecated = "Deprecated in redis since redis version 6.2.0."]
     fn georadius<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, longitude: f64, latitude: f64, radius: f64, count: Option<T0>) -> RedisResult<RV> {
         Cmd::georadius(key, longitude, latitude, radius, count).query(self)
     }
 
     /// GEORADIUSBYMEMBER
-    /// 
+    ///
     /// Query a sorted set representing a geospatial index to fetch members matching a given maximum distance from a member
-    /// 
+    ///
     /// Since: Redis 3.2.0
     /// Group: Geo
     /// Replaced By: `GEOSEARCH` and `GEOSEARCHSTORE` with the `BYRADIUS` and `FROMMEMBER` arguments
@@ -5983,15 +5960,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    #[deprecated]
+    #[deprecated = "Deprecated in redis since redis version 6.2.0."]
     fn georadiusbymember<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: T0, radius: f64, count: Option<T1>) -> RedisResult<RV> {
         Cmd::georadiusbymember(key, member, radius, count).query(self)
     }
 
     /// GEORADIUSBYMEMBER_RO
-    /// 
+    ///
     /// A read-only variant for GEORADIUSBYMEMBER
-    /// 
+    ///
     /// Since: Redis 3.2.10
     /// Group: Geo
     /// Replaced By: `GEOSEARCH` with the `BYRADIUS` and `FROMMEMBER` arguments
@@ -6005,15 +5982,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    #[deprecated]
+    #[deprecated = "Deprecated in redis since redis version 6.2.0."]
     fn georadiusbymember_ro<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: T0, radius: f64, count: Option<T1>) -> RedisResult<RV> {
         Cmd::georadiusbymember_ro(key, member, radius, count).query(self)
     }
 
     /// GEORADIUS_RO
-    /// 
+    ///
     /// A read-only variant for GEORADIUS
-    /// 
+    ///
     /// Since: Redis 3.2.10
     /// Group: Geo
     /// Replaced By: `GEOSEARCH` with the `BYRADIUS` argument
@@ -6027,15 +6004,15 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    #[deprecated]
+    #[deprecated = "Deprecated in redis since redis version 6.2.0."]
     fn georadius_ro<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, longitude: f64, latitude: f64, radius: f64, count: Option<T0>) -> RedisResult<RV> {
         Cmd::georadius_ro(key, longitude, latitude, radius, count).query(self)
     }
 
     /// GEOSEARCH
-    /// 
+    ///
     /// Query a sorted set representing a geospatial index to fetch members inside an area of a box or a circle.
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: Geo
     /// Complexity: O(N+log(M)) where N is the number of elements in the grid-aligned bounding box area around the shape provided as the filter and M is the number of items inside the shape
@@ -6052,9 +6029,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// GEOSEARCHSTORE
-    /// 
+    ///
     /// Query a sorted set representing a geospatial index to fetch members inside an area of a box or a circle, and store the result in another key.
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: Geo
     /// Complexity: O(N+log(M)) where N is the number of elements in the grid-aligned bounding box area around the shape provided as the filter and M is the number of items inside the shape
@@ -6072,9 +6049,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XACK
-    /// 
+    ///
     /// Marks a pending message as correctly processed, effectively removing it from the pending entries list of the consumer group. Return value of the command is the number of messages successfully acknowledged, that is, the IDs we were actually able to resolve in the PEL.
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1) for each message ID processed.
@@ -6087,14 +6064,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xack<'a, K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, group: T0, id: &'a [T1]) -> RedisResult<RV> {
+    fn xack<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, group: T0, id: &[T1]) -> RedisResult<RV> {
         Cmd::xack(key, group, id).query(self)
     }
 
     /// XADD
-    /// 
+    ///
     /// Appends a new entry to a stream
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1) when adding a new entry, O(N) when trimming where N being the number of entries evicted.
@@ -6108,14 +6085,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xadd<'a, K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, trim: Option<T0>, field_value: &'a [T1]) -> RedisResult<RV> {
+    fn xadd<K0: ToRedisArgs, T0: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, trim: Option<T0>, field_value: &[(T2, T3)]) -> RedisResult<RV> {
         Cmd::xadd(key, trim, field_value).query(self)
     }
 
     /// XAUTOCLAIM
-    /// 
+    ///
     /// Changes (or acquires) ownership of messages in a consumer group, as if the messages were delivered to the specified consumer.
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: Stream
     /// Complexity: O(1) if COUNT is small.
@@ -6133,9 +6110,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XCLAIM
-    /// 
+    ///
     /// Changes (or acquires) ownership of a message in a consumer group, as if the message was delivered to the specified consumer.
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(log N) with N being the number of messages in the PEL of the consumer group.
@@ -6148,14 +6125,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xclaim<'a, K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, group: T0, consumer: T1, min_idle_time: T2, id: &'a [T3]) -> RedisResult<RV> {
+    fn xclaim<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, group: T0, consumer: T1, min_idle_time: T2, id: &[T3]) -> RedisResult<RV> {
         Cmd::xclaim(key, group, consumer, min_idle_time, id).query(self)
     }
 
     /// XDEL
-    /// 
+    ///
     /// Removes the specified entries from the stream. Returns the number of items actually deleted, that may be different from the number of IDs passed in case certain IDs do not exist.
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1) for each single item to delete in the stream, regardless of the stream size.
@@ -6168,14 +6145,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xdel<'a, K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, id: &'a [T0]) -> RedisResult<RV> {
+    fn xdel<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, id: &[T0]) -> RedisResult<RV> {
         Cmd::xdel(key, id).query(self)
     }
 
     /// XGROUP
-    /// 
+    ///
     /// A container for consumer groups commands
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: Depends on subcommand.
@@ -6188,9 +6165,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XGROUP CREATE
-    /// 
+    ///
     /// Create a consumer group.
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
@@ -6208,9 +6185,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XGROUP CREATECONSUMER
-    /// 
+    ///
     /// Create a consumer in a consumer group.
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: Stream
     /// Complexity: O(1)
@@ -6228,9 +6205,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XGROUP DELCONSUMER
-    /// 
+    ///
     /// Delete a consumer from a consumer group.
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
@@ -6247,9 +6224,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XGROUP DESTROY
-    /// 
+    ///
     /// Destroy a consumer group.
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(N) where N is the number of entries in the group's pending entries list (PEL).
@@ -6266,9 +6243,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XGROUP HELP
-    /// 
+    ///
     /// Show helpful text about the different subcommands
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
@@ -6285,9 +6262,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XGROUP SETID
-    /// 
+    ///
     /// Set a consumer group to an arbitrary last delivered ID value.
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
@@ -6304,9 +6281,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XINFO
-    /// 
+    ///
     /// A container for stream introspection commands
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: Depends on subcommand.
@@ -6319,9 +6296,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XINFO CONSUMERS
-    /// 
+    ///
     /// List the consumers in a consumer group
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
@@ -6338,9 +6315,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XINFO GROUPS
-    /// 
+    ///
     /// List the consumer groups of a stream
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
@@ -6357,9 +6334,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XINFO HELP
-    /// 
+    ///
     /// Show helpful text about the different subcommands
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
@@ -6376,9 +6353,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XINFO STREAM
-    /// 
+    ///
     /// Get information about a stream
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
@@ -6395,9 +6372,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XLEN
-    /// 
+    ///
     /// Return the number of entries in a stream
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
@@ -6415,9 +6392,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XPENDING
-    /// 
+    ///
     /// Return information and entries from a stream consumer group pending entries list, that are messages fetched but never acknowledged.
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(N) with N being the number of elements returned, so asking for a small fixed number of entries per call is O(1). O(M), where M is the total number of entries scanned when used with the IDLE filter. When the command returns just the summary and the list of consumers is small, it runs in O(1) time; otherwise, an additional O(N) time for iterating every consumer.
@@ -6434,9 +6411,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XRANGE
-    /// 
+    ///
     /// Return a range of elements in a stream, with IDs matching the specified IDs interval
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(N) with N being the number of elements being returned. If N is constant (e.g. always asking for the first 10 elements with COUNT), you can consider it O(1).
@@ -6453,9 +6430,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XREAD
-    /// 
+    ///
     /// Return never seen elements in multiple streams, with IDs greater than the ones reported by the caller for each stream. Can block.
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: For each stream mentioned: O(N) with N being the number of elements being returned, it means that XREAD-ing with a fixed COUNT is O(1). Note that when the BLOCK option is used, XADD will pay O(M) time in order to serve the M clients blocked on the stream getting new data.
@@ -6475,9 +6452,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XREADGROUP
-    /// 
+    ///
     /// Return new entries from a stream using a consumer group, or access the history of the pending entries for a given consumer. Can block.
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: For each stream mentioned: O(M) with M being the number of elements returned. If M is constant (e.g. always asking for the first 10 elements with COUNT), you can consider it O(1). On the other side when XREADGROUP blocks, XADD will pay the O(N) time in order to serve the N clients blocked on the stream getting new data.
@@ -6497,9 +6474,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XREVRANGE
-    /// 
+    ///
     /// Return a range of elements in a stream, with IDs matching the specified IDs interval, in reverse order (from greater to smaller IDs) compared to XRANGE
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(N) with N being the number of elements returned. If N is constant (e.g. always asking for the first 10 elements with COUNT), you can consider it O(1).
@@ -6516,9 +6493,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XSETID
-    /// 
+    ///
     /// An internal command for replicating stream values
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(1)
@@ -6537,9 +6514,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// XTRIM
-    /// 
+    ///
     /// Trims the stream to (approximately if '~' is passed) a certain size
-    /// 
+    ///
     /// Since: Redis 5.0.0
     /// Group: Stream
     /// Complexity: O(N), with N being the number of evicted entries. Constant times are very small however, since entries are organized in macro nodes containing multiple entries that can be released with a single deallocation.
@@ -6556,9 +6533,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// BITCOUNT
-    /// 
+    ///
     /// Count set bits in a string
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Bitmap
     /// Complexity: O(N)
@@ -6573,9 +6550,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// BITFIELD
-    /// 
+    ///
     /// Perform arbitrary bitfield integer operations on strings
-    /// 
+    ///
     /// Since: Redis 3.2.0
     /// Group: Bitmap
     /// Complexity: O(1) for each subcommand specified
@@ -6592,9 +6569,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// BITFIELD_RO
-    /// 
+    ///
     /// Perform arbitrary bitfield integer operations on strings. Read-only variant of BITFIELD
-    /// 
+    ///
     /// Since: Redis 6.2.0
     /// Group: Bitmap
     /// Complexity: O(1) for each subcommand specified
@@ -6610,9 +6587,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// BITOP
-    /// 
+    ///
     /// Perform bitwise operations between strings
-    /// 
+    ///
     /// Since: Redis 2.6.0
     /// Group: Bitmap
     /// Complexity: O(N)
@@ -6623,14 +6600,14 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @bitmap
     /// * @slow
-    fn bitop<'a, T0: ToRedisArgs, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, operation: T0, destkey: K0, key: &'a [K1]) -> RedisResult<RV> {
+    fn bitop<T0: ToRedisArgs, K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, operation: T0, destkey: K0, key: &[K1]) -> RedisResult<RV> {
         Cmd::bitop(operation, destkey, key).query(self)
     }
 
     /// BITPOS
-    /// 
+    ///
     /// Find first bit set or clear in a string
-    /// 
+    ///
     /// Since: Redis 2.8.7
     /// Group: Bitmap
     /// Complexity: O(N)
@@ -6645,9 +6622,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// GETBIT
-    /// 
+    ///
     /// Returns the bit value at offset in the string value stored at key
-    /// 
+    ///
     /// Since: Redis 2.2.0
     /// Group: Bitmap
     /// Complexity: O(1)
@@ -6663,9 +6640,9 @@ pub trait Commands : ConnectionLike + Sized {
     }
 
     /// SETBIT
-    /// 
+    ///
     /// Sets or clears the bit at offset in the string value stored at key
-    /// 
+    ///
     /// Since: Redis 2.2.0
     /// Group: Bitmap
     /// Complexity: O(1)

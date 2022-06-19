@@ -1,19 +1,20 @@
-use itertools::Itertools;
-
+use crate::commands::CommandDefinition;
 use super::{
     commands::Command,
     constants::{append_constant_docs, ASYNC_COMMAND_TRAIT_DOCS},
-    Generator,
+    GenerationConfig, Generator,
 };
 
 pub(crate) struct AsyncCommandsTrait {
     lifetime: String,
+    pub(crate) config: GenerationConfig,
 }
 
-impl Default for AsyncCommandsTrait {
-    fn default() -> Self {
+impl AsyncCommandsTrait {
+    pub fn new(config: GenerationConfig) -> Self {
         Self {
             lifetime: "\'a".to_owned(),
+            config,
         }
     }
 }
@@ -47,6 +48,20 @@ impl Generator for AsyncCommandsTrait {
 
         generator.depth -= 1;
         generator.push_line("}");
+    }
+
+    fn append_commands(
+        &self,
+        generator: &mut super::CodeGenerator,
+        commands: &[(&str, &CommandDefinition)],
+    ) {
+        for &(command_name, definition) in commands {
+            let command = Command::new(command_name.to_owned(), definition, &self.config);
+            if !super::BLACKLIST.contains(&command_name) {
+                self.append_command(generator, &command);
+                generator.buf.push('\n')
+            }
+        }
     }
 }
 

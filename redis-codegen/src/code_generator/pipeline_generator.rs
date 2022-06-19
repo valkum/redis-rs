@@ -1,12 +1,21 @@
 use itertools::Itertools;
 
+use crate::commands::CommandDefinition;
+
 use super::{
     commands::Command,
     constants::{append_constant_docs, PIPELINE_DOCS},
-    Generator,
+    GenerationConfig, Generator,
 };
 
-pub(crate) struct PipelineImpl;
+pub(crate) struct PipelineImpl {
+    pub(crate) config: GenerationConfig,
+}
+impl PipelineImpl {
+    pub fn new(config: GenerationConfig) -> Self {
+        Self { config }
+    }
+}
 
 impl Generator for PipelineImpl {
     fn append_imports(&self, generator: &mut super::CodeGenerator) {
@@ -37,12 +46,25 @@ impl Generator for PipelineImpl {
         generator.depth -= 1;
         generator.push_line("}");
     }
+
+    fn append_commands(
+        &self,
+        generator: &mut super::CodeGenerator,
+        commands: &[(&str, &CommandDefinition)],
+    ) {
+        for &(command_name, definition) in commands {
+            let command = Command::new(command_name.to_owned(), definition, &self.config);
+            if !super::BLACKLIST.contains(&command_name) {
+                self.append_command(generator, &command);
+                generator.buf.push('\n')
+            }
+        }
+    }
 }
 
 impl PipelineImpl {
     // Generates:
     // ```
-
     // pub fn $name<$lifetime, $($tyargs: $ty),*>(
     //     &mut self $(, $argname: $argty)*
     // ) -> &mut Self {
@@ -50,16 +72,10 @@ impl PipelineImpl {
     fn append_fn_decl(&self, generator: &mut super::CodeGenerator, command: &Command) {
         let mut trait_bounds = vec![];
         let mut args = vec!["&mut self".to_owned()];
-        let mut needs_lifetime = false;
 
         for arg in command.arguments() {
-            needs_lifetime |= arg.multiple;
             trait_bounds.push(arg.trait_bound());
             args.push(arg.to_string())
-        }
-
-        if needs_lifetime {
-            trait_bounds.insert(0, Some("\'a".to_owned()));
         }
 
         let trait_bounds = trait_bounds

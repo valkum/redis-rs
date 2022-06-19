@@ -1,4 +1,5 @@
 use super::arguments::Argument;
+use super::GenerationConfig;
 use super::GenerationKind;
 use super::COMMAND_NAME_OVERWRITE;
 use crate::commands::ArgType;
@@ -8,20 +9,21 @@ use crate::ident::to_snake;
 
 /// An abstract type representing a code generation unit for a command
 #[derive(Debug, Clone)]
-pub(crate) struct Command {
+pub(crate) struct Command<'a> {
     name: String,
     command: String,
     docs: Vec<String>,
     group: CommandGroup,
-    args: Vec<Argument>,
+    args: Vec<Argument<'a>>,
     pub(crate) deprecated: bool,
+    pub(crate) deprecated_since: Option<String>
 }
 
-impl Command {
+impl<'a> Command<'a> {
     pub(crate) fn new(
         mut name: String,
         definition: &CommandDefinition,
-        kind: GenerationKind,
+        config: &'a GenerationConfig,
     ) -> Self {
         let command = name.clone();
 
@@ -29,10 +31,10 @@ impl Command {
         let args = definition
             .arguments
             .iter()
-            .filter_map(|x| map_argument(&mut kv_index, x, kind))
+            .filter_map(|arg| map_argument(&mut kv_index, arg, config))
             .collect::<Vec<_>>();
 
-        let docs = build_docs(&name, definition, kind);
+        let docs = build_docs(&name, definition, config.kind);
 
         name = if let Some(&(_, name)) = COMMAND_NAME_OVERWRITE
             .iter()
@@ -50,6 +52,7 @@ impl Command {
             group: definition.group,
             args,
             deprecated: definition.doc_flags.contains(&DocFlag::Deprecated),
+            deprecated_since: definition.deprecated_since.as_ref().map(ToString::to_string),
         }
     }
 
@@ -72,27 +75,23 @@ impl Command {
     pub(crate) fn docs(&self) -> &[String] {
         &self.docs
     }
-
-    pub(crate) fn backwards_compatibiity(&self, alt_name: String) -> Self {
-        let mut alt = self.clone();
-        alt.name = alt_name;
-        alt
-    }
 }
 
 // Todo handle key_specs correctly
-fn map_argument(
-    (key_id, value_id): &mut (u8, u8),
+fn map_argument<'a>(
+    indices: &mut (u8, u8),
     arg: &CommandArgument,
-    kind: GenerationKind,
-) -> Option<Argument> {
-    // TODO Ignore argument until we have proper token handling.
+    config: &'a GenerationConfig,
+) -> Option<Argument<'a>> {
+    let (ref mut key_id, ref mut value_id) = indices;
+
+    // TODO Ignore token arguments until we have proper token handling.
     // We probably want to generate a type for each token that implements ToRedisArgs and expands to the wrapped type and the Token
     if arg.token.is_some() {
         return None;
     }
 
-    let accepts_multiple = arg.multiple && (kind == GenerationKind::Full);
+    let accepts_multiple = arg.multiple && (config.kind == GenerationKind::Full);
 
     match arg.r#type {
         ArgType::Key { key_spec_index: _ } => {
@@ -109,6 +108,7 @@ fn map_argument(
                 r#trait,
                 arg.optional,
                 accepts_multiple,
+                config,
             ))
         }
         ArgType::Integer => {
@@ -119,6 +119,7 @@ fn map_argument(
                 "i64".to_owned(),
                 arg.optional,
                 accepts_multiple,
+                config,
             ))
         }
         ArgType::Double => {
@@ -129,6 +130,7 @@ fn map_argument(
                 "f64".to_owned(),
                 arg.optional,
                 accepts_multiple,
+                config,
             ))
         }
         ArgType::String => {
@@ -137,7 +139,7 @@ fn map_argument(
 
             let name = to_snake(&arg.name);
 
-            // ToRedis is implemented for Vec this it currently does not make much sense to specialize the trait bound for multiple.
+            // ToRedis is implemented for Vec thus it currently does not make much sense to specialize the trait bound for multiple.
             // Else something like this could be useful?
             // let r#trait = if arg.multiple {
             //     "Iterator<Item = impl ToRedisArgs>".to_string()
@@ -152,6 +154,7 @@ fn map_argument(
                 r#trait,
                 arg.optional,
                 accepts_multiple,
+                config,
             ))
         }
         ArgType::Pattern => {
@@ -168,24 +171,52 @@ fn map_argument(
                 r#trait,
                 arg.optional,
                 accepts_multiple,
+                config,
             ))
         }
-        // These should be tuples. ToRedisArgs should take care of it
-        ArgType::Block { arguments: _ } => {
+        // Creates Tuple arguments
+        // TODO: For now we do not allow nested block arguments
+        ArgType::Block {
+            arguments: ref sub_arguments,
+        } => {
             let idx = *value_id;
             *value_id += 1;
 
             let name = to_snake(&arg.name);
 
-            let r#trait = "ToRedisArgs".to_string();
+            // Generate Arguments for each sub_argument
+            // Returns None if there are nested block arguments, for now.
+            let sub_arguments = sub_arguments
+                .iter()
+                .map(|arg| {
+                    if matches!(&arg.r#type, &ArgType::Block { arguments: _ }) {
+                        return None;
+                    }
+                    map_argument(indices, arg, config)
+                })
+                .collect::<Option<Vec<_>>>();
 
-            Some(Argument::new_generic(
-                name,
-                format!("T{}", idx),
-                r#trait,
-                arg.optional,
-                accepts_multiple,
-            ))
+            if let Some(sub_arguments) = sub_arguments {
+                // Create traits for the tuples
+                Some(Argument::new_block(
+                    name,
+                    &sub_arguments,
+                    arg.optional,
+                    accepts_multiple,
+                    config,
+                ))
+            } else {
+                let r#trait = "ToRedisArgs".to_string();
+
+                Some(Argument::new_generic(
+                    name,
+                    format!("T{}", idx),
+                    r#trait,
+                    arg.optional,
+                    accepts_multiple,
+                    config,
+                ))
+            }
         }
 
         _ => None,

@@ -1,12 +1,13 @@
-use itertools::Itertools;
+use super::{commands::Command, GenerationConfig, Generator};
+use crate::commands::CommandDefinition;
 
-use super::{commands::Command, Generator};
+pub(crate) struct CommandImpl {
+    pub(crate) config: GenerationConfig,
+}
 
-pub(crate) struct CommandImpl;
-
-impl Default for CommandImpl {
-    fn default() -> Self {
-        Self {}
+impl CommandImpl {
+    pub fn new(config: GenerationConfig) -> Self {
+        Self { config }
     }
 }
 
@@ -28,7 +29,6 @@ impl Generator for CommandImpl {
         // Use the generic default one.
         generator.append_doc(command);
         generator.append_fn_attributes(command);
-        // generator.push_line("#[allow(clippy::extra_unused_lifetimes, clippy::needless_lifetimes)]");
 
         self.append_fn_decl(generator, command);
         generator.depth += 1;
@@ -38,27 +38,34 @@ impl Generator for CommandImpl {
         generator.depth -= 1;
         generator.push_line("}");
     }
+
+    fn append_commands(
+        &self,
+        generator: &mut super::CodeGenerator,
+        commands: &[(&str, &CommandDefinition)],
+    ) {
+        for &(command_name, definition) in commands {
+            let command = Command::new(command_name.to_owned(), definition, &self.config);
+            if !super::BLACKLIST.contains(&command_name) {
+                self.append_command(generator, &command);
+                generator.buf.push('\n')
+            }
+        }
+    }
 }
 
 impl CommandImpl {
     // Generates:
     // ```
-
     // pub fn $name<$lifetime, $($tyargs: $ty),*>($($argname: $argty),*) -> Self {
     // ```
     fn append_fn_decl(&self, generator: &mut super::CodeGenerator, command: &Command) {
         let mut trait_bounds = vec![];
         let mut args = vec![];
-        let mut needs_lifetime = false;
 
         for arg in command.arguments() {
-            needs_lifetime |= arg.multiple;
             trait_bounds.push(arg.trait_bound());
             args.push(arg.to_string())
-        }
-
-        if needs_lifetime {
-            trait_bounds.insert(0, Some("\'a".to_owned()));
         }
 
         let trait_bounds = trait_bounds

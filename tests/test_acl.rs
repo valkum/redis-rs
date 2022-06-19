@@ -35,7 +35,7 @@ fn test_acl_getsetdel_users() {
     );
     assert_eq!(con.acl_users(), Ok(vec!["default".to_owned()]));
     // bob
-    assert_eq!(con.acl_setuser("bob"), Ok(()));
+    assert_eq!(con.acl_setuser("bob", None), Ok(()));
     assert_eq!(
         con.acl_users(),
         Ok(vec!["bob".to_owned(), "default".to_owned()])
@@ -43,16 +43,16 @@ fn test_acl_getsetdel_users() {
 
     // ACL SETUSER bob on ~redis:* +set
     assert_eq!(
-        con.acl_setuser_rules(
+        con.acl_setuser(
             "bob",
-            &[
+            Some(&[
                 Rule::On,
                 Rule::AddHashedPass(
                     "c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2".to_owned()
                 ),
                 Rule::Pattern("redis:*".to_owned()),
                 Rule::AddCommand("set".to_owned())
-            ],
+            ]),
         ),
         Ok(())
     );
@@ -127,7 +127,7 @@ fn test_acl_cat() {
 
     let expects = vec!["pfmerge", "pfcount", "pfselftest", "pfadd"];
     let res: HashSet<String> = con
-        .acl_cat_categoryname("hyperloglog")
+        .acl_cat(Some("hyperloglog"))
         .expect("Got commands of a category");
     for cmd in expects.iter() {
         assert!(res.contains(*cmd), "Command `{}` does not exist", cmd);

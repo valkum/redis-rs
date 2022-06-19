@@ -6,7 +6,11 @@ impl Comment {
             for _ in 0..indent_level {
                 buf.push_str("    ");
             }
-            buf.push_str("/// ");
+            buf.push_str("///");
+            if !line.is_empty() {
+                buf.push(' ');
+            }
+
             // TODO prost sanitizes comments first. Should we do this here as well?
             buf.push_str(line);
             buf.push('\n');

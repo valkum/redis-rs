@@ -274,7 +274,7 @@ fn test_filtered_scanning() {
 
     for x in 0..3000 {
         let _: () = con
-            .hset("foo", (format!("key_{}_{}", x % 100, x), x))
+            .hset("foo", &[(format!("key_{}_{}", x % 100, x), x)])
             .unwrap();
         if x % 100 == 0 {
             unseen.insert(x);
@@ -880,9 +880,9 @@ fn test_tuple_decoding_regression() {
     let ctx = TestContext::new();
     let mut con = ctx.connection();
 
-    assert_eq!(con.del("my_zset"), Ok(()));
-    assert_eq!(con.zadd("my_zset", "one", 1), Ok(1));
-    assert_eq!(con.zadd("my_zset", "two", 2), Ok(1));
+    assert_eq!(con.del(&["my_zset"]), Ok(()));
+    assert_eq!(con.zadd("my_zset", &[(1.0, "one")]), Ok(1));
+    assert_eq!(con.zadd("my_zset", &[(2.0, "two")]), Ok(1));
 
     let vec: Vec<(String, u32)> = con.zrangebyscore_withscores("my_zset", 0, 10).unwrap();
     assert_eq!(vec.len(), 2);

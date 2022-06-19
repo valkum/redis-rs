@@ -1,20 +1,18 @@
-
 use itertools::Itertools;
-
+use crate::commands::CommandDefinition;
 use super::{
     commands::Command,
+    comment::Comment,
     constants::{append_constant_docs, COMMAND_TRAIT_DOCS},
-    Generator,
+    GenerationConfig, Generator,
 };
 pub(crate) struct CommandsTrait {
-    lifetimes: Vec<String>,
+    pub(crate) config: GenerationConfig,
 }
 
-impl Default for CommandsTrait {
-    fn default() -> Self {
-        Self {
-            lifetimes: vec!["\'a".to_owned()],
-        }
+impl CommandsTrait {
+    pub fn new(config: GenerationConfig) -> Self {
+        Self { config }
     }
 }
 
@@ -38,7 +36,7 @@ impl Generator for CommandsTrait {
         generator.append_doc(command);
         generator.append_fn_attributes(command);
 
-        self.append_fn_decl(generator, command);
+        self.append_fn_decl(generator, command, None);
         generator.depth += 1;
 
         self.append_fn_body(generator, command);
@@ -46,27 +44,72 @@ impl Generator for CommandsTrait {
         generator.depth -= 1;
         generator.push_line("}");
     }
+
+    fn append_commands(
+        &self,
+        generator: &mut super::CodeGenerator,
+        commands: &[(&str, &CommandDefinition)],
+    ) {
+        for &(command_name, definition) in commands {
+            let command = Command::new(command_name.to_owned(), definition, &self.config);
+            if !super::BLACKLIST.contains(&command_name) {
+                self.append_command(generator, &command);
+                generator.buf.push('\n')
+            }
+
+            if let Some(backwarts_compatible_name) = super::COMMAND_COMPATIBILITY
+                .iter()
+                .find(|(name, _)| *name == command_name)
+            {
+                self.append_alias_command(generator, &command, backwarts_compatible_name.1);
+                generator.buf.push('\n')
+            }
+        }
+    }
 }
 
 impl CommandsTrait {
+    fn append_alias_command(
+        &self,
+        generator: &mut super::CodeGenerator,
+        command: &Command,
+        alias: &str,
+    ) {
+        let alias_docs = vec![format!("This is an alias for [`{}`]", command.fn_name())];
+
+        let doc_comment = Comment(alias_docs);
+        // TODO: Insert redis-rs version when this gets merged
+        generator.push_line("#[deprecated(since = \"0.22.0\", note = \"With version 0.22.0 redis crate switched to a generated api. This is a deprecated old handwritten function that now aliases to the generated on and will be removed in a future update. \")]");
+        doc_comment.append_with_indent(generator.depth, generator.buf);
+        self.append_fn_decl(generator, command, Some(alias));
+
+        generator.depth += 1;
+        generator.push_line(&format!(
+            "self.{}({})",
+            command.fn_name(),
+            command.arguments().map(|arg| &arg.name).join(", ")
+        ));
+        generator.depth -= 1;
+        generator.push_line("}");
+    }
+
     // Generates:
     // ```
     /// fn $name<$lifetime, $($tyargs: $ty, )* RV: FromRedisValue>(
     //     &mut self $(, $argname: $argty)*) -> RedisResult<RV> {
     // ```
-    fn append_fn_decl(&self, generator: &mut super::CodeGenerator, command: &Command) {
+    fn append_fn_decl(
+        &self,
+        generator: &mut super::CodeGenerator,
+        command: &Command,
+        name: Option<&str>,
+    ) {
         let mut trait_bounds = vec![];
         let mut args = vec!["&mut self".to_owned()];
-        let mut needs_lifetime = false;
 
         for arg in command.arguments() {
-            needs_lifetime |= arg.multiple;
             trait_bounds.push(arg.trait_bound());
             args.push(arg.to_string())
-        }
-
-        if needs_lifetime {
-            trait_bounds.insert(0, Some("\'a".to_owned()));
         }
 
         trait_bounds.push(Some("RV: FromRedisValue".to_owned()));
@@ -76,7 +119,7 @@ impl CommandsTrait {
             .map(|x| x.as_str())
             .collect::<Vec<_>>();
 
-        let command_name = command.fn_name();
+        let command_name = name.unwrap_or_else(|| command.fn_name());
         let trait_bounds = if trait_bounds.is_empty() {
             String::new()
         } else {

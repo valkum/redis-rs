@@ -335,16 +335,10 @@ pub(crate) enum ArgType {
 
 impl ArgType {
     pub(crate) fn is_oneof(&self) -> bool {
-        match self {
-            ArgType::Oneof { .. } => true,
-            _ => false,
-        }
+        matches!(self, ArgType::Oneof { .. })
     }
 
     pub(crate) fn is_block(&self) -> bool {
-        match self {
-            ArgType::Block { .. } => true,
-            _ => false,
-        }
+        matches!(self, ArgType::Block { .. })
     }
 }

@@ -1,7 +1,5 @@
-use self::constants::{
-    ASYNC_COMMAND_TRAIT_DOCS, CLUSTER_PIPELINE_DOCS, COMMAND_TRAIT_DOCS, PIPELINE_DOCS,
-};
-use crate::commands::DocFlag;
+
+
 use crate::commands::{CommandDefinition, CommandSet};
 use crate::feature_gates::FeatureGate;
 use crate::GenerationType;
@@ -45,24 +43,42 @@ pub(crate) enum GenerationKind {
     IgnoreMultiple,
 }
 
+#[derive(Debug)]
+pub(crate) struct GenerationConfig {
+    pub(crate) explicit_lifetime: bool,
+    pub(crate) kind: GenerationKind,
+}
+
 pub(crate) trait Generator {
     fn append_imports(&self, generator: &mut CodeGenerator);
     fn append_preface(&self, generator: &mut CodeGenerator);
     fn append_appendix(&self, generator: &mut CodeGenerator);
-    fn append_command(&self, generator: &mut super::CodeGenerator, command: &Command);
+    // Todo move this trait out of here, this should be a responsibility of append_commands and can be implemented on the implementors itself
+    fn append_command(&self, generator: &mut CodeGenerator, command: &Command);
+    fn append_commands(
+        &self,
+        generator: &mut CodeGenerator,
+        commands: &[(&str, &CommandDefinition)],
+    );
 }
 
 impl<'a> CodeGenerator<'a> {
     pub fn generate(generation_type: GenerationType, commands: &CommandSet, buf: &mut String) {
         let mut code_gen = CodeGenerator { depth: 0, buf };
 
+        let config = GenerationConfig {
+            explicit_lifetime: false,
+            kind: GenerationKind::Full,
+        };
+
         let generation_unit: Box<dyn Generator> = match generation_type {
-            GenerationType::CommandsTrait => Box::new(CommandsTrait::default()),
-            GenerationType::CommandImpl => Box::new(CommandImpl::default()),
-            GenerationType::AsyncCommandsTrait => Box::new(AsyncCommandsTrait::default()),
-            GenerationType::Pipeline => Box::new(PipelineImpl {}),
-            GenerationType::ClusterPipeline => Box::new(ClusterPipelineImpl {}),
+            GenerationType::CommandsTrait => Box::new(CommandsTrait::new(config)),
+            GenerationType::CommandImpl => Box::new(CommandImpl::new(config)),
+            GenerationType::AsyncCommandsTrait => Box::new(AsyncCommandsTrait::new(config)),
+            GenerationType::Pipeline => Box::new(PipelineImpl::new(config)),
+            GenerationType::ClusterPipeline => Box::new(ClusterPipelineImpl::new(config)),
             // This GenerationType is special, as it won't generate commands but the needed tokens for the commands
+            // TODO: This needs some refactoring, I am not happy with how this looks
             GenerationType::Tokens => {
                 code_gen.append_oneof_tokens(commands);
                 return;
@@ -75,38 +91,14 @@ impl<'a> CodeGenerator<'a> {
         generation_unit.append_preface(&mut code_gen);
         code_gen.depth += 1;
 
-        // Group commands by group and then by command name
-        for (command_name, definition) in commands
+        let commands = commands
             .iter()
             .sorted_by(|x, y| Ord::cmp(&x.1.group, &y.1.group).then(Ord::cmp(&x.0, &y.0)))
-        {
-            let command = Command::new(command_name.clone(), definition, GenerationKind::Full);
-            if !BLACKLIST.contains(&command_name.as_str()) {
-                generation_unit.append_command(&mut code_gen, &command);
-                code_gen.buf.push('\n')
-            }
+            .map(|(name, def)| (name.as_str(), def))
+            .collect::<Vec<_>>();
 
-            // We would be better of instead of generating a whole implementation for this by just calling to the full generation, transforming in the fn body.
-            // This needs to wait until we get rid of the macro that currently creates the trait impls.
-            // if definition.accepts_multiple() {
-            //     let command = Command::new(command_name.clone(), definition, GenerationKind::Full);
-            //     generation_unit.append_single_alt_command(&mut code_gen,
-            //         command.clone(),
-            //         definition,
-            //     );
-            // }
+        generation_unit.append_commands(&mut code_gen, &commands);
 
-            if let Some(backwarts_compatible_name) = COMMAND_COMPATIBILITY
-                .iter()
-                .find(|(name, _)| name == command_name)
-            {
-                generation_unit.append_command(
-                    &mut code_gen,
-                    &command.backwards_compatibiity(backwarts_compatible_name.1.to_string()),
-                );
-                code_gen.buf.push('\n')
-            }
-        }
         code_gen.depth -= 1;
         generation_unit.append_appendix(&mut code_gen);
     }
@@ -136,8 +128,11 @@ impl<'a> CodeGenerator<'a> {
     fn append_fn_attributes(&mut self, command: &Command) {
         self.append_feature_gate(command);
         if command.deprecated {
-            // Including the version might be hard here, as we want to put the crate version here in which this got deprecated.
-            self.push_line("#[deprecated]");
+            if let Some(since) = &command.deprecated_since {
+                self.push_line(&format!("#[deprecated = \"Deprecated in redis since redis version {}.\"]", since));
+            }else {
+                self.push_line("#[deprecated = \"Deprecated in redis itself.\"]");
+            }
         }
     }
 
@@ -161,14 +156,14 @@ impl<'a> CodeGenerator<'a> {
         let all_oneof_definitions = commands
             .iter()
             .filter(|(_, definition)| definition.takes_token())
-            .map(|(_, definition)| {
+            .flat_map(|(_, definition)| {
                 definition
                     .arguments
                     .iter()
                     .filter(|arg| arg.r#type.is_oneof())
             })
-            .flatten()
             .collect::<Vec<_>>();
         dbg!(all_oneof_definitions);
+        todo!()
     }
 }
