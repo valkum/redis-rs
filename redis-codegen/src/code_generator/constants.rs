@@ -1,9 +1,14 @@
-use super::comment::Comment;
+use super::comment::{Comment, CommentKind};
 use super::CodeGenerator;
 
 pub(crate) fn append_constant_docs(doc: &str, generator: &mut CodeGenerator) {
     let doc_comment = Comment(doc.lines().map(ToOwned::to_owned).collect::<Vec<_>>());
-    doc_comment.append_with_indent(generator.depth, generator.buf);
+    doc_comment.append_with_indent(generator.depth, generator.buf, Default::default());
+}
+
+pub(crate) fn append_constant_module_docs(doc: &str, generator: &mut CodeGenerator) {
+    let doc_comment = Comment(doc.lines().map(ToOwned::to_owned).collect::<Vec<_>>());
+    doc_comment.append_with_indent(generator.depth, generator.buf, CommentKind::InnerLine);
 }
 
 pub const COMMAND_TRAIT_DOCS: &str = r#"Implements common redis commands for connection like objects.  This
@@ -71,3 +76,10 @@ directly.  Other than that it works the same however."#;
 pub const CLUSTER_PIPELINE_DOCS: &str = r#"Implements common redis commands for cluster pipelines.  Unlike the regular
 commands trait, this returns the cluster pipeline rather than a result
 directly.  Other than that it works the same however."#;
+
+pub const TOKEN_DOCS: &str = r#"These are enums and structs based on commands.json
+
+For each oneof attribute there is a enum based on the token or the attribute name.
+For each block attribute there is a struct based on the token or the attribute name.
+Also included are wrapper types for arguments that have token.
+```"#;

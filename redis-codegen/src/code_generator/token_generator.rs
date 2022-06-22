@@ -1,8 +1,5 @@
-use std::fmt;
-
 use super::{
-    commands::Command,
-    constants::{append_constant_docs, CLUSTER_PIPELINE_DOCS},
+    constants::{append_constant_docs, TOKEN_DOCS, append_constant_module_docs},
     GenerationConfig, Generator,
 };
 use crate::{
@@ -10,17 +7,13 @@ use crate::{
     ident::to_camel,
     ident::to_snake,
 };
-use anyhow::Context;
-use anyhow::Result;
-use heck::ToUpperCamelCase;
 use itertools::Itertools;
 
-pub(crate) struct TokenImpl {
-    pub(crate) config: GenerationConfig,
-}
+pub(crate) struct TokenImpl {}
+
 impl TokenImpl {
-    pub fn new(config: GenerationConfig) -> Self {
-        Self { config }
+    pub fn new() -> Self {
+        Self {}
     }
 }
 
@@ -30,11 +23,14 @@ impl Generator for TokenImpl {
         generator: &mut super::CodeGenerator,
         commands: &[(&str, &CommandDefinition)],
     ) {
+        generator.push_line("#![cfg_attr(rustfmt, rustfmt_skip)]");
+        append_constant_module_docs(TOKEN_DOCS, generator);
+        generator.push_line("use crate::types::{ToRedisArgs, RedisWrite};");
+
         let all_oneof_definitions = commands
             .iter()
             .flat_map(|(_, definition)| definition.arguments.iter())
-            .try_fold(vec![], fold_to_token)
-            .unwrap();
+            .fold(vec![], fold_to_token);
 
         for token in all_oneof_definitions {
             token.append(generator);
@@ -42,7 +38,7 @@ impl Generator for TokenImpl {
     }
 }
 
-fn fold_to_token(mut acc: Vec<Token>, arg: &CommandArgument) -> Result<Vec<Token>> {
+fn fold_to_token(mut acc: Vec<Token>, arg: &CommandArgument) -> Vec<Token> {
     let mut queue = vec![arg];
     let mut cur = queue.pop();
     while let Some(arg) = cur {
@@ -52,13 +48,13 @@ fn fold_to_token(mut acc: Vec<Token>, arg: &CommandArgument) -> Result<Vec<Token
                 if let Some(name) = token_name {
                     let token_name = to_camel(&name);
                     if acc.iter().all(|x| x.name != token_name) {
-                        acc.push(Token::new_oneof(token_name, arguments, &mut queue)?)
+                        acc.push(Token::new_oneof(token_name, arguments, &mut queue))
                     }
                 } else {
                     // Use the field name for this purpose. We need an enum for each Oneof
                     let token_name = to_camel(&arg.name);
                     if acc.iter().all(|x| x.name != token_name) {
-                        acc.push(Token::new_oneof(token_name, arguments, &mut queue)?)
+                        acc.push(Token::new_oneof(token_name, arguments, &mut queue))
                     }
                 }
             }
@@ -66,12 +62,7 @@ fn fold_to_token(mut acc: Vec<Token>, arg: &CommandArgument) -> Result<Vec<Token
                 if let Some(name) = token_name {
                     let token_name = to_camel(&name);
                     if acc.iter().all(|x| x.name != token_name) {
-                        acc.push(Token::new_block(
-                            token_name,
-                            Some(name),
-                            arguments,
-                            &mut queue,
-                        ))
+                        acc.push(Token::new_block(token_name, arguments, &mut queue))
                     }
                 }
             }
@@ -110,7 +101,7 @@ fn fold_to_token(mut acc: Vec<Token>, arg: &CommandArgument) -> Result<Vec<Token
 
         cur = queue.pop();
     }
-    Ok(acc)
+    acc
 }
 
 #[derive(Debug)]
@@ -184,7 +175,7 @@ impl Token {
         name: String,
         args: &'a [CommandArgument],
         queue: &mut Vec<&'a CommandArgument>,
-    ) -> Result<Token> {
+    ) -> Token {
         let mut variants = vec![];
 
         for arg in args {
@@ -255,15 +246,14 @@ impl Token {
                 _ => {}
             }
         }
-        Ok(Token {
+        Token {
             name,
             kind: TokenType::Enum(variants),
-        })
+        }
     }
 
     pub fn new_block<'a>(
         name: String,
-        redis_token: Option<String>,
         args: &'a [CommandArgument],
         queue: &mut Vec<&'a CommandArgument>,
     ) -> Token {

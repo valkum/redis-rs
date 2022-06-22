@@ -1,12 +1,12 @@
-use crate::types::{FromRedisValue, NumericBehavior, RedisResult, ToRedisArgs, RedisWrite, Expiry};
-use crate::connection::{Connection, ConnectionLike, Msg};
+#![cfg_attr(rustfmt, rustfmt_skip)]
+#[allow(deprecated)]
 use crate::pipeline::Pipeline;
 use crate::cmd::Cmd;
+use crate::types::ToRedisArgs;
 
 /// Implements common redis commands for pipelines.  Unlike the regular
 /// commands trait, this returns the pipeline rather than a result
 /// directly.  Other than that it works the same however.
-#[allow(deprecated)]
 impl Pipeline {
     /// COPY
     ///

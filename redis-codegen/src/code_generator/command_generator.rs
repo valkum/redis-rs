@@ -1,4 +1,4 @@
-use super::{commands::Command, GenerationConfig, Generator};
+use super::{commands::Command, constants::append_constant_docs, GenerationConfig, Generator};
 use crate::commands::CommandDefinition;
 
 pub(crate) struct CommandImpl {
@@ -36,7 +36,9 @@ impl Generator for CommandImpl {
 
 impl CommandImpl {
     fn append_imports(&self, generator: &mut super::CodeGenerator) {
-        generator.push_line("use crate::cmd::{cmd, Cmd};")
+        generator.push_line("#![cfg_attr(rustfmt, rustfmt_skip)]");
+        generator.push_line("use crate::cmd::{cmd, Cmd};");
+        generator.push_line("use crate::types::ToRedisArgs;");
     }
 
     fn append_preface(&self, generator: &mut super::CodeGenerator) {

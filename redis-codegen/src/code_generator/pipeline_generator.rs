@@ -42,13 +42,15 @@ impl Generator for PipelineImpl {
 
 impl PipelineImpl {
     fn append_imports(&self, generator: &mut super::CodeGenerator) {
+        generator.push_line("#![cfg_attr(rustfmt, rustfmt_skip)]");
+        generator.push_line("#[allow(deprecated)]");
         generator.push_line("use crate::pipeline::Pipeline;");
         generator.push_line("use crate::cmd::Cmd;");
+        generator.push_line("use crate::types::ToRedisArgs;");
     }
 
     fn append_preface(&self, generator: &mut super::CodeGenerator) {
         append_constant_docs(PIPELINE_DOCS, generator);
-        generator.push_line("#[allow(deprecated)]");
         generator.push_line("impl Pipeline {");
     }
 

@@ -1,6 +1,6 @@
-use crate::types::{FromRedisValue, NumericBehavior, RedisResult, ToRedisArgs, RedisWrite, Expiry};
-use crate::connection::{Connection, ConnectionLike, Msg};
+#![cfg_attr(rustfmt, rustfmt_skip)]
 use crate::cmd::{cmd, Cmd};
+use crate::types::ToRedisArgs;
 
 impl Cmd {
     /// COPY

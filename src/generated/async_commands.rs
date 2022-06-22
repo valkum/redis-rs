@@ -1,6 +1,6 @@
-use crate::types::{FromRedisValue, NumericBehavior, RedisResult, ToRedisArgs, RedisWrite, Expiry};
-use crate::connection::{Connection, ConnectionLike, Msg};
+#![cfg_attr(rustfmt, rustfmt_skip)]
 use crate::cmd::{Cmd, Iter};
+use crate::types::ToRedisArgs;
 
 /// Implements common redis commands over asynchronous connections. This
 /// allows you to send commands straight to a connection or client.

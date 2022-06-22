@@ -70,10 +70,8 @@ impl<'a> CodeGenerator<'a> {
             GenerationType::ClusterPipeline => Box::new(ClusterPipelineImpl::new(config)),
             // This GenerationType is special, as it won't generate commands but the needed tokens for the commands
             // TODO: This needs some refactoring, I am not happy with how this looks
-            GenerationType::Tokens => Box::new(TokenImpl::new(config)),
+            GenerationType::Tokens => Box::new(TokenImpl::new()),
         };
-
-        code_gen.append_general_imports();
 
         let commands = commands
             .iter()
@@ -104,7 +102,7 @@ impl<'a> CodeGenerator<'a> {
     fn append_doc(&mut self, command: &Command) {
         let docs = command.docs().to_owned();
         let doc_comment = Comment(docs);
-        doc_comment.append_with_indent(self.depth, self.buf);
+        doc_comment.append_with_indent(self.depth, self.buf, Default::default());
     }
     fn append_fn_attributes(&mut self, command: &Command) {
         self.append_feature_gate(command);

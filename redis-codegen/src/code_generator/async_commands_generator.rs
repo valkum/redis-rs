@@ -44,7 +44,9 @@ impl Generator for AsyncCommandsTrait {
 
 impl AsyncCommandsTrait {
     fn append_imports(&self, generator: &mut super::CodeGenerator) {
-        generator.push_line("use crate::cmd::{Cmd, Iter};")
+        generator.push_line("#![cfg_attr(rustfmt, rustfmt_skip)]");
+        generator.push_line("use crate::cmd::{Cmd, Iter};");
+        generator.push_line("use crate::types::ToRedisArgs;");
     }
 
     fn append_preface(&self, generator: &mut super::CodeGenerator) {

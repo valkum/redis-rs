@@ -1,5 +1,11 @@
-use crate::types::{FromRedisValue, NumericBehavior, RedisResult, ToRedisArgs, RedisWrite, Expiry};
-use crate::connection::{Connection, ConnectionLike, Msg};
+#![cfg_attr(rustfmt, rustfmt_skip)]
+//! These are enums and structs based on commands.json
+//!
+//! For each oneof attribute there is a enum based on the token or the attribute name.
+//! For each block attribute there is a struct based on the token or the attribute name.
+//! Also included are wrapper types for arguments that have token.
+//! ```
+use crate::types::{ToRedisArgs, RedisWrite};
 /// Redis Type: DB
 pub struct Db(i64);
 

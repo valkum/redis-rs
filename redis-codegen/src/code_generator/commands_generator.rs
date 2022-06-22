@@ -49,17 +49,16 @@ impl Generator for CommandsTrait {
 
 impl CommandsTrait {
     fn append_imports(&self, generator: &mut super::CodeGenerator) {
-        generator.buf.push_str("use crate::cmd::Cmd;\n");
-        generator.buf.push_str("#[allow(deprecated)]");
+        generator.push_line("#![cfg_attr(rustfmt, rustfmt_skip)]");
+        generator.push_line("#[allow(deprecated)]");
+        generator.push_line("use crate::connection::ConnectionLike;");
+        generator.push_line("use crate::cmd::Cmd;");
+        generator.push_line("use crate::types::{FromRedisValue, RedisResult, ToRedisArgs};");
     }
 
     fn append_preface(&self, generator: &mut super::CodeGenerator) {
         append_constant_docs(COMMAND_TRAIT_DOCS, generator);
         generator.push_line("pub trait Commands : ConnectionLike + Sized {");
-    }
-
-    fn append_appendix(&self, generator: &mut super::CodeGenerator) {
-        generator.push_line("}")
     }
 
     fn append_command(&self, generator: &mut super::CodeGenerator, command: &Command) {
@@ -88,7 +87,7 @@ impl CommandsTrait {
         let doc_comment = Comment(alias_docs);
         // TODO: Insert redis-rs version when this gets merged
         generator.push_line("#[deprecated(since = \"0.22.0\", note = \"With version 0.22.0 redis crate switched to a generated api. This is a deprecated old handwritten function that now aliases to the generated on and will be removed in a future update. \")]");
-        doc_comment.append_with_indent(generator.depth, generator.buf);
+        doc_comment.append_with_indent(generator.depth, generator.buf, Default::default());
         self.append_fn_decl(generator, command, Some(alias));
 
         generator.depth += 1;

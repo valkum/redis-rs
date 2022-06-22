@@ -1,8 +1,8 @@
-use crate::types::{FromRedisValue, NumericBehavior, RedisResult, ToRedisArgs, RedisWrite, Expiry};
-use crate::connection::{Connection, ConnectionLike, Msg};
+#![cfg_attr(rustfmt, rustfmt_skip)]
 #[cfg(feature = "cluster")]
 use crate::cluster_pipeline::ClusterPipeline;
 use crate::cmd::Cmd;
+use crate::types::ToRedisArgs;
 
 /// Implements common redis commands for cluster pipelines.  Unlike the regular
 /// commands trait, this returns the cluster pipeline rather than a result
