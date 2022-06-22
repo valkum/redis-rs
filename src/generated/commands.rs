@@ -1,6 +1,6 @@
 use crate::types::{FromRedisValue, NumericBehavior, RedisResult, ToRedisArgs, RedisWrite, Expiry};
 use crate::connection::{Connection, ConnectionLike, Msg};
-use crate::cmd::{Cmd, Iter};
+use crate::cmd::Cmd;
 
 /// Implements common redis commands for connection like objects.  This
 /// allows you to send commands straight to a connection or client.  It
@@ -2623,7 +2623,7 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn psubscribe<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, pattern: &[(K0)]) -> RedisResult<RV> {
+    fn psubscribe<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, pattern: &[K0]) -> RedisResult<RV> {
         Cmd::psubscribe(pattern).query(self)
     }
 
@@ -3900,7 +3900,7 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn config_get<T1: ToRedisArgs, RV: FromRedisValue>(&mut self, parameter: &[(T1)]) -> RedisResult<RV> {
+    fn config_get<T1: ToRedisArgs, RV: FromRedisValue>(&mut self, parameter: &[T1]) -> RedisResult<RV> {
         Cmd::config_get(parameter).query(self)
     }
 

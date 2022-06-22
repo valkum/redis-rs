@@ -2589,7 +2589,7 @@ impl ClusterPipeline {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    pub fn psubscribe<K0: ToRedisArgs>(&mut self, pattern: &[(K0)]) -> &mut Self {
+    pub fn psubscribe<K0: ToRedisArgs>(&mut self, pattern: &[K0]) -> &mut Self {
         self.add_command(Cmd::psubscribe(pattern))
     }
 
@@ -3866,7 +3866,7 @@ impl ClusterPipeline {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn config_get<T1: ToRedisArgs>(&mut self, parameter: &[(T1)]) -> &mut Self {
+    pub fn config_get<T1: ToRedisArgs>(&mut self, parameter: &[T1]) -> &mut Self {
         self.add_command(Cmd::config_get(parameter))
     }
 

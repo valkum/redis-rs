@@ -3137,7 +3137,7 @@ impl Cmd {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    pub fn psubscribe<K0: ToRedisArgs>(pattern: &[(K0)]) -> Self {
+    pub fn psubscribe<K0: ToRedisArgs>(pattern: &[K0]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("PSUBSCRIBE");
         rv.arg(pattern);
@@ -4585,7 +4585,7 @@ impl Cmd {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn config_get<T1: ToRedisArgs>(parameter: &[(T1)]) -> Self {
+    pub fn config_get<T1: ToRedisArgs>(parameter: &[T1]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("CONFIG GET");
         rv.arg(parameter);

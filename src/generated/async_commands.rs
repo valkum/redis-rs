@@ -3446,7 +3446,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn psubscribe<'a, K0: ToRedisArgs + Send + Sync + 'a>(pattern: &[(K0)]) -> Self {
+    fn psubscribe<'a, K0: ToRedisArgs + Send + Sync + 'a>(pattern: &[K0]) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("PSUBSCRIBE");
@@ -5030,7 +5030,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn config_get<'a, T1: ToRedisArgs + Send + Sync + 'a>(parameter: &[(T1)]) -> Self {
+    fn config_get<'a, T1: ToRedisArgs + Send + Sync + 'a>(parameter: &[T1]) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("CONFIG GET");
