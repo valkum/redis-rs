@@ -1,6 +1,19 @@
-use std::{collections::HashMap, ffi::OsStr, fs};
-
+use std::{collections::HashMap, ffi::OsStr, fs, path::PathBuf};
 use walkdir::WalkDir;
+
+/// Download the latest command.sjon from the redis GitHub repository.
+///
+/// This test is ignored by default, but can be run with `cargo test sync_command_json -- --ignored`.
+#[tokio::test]
+#[ignore]
+async fn sync_command_json() {
+    let client = reqwest::Client::new();
+    let filename = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs/commands.json");
+
+    let rsp = client.get(BASE_URI).send().await.unwrap();
+    let body = rsp.text().await.unwrap();
+    fs::write(filename, body).unwrap();
+}
 
 #[test]
 fn generated_code_is_fresh() {
