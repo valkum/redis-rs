@@ -1,10 +1,10 @@
-use itertools::Itertools;
-use crate::commands::CommandDefinition;
 use super::{
     commands::Command,
     constants::{append_constant_docs, CLUSTER_PIPELINE_DOCS},
     GenerationConfig, Generator,
 };
+use crate::commands::CommandDefinition;
+use itertools::Itertools;
 
 pub(crate) struct ClusterPipelineImpl {
     pub(crate) config: GenerationConfig,
@@ -16,6 +16,38 @@ impl ClusterPipelineImpl {
 }
 
 impl Generator for ClusterPipelineImpl {
+    fn generate(
+        &self,
+        generator: &mut super::CodeGenerator,
+        commands: &[(&str, &CommandDefinition)],
+    ) {
+        self.append_imports(generator);
+        generator.buf.push('\n');
+        self.append_preface(generator);
+
+        generator.depth += 1;
+        for &(command_name, definition) in commands {
+            let command = Command::new(command_name.to_owned(), definition, &self.config);
+            if !super::BLACKLIST.contains(&command_name) {
+                self.append_command(generator, &command);
+                generator.buf.push('\n')
+            }
+        }
+        generator.depth -= 1;
+        generator.push_line("}")
+    }
+}
+
+// $(#[$attr])*
+// #[inline]
+// #[allow(clippy::extra_unused_lifetimes, clippy::needless_lifetimes)]
+// pub fn $name<$lifetime, $($tyargs: $ty),*>(
+//     &mut self $(, $argname: $argty)*
+// ) -> &mut Self {
+//     self.add_command(::std::mem::replace($body, Cmd::new()))
+// }
+
+impl ClusterPipelineImpl {
     fn append_imports(&self, generator: &mut super::CodeGenerator) {
         generator.push_line("#[cfg(feature = \"cluster\")]");
         generator.push_line("use crate::cluster_pipeline::ClusterPipeline;");
@@ -26,10 +58,6 @@ impl Generator for ClusterPipelineImpl {
         append_constant_docs(CLUSTER_PIPELINE_DOCS, generator);
         generator.push_line("#[cfg(feature = \"cluster\")]");
         generator.push_line("impl ClusterPipeline {");
-    }
-
-    fn append_appendix(&self, generator: &mut super::CodeGenerator) {
-        generator.push_line("}")
     }
 
     fn append_command(&self, generator: &mut super::CodeGenerator, command: &Command) {
@@ -47,31 +75,6 @@ impl Generator for ClusterPipelineImpl {
         generator.push_line("}");
     }
 
-    fn append_commands(
-        &self,
-        generator: &mut super::CodeGenerator,
-        commands: &[(&str, &CommandDefinition)],
-    ) {
-        for &(command_name, definition) in commands {
-            let command = Command::new(command_name.to_owned(), definition, &self.config);
-            if !super::BLACKLIST.contains(&command_name) {
-                self.append_command(generator, &command);
-                generator.buf.push('\n')
-            }
-        }
-    }
-}
-
-// $(#[$attr])*
-// #[inline]
-// #[allow(clippy::extra_unused_lifetimes, clippy::needless_lifetimes)]
-// pub fn $name<$lifetime, $($tyargs: $ty),*>(
-//     &mut self $(, $argname: $argty)*
-// ) -> &mut Self {
-//     self.add_command(::std::mem::replace($body, Cmd::new()))
-// }
-
-impl ClusterPipelineImpl {
     // Generates:
     // ```
 

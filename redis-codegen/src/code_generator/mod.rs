@@ -1,5 +1,3 @@
-
-
 use crate::commands::{CommandDefinition, CommandSet};
 use crate::feature_gates::FeatureGate;
 use crate::GenerationType;
@@ -50,16 +48,7 @@ pub(crate) struct GenerationConfig {
 }
 
 pub(crate) trait Generator {
-    fn append_imports(&self, generator: &mut CodeGenerator);
-    fn append_preface(&self, generator: &mut CodeGenerator);
-    fn append_appendix(&self, generator: &mut CodeGenerator);
-    // Todo move this trait out of here, this should be a responsibility of append_commands and can be implemented on the implementors itself
-    fn append_command(&self, generator: &mut CodeGenerator, command: &Command);
-    fn append_commands(
-        &self,
-        generator: &mut CodeGenerator,
-        commands: &[(&str, &CommandDefinition)],
-    );
+    fn generate(&self, generator: &mut CodeGenerator, commands: &[(&str, &CommandDefinition)]);
 }
 
 impl<'a> CodeGenerator<'a> {
@@ -86,10 +75,6 @@ impl<'a> CodeGenerator<'a> {
         };
 
         code_gen.append_general_imports();
-        generation_unit.append_imports(&mut code_gen);
-        code_gen.buf.push('\n');
-        generation_unit.append_preface(&mut code_gen);
-        code_gen.depth += 1;
 
         let commands = commands
             .iter()
@@ -97,10 +82,7 @@ impl<'a> CodeGenerator<'a> {
             .map(|(name, def)| (name.as_str(), def))
             .collect::<Vec<_>>();
 
-        generation_unit.append_commands(&mut code_gen, &commands);
-
-        code_gen.depth -= 1;
-        generation_unit.append_appendix(&mut code_gen);
+        generation_unit.generate(&mut code_gen, &commands);
     }
 
     pub fn push_indent(&mut self) {
@@ -129,8 +111,11 @@ impl<'a> CodeGenerator<'a> {
         self.append_feature_gate(command);
         if command.deprecated {
             if let Some(since) = &command.deprecated_since {
-                self.push_line(&format!("#[deprecated = \"Deprecated in redis since redis version {}.\"]", since));
-            }else {
+                self.push_line(&format!(
+                    "#[deprecated = \"Deprecated in redis since redis version {}.\"]",
+                    since
+                ));
+            } else {
                 self.push_line("#[deprecated = \"Deprecated in redis itself.\"]");
             }
         }

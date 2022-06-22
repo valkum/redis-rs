@@ -1,9 +1,9 @@
-use crate::commands::CommandDefinition;
 use super::{
     commands::Command,
     constants::{append_constant_docs, ASYNC_COMMAND_TRAIT_DOCS},
     GenerationConfig, Generator,
 };
+use crate::commands::CommandDefinition;
 
 pub(crate) struct AsyncCommandsTrait {
     lifetime: String,
@@ -20,6 +20,29 @@ impl AsyncCommandsTrait {
 }
 
 impl Generator for AsyncCommandsTrait {
+    fn generate(
+        &self,
+        generator: &mut super::CodeGenerator,
+        commands: &[(&str, &CommandDefinition)],
+    ) {
+        self.append_imports(generator);
+        generator.buf.push('\n');
+        self.append_preface(generator);
+
+        generator.depth += 1;
+        for &(command_name, definition) in commands {
+            let command = Command::new(command_name.to_owned(), definition, &self.config);
+            if !super::BLACKLIST.contains(&command_name) {
+                self.append_command(generator, &command);
+                generator.buf.push('\n')
+            }
+        }
+        generator.depth -= 1;
+        generator.push_line("}")
+    }
+}
+
+impl AsyncCommandsTrait {
     fn append_imports(&self, generator: &mut super::CodeGenerator) {
         generator.push_line("use crate::cmd::{Cmd, Iter};")
     }
@@ -31,9 +54,7 @@ impl Generator for AsyncCommandsTrait {
             .push_line("pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {");
     }
 
-    fn append_appendix(&self, generator: &mut super::CodeGenerator) {
-        generator.push_line("}")
-    }
+    fn append_appendix(&self, generator: &mut super::CodeGenerator) {}
 
     fn append_command(&self, generator: &mut super::CodeGenerator, command: &Command) {
         log::debug!("Command: {:?}", command.fn_name());
@@ -50,22 +71,6 @@ impl Generator for AsyncCommandsTrait {
         generator.push_line("}");
     }
 
-    fn append_commands(
-        &self,
-        generator: &mut super::CodeGenerator,
-        commands: &[(&str, &CommandDefinition)],
-    ) {
-        for &(command_name, definition) in commands {
-            let command = Command::new(command_name.to_owned(), definition, &self.config);
-            if !super::BLACKLIST.contains(&command_name) {
-                self.append_command(generator, &command);
-                generator.buf.push('\n')
-            }
-        }
-    }
-}
-
-impl AsyncCommandsTrait {
     // Generates:
     // ```
 

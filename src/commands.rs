@@ -205,7 +205,6 @@ pub use crate::generated::cluster_pipeline::*;
 pub use crate::generated::command::*;
 pub use crate::generated::commands::Commands;
 pub use crate::generated::pipeline::*;
-// include!("commands_old.rs");
 
 /// Allows pubsub callbacks to stop receiving messages.
 ///

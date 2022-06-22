@@ -18,6 +18,29 @@ impl PipelineImpl {
 }
 
 impl Generator for PipelineImpl {
+    fn generate(
+        &self,
+        generator: &mut super::CodeGenerator,
+        commands: &[(&str, &CommandDefinition)],
+    ) {
+        self.append_imports(generator);
+        generator.buf.push('\n');
+        self.append_preface(generator);
+
+        generator.depth += 1;
+        for &(command_name, definition) in commands {
+            let command = Command::new(command_name.to_owned(), definition, &self.config);
+            if !super::BLACKLIST.contains(&command_name) {
+                self.append_command(generator, &command);
+                generator.buf.push('\n')
+            }
+        }
+        generator.depth -= 1;
+        generator.push_line("}")
+    }
+}
+
+impl PipelineImpl {
     fn append_imports(&self, generator: &mut super::CodeGenerator) {
         generator.push_line("use crate::pipeline::Pipeline;");
         generator.push_line("use crate::cmd::Cmd;");
@@ -25,11 +48,8 @@ impl Generator for PipelineImpl {
 
     fn append_preface(&self, generator: &mut super::CodeGenerator) {
         append_constant_docs(PIPELINE_DOCS, generator);
+        generator.push_line("#[allow(deprecated)]");
         generator.push_line("impl Pipeline {");
-    }
-
-    fn append_appendix(&self, generator: &mut super::CodeGenerator) {
-        generator.push_line("}")
     }
 
     fn append_command(&self, generator: &mut super::CodeGenerator, command: &Command) {
@@ -47,22 +67,6 @@ impl Generator for PipelineImpl {
         generator.push_line("}");
     }
 
-    fn append_commands(
-        &self,
-        generator: &mut super::CodeGenerator,
-        commands: &[(&str, &CommandDefinition)],
-    ) {
-        for &(command_name, definition) in commands {
-            let command = Command::new(command_name.to_owned(), definition, &self.config);
-            if !super::BLACKLIST.contains(&command_name) {
-                self.append_command(generator, &command);
-                generator.buf.push('\n')
-            }
-        }
-    }
-}
-
-impl PipelineImpl {
     // Generates:
     // ```
     // pub fn $name<$lifetime, $($tyargs: $ty),*>(

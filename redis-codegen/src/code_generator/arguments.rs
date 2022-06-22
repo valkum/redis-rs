@@ -125,16 +125,12 @@ fn flatten_arguments<'a>(arg_name: &'a str, r#type: &Type) -> (&'a str, String) 
             } => (arg_name, generic_ident.to_owned()),
         },
         Type::Tuple(kinds) => {
-            let mut needs_parentheses = false;
             let mut iter = kinds
                 .iter()
                 .map(|kind| flatten_arguments(arg_name, kind))
-                .map(|arg| arg.1)
-                .peekable();
+                .map(|arg| arg.1);
 
-            if matches!(iter.peek(), Some(_)) {
-                needs_parentheses = true;
-            }
+            let needs_parentheses = iter.len() >= 2;
 
             let buf = iter.join(", ");
 

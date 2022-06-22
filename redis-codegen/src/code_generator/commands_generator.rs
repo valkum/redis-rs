@@ -1,11 +1,11 @@
-use itertools::Itertools;
-use crate::commands::CommandDefinition;
 use super::{
     commands::Command,
     comment::Comment,
     constants::{append_constant_docs, COMMAND_TRAIT_DOCS},
     GenerationConfig, Generator,
 };
+use crate::commands::CommandDefinition;
+use itertools::Itertools;
 pub(crate) struct CommandsTrait {
     pub(crate) config: GenerationConfig,
 }
@@ -17,8 +17,39 @@ impl CommandsTrait {
 }
 
 impl Generator for CommandsTrait {
+    fn generate(
+        &self,
+        generator: &mut super::CodeGenerator,
+        commands: &[(&str, &CommandDefinition)],
+    ) {
+        self.append_imports(generator);
+        generator.buf.push('\n');
+        self.append_preface(generator);
+
+        generator.depth += 1;
+        for &(command_name, definition) in commands {
+            let command = Command::new(command_name.to_owned(), definition, &self.config);
+            if !super::BLACKLIST.contains(&command_name) {
+                self.append_command(generator, &command);
+                generator.buf.push('\n')
+            }
+
+            if let Some(backwarts_compatible_name) = super::COMMAND_COMPATIBILITY
+                .iter()
+                .find(|(name, _)| *name == command_name)
+            {
+                self.append_alias_command(generator, &command, backwarts_compatible_name.1);
+                generator.buf.push('\n')
+            }
+        }
+        generator.depth -= 1;
+        generator.push_line("}")
+    }
+}
+
+impl CommandsTrait {
     fn append_imports(&self, generator: &mut super::CodeGenerator) {
-        generator.buf.push_str("use crate::cmd::{Cmd, Iter};\n")
+        generator.buf.push_str("use crate::cmd::Cmd;\n")
     }
 
     fn append_preface(&self, generator: &mut super::CodeGenerator) {
@@ -45,30 +76,6 @@ impl Generator for CommandsTrait {
         generator.push_line("}");
     }
 
-    fn append_commands(
-        &self,
-        generator: &mut super::CodeGenerator,
-        commands: &[(&str, &CommandDefinition)],
-    ) {
-        for &(command_name, definition) in commands {
-            let command = Command::new(command_name.to_owned(), definition, &self.config);
-            if !super::BLACKLIST.contains(&command_name) {
-                self.append_command(generator, &command);
-                generator.buf.push('\n')
-            }
-
-            if let Some(backwarts_compatible_name) = super::COMMAND_COMPATIBILITY
-                .iter()
-                .find(|(name, _)| *name == command_name)
-            {
-                self.append_alias_command(generator, &command, backwarts_compatible_name.1);
-                generator.buf.push('\n')
-            }
-        }
-    }
-}
-
-impl CommandsTrait {
     fn append_alias_command(
         &self,
         generator: &mut super::CodeGenerator,
