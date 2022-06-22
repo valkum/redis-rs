@@ -1,7 +1,7 @@
 use crate::types::{FromRedisValue, NumericBehavior, RedisResult, ToRedisArgs, RedisWrite, Expiry};
 use crate::connection::{Connection, ConnectionLike, Msg};
 use crate::cmd::Cmd;
-
+#[allow(deprecated)]
 /// Implements common redis commands for connection like objects.  This
 /// allows you to send commands straight to a connection or client.  It
 /// is also implemented for redis results of clients which makes for

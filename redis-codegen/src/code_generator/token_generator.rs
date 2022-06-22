@@ -315,13 +315,19 @@ impl Token {
 impl Token {
     fn append(&self, generator: &mut super::CodeGenerator) {
         match &self.kind {
-            TokenType::NewType(_redis_token, type_name) => {
+            TokenType::NewType(redis_token, type_name) => {
+                generator.push_line(&format!(
+                    "/// Redis Type: {}",
+                    redis_token.as_ref().unwrap_or(&self.name)
+                ));
                 generator.push_line(&format!("pub struct {}({});", self.name, type_name));
             }
             TokenType::Struct(fields) => {
+                generator.push_line(&format!("/// Redis Block: {}", self.name));
                 generator.push_line(&format!("pub struct {} {{", self.name));
                 generator.depth += 1;
                 for field in fields {
+                    generator.push_line(&format!("/// {}", field.field_name));
                     generator
                         .push_line(&format!("pub {}: {},", field.field_name, field.field_type));
                 }
@@ -329,20 +335,31 @@ impl Token {
                 generator.push_line("}");
             }
             TokenType::Enum(variants) => {
+                generator.push_line(&format!("/// Redis Type: {}", self.name));
                 generator.push_line(&format!("pub enum {} {{", self.name));
                 generator.depth += 1;
 
                 for (variant, variant_type) in variants {
                     match variant_type {
-                        VariantType::Variant { redis_token: _ } => {
+                        VariantType::Variant { redis_token } => {
+                            generator.push_line(&format!(
+                                "/// {}",
+                                redis_token.as_ref().map(AsRef::as_ref).unwrap_or("Unknown")
+                            ));
                             generator.push_line(&format!("{},", variant))
                         }
                         VariantType::Wrapper {
-                            redis_token: _,
+                            redis_token,
                             wrapped_type,
-                        } => generator.push_line(&format!("{}({}),", variant, wrapped_type)),
+                        } => {
+                            generator.push_line(&format!(
+                                "/// {}",
+                                redis_token.as_ref().map(AsRef::as_ref).unwrap_or("Unknown")
+                            ));
+                            generator.push_line(&format!("{}({}),", variant, wrapped_type));
+                        }
                         VariantType::Struct {
-                            redis_token: _,
+                            redis_token,
                             fields,
                         } => {
                             let fields = fields
@@ -350,6 +367,11 @@ impl Token {
                                 .map(|field| format!("{}: {}", field.0, field.1))
                                 .join(", ");
                             let buf = format!("{} {{{}}},", variant, fields);
+
+                            generator.push_line(&format!(
+                                "/// {}",
+                                redis_token.as_ref().map(AsRef::as_ref).unwrap_or("Unknown")
+                            ));
                             generator.push_line(&buf);
                         }
                     }
@@ -378,7 +400,7 @@ fn append_to_redis_args_impl(generator: &mut super::CodeGenerator, token: &Token
     generator.depth += 1;
 
     match &token.kind {
-        TokenType::NewType(redis_token, type_name) => {
+        TokenType::NewType(redis_token, _type_name) => {
             if let Some(redis_token) = redis_token {
                 generator.push_line(&format!("\"{}\".write_redis_args(out);", redis_token));
             }

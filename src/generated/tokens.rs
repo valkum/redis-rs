@@ -1,5 +1,6 @@
 use crate::types::{FromRedisValue, NumericBehavior, RedisResult, ToRedisArgs, RedisWrite, Expiry};
 use crate::connection::{Connection, ConnectionLike, Msg};
+/// Redis Type: DB
 pub struct Db(i64);
 
 impl ToRedisArgs for Db {
@@ -11,10 +12,15 @@ impl ToRedisArgs for Db {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: Condition
 pub enum Condition {
+    /// NX
     Nx,
+    /// XX
     Xx,
+    /// GT
     Gt,
+    /// LT
     Lt,
 }
 
@@ -31,8 +37,11 @@ impl ToRedisArgs for Condition {
         }
     }
 }
+/// Redis Type: KeyOrEmptyString
 pub enum KeyOrEmptyString {
+    /// Unknown
     Key(String),
+    /// 
     EmptyString,
 }
 
@@ -49,8 +58,11 @@ impl ToRedisArgs for KeyOrEmptyString {
         }
     }
 }
+/// Redis Type: Authentication
 pub enum Authentication {
+    /// AUTH
     Auth(String),
+    /// AUTH2
     Auth2 {username: String, password: String},
 }
 
@@ -72,6 +84,7 @@ impl ToRedisArgs for Authentication {
         }
     }
 }
+/// Redis Type: IDLETIME
 pub struct Idletime(i64);
 
 impl ToRedisArgs for Idletime {
@@ -83,6 +96,7 @@ impl ToRedisArgs for Idletime {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: FREQ
 pub struct Freq(i64);
 
 impl ToRedisArgs for Freq {
@@ -94,6 +108,7 @@ impl ToRedisArgs for Freq {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: COUNT
 pub struct Count(i64);
 
 impl ToRedisArgs for Count {
@@ -105,6 +120,7 @@ impl ToRedisArgs for Count {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: TYPE
 pub struct Type(String);
 
 impl ToRedisArgs for Type {
@@ -116,8 +132,11 @@ impl ToRedisArgs for Type {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Block: Limit
 pub struct Limit {
+    /// offset
     pub offset: i64,
+    /// count
     pub count: i64,
 }
 
@@ -130,8 +149,11 @@ impl ToRedisArgs for Limit {
         self.count.write_redis_args(out);
     }
 }
+/// Redis Type: Order
 pub enum Order {
+    /// ASC
     Asc,
+    /// DESC
     Desc,
 }
 
@@ -146,9 +168,13 @@ impl ToRedisArgs for Order {
         }
     }
 }
+/// Redis Type: Expiration
 pub enum Expiration {
+    /// EX
     Ex(i64),
+    /// PX
     Px(i64),
+    /// PERSIST
     Persist,
 }
 
@@ -170,6 +196,7 @@ impl ToRedisArgs for Expiration {
         }
     }
 }
+/// Redis Type: MINMATCHLEN
 pub struct Minmatchlen(i64);
 
 impl ToRedisArgs for Minmatchlen {
@@ -181,8 +208,11 @@ impl ToRedisArgs for Minmatchlen {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: Wherefrom
 pub enum Wherefrom {
+    /// LEFT
     Left,
+    /// RIGHT
     Right,
 }
 
@@ -197,8 +227,11 @@ impl ToRedisArgs for Wherefrom {
         }
     }
 }
+/// Redis Type: Whereto
 pub enum Whereto {
+    /// LEFT
     Left,
+    /// RIGHT
     Right,
 }
 
@@ -213,8 +246,11 @@ impl ToRedisArgs for Whereto {
         }
     }
 }
+/// Redis Type: Where
 pub enum Where {
+    /// LEFT
     Left,
+    /// RIGHT
     Right,
 }
 
@@ -229,6 +265,7 @@ impl ToRedisArgs for Where {
         }
     }
 }
+/// Redis Type: RANK
 pub struct Rank(i64);
 
 impl ToRedisArgs for Rank {
@@ -240,6 +277,7 @@ impl ToRedisArgs for Rank {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: MAXLEN
 pub struct Maxlen(i64);
 
 impl ToRedisArgs for Maxlen {
@@ -251,8 +289,11 @@ impl ToRedisArgs for Maxlen {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: Comparison
 pub enum Comparison {
+    /// GT
     Gt,
+    /// LT
     Lt,
 }
 
@@ -267,6 +308,7 @@ impl ToRedisArgs for Comparison {
         }
     }
 }
+/// Redis Type: WEIGHTS
 pub struct Weights(i64);
 
 impl ToRedisArgs for Weights {
@@ -278,9 +320,13 @@ impl ToRedisArgs for Weights {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: Aggregate
 pub enum Aggregate {
+    /// SUM
     Sum,
+    /// MIN
     Min,
+    /// MAX
     Max,
 }
 
@@ -296,8 +342,11 @@ impl ToRedisArgs for Aggregate {
         }
     }
 }
+/// Redis Type: Sortby
 pub enum Sortby {
+    /// BYSCORE
     Byscore,
+    /// BYLEX
     Bylex,
 }
 
@@ -312,8 +361,11 @@ impl ToRedisArgs for Sortby {
         }
     }
 }
+/// Redis Type: Mode
 pub enum Mode {
+    /// YES
     Yes,
+    /// NO
     No,
 }
 
@@ -328,6 +380,7 @@ impl ToRedisArgs for Mode {
         }
     }
 }
+/// Redis Type: ID
 pub struct Id(i64);
 
 impl ToRedisArgs for Id {
@@ -339,6 +392,7 @@ impl ToRedisArgs for Id {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: USER
 pub struct User(String);
 
 impl ToRedisArgs for User {
@@ -350,6 +404,7 @@ impl ToRedisArgs for User {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: ADDR
 pub struct Addr(String);
 
 impl ToRedisArgs for Addr {
@@ -361,6 +416,7 @@ impl ToRedisArgs for Addr {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: LADDR
 pub struct Laddr(String);
 
 impl ToRedisArgs for Laddr {
@@ -372,6 +428,7 @@ impl ToRedisArgs for Laddr {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: SKIPME
 pub struct Skipme(String);
 
 impl ToRedisArgs for Skipme {
@@ -383,8 +440,11 @@ impl ToRedisArgs for Skipme {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: Enabled
 pub enum Enabled {
+    /// ON
     On,
+    /// OFF
     Off,
 }
 
@@ -399,9 +459,13 @@ impl ToRedisArgs for Enabled {
         }
     }
 }
+/// Redis Type: OnOffSkip
 pub enum OnOffSkip {
+    /// ON
     On,
+    /// OFF
     Off,
+    /// SKIP
     Skip,
 }
 
@@ -417,8 +481,11 @@ impl ToRedisArgs for OnOffSkip {
         }
     }
 }
+/// Redis Type: Status
 pub enum Status {
+    /// ON
     On,
+    /// OFF
     Off,
 }
 
@@ -433,6 +500,7 @@ impl ToRedisArgs for Status {
         }
     }
 }
+/// Redis Type: REDIRECT
 pub struct Redirect(i64);
 
 impl ToRedisArgs for Redirect {
@@ -444,6 +512,7 @@ impl ToRedisArgs for Redirect {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: PREFIX
 pub struct Prefix(String);
 
 impl ToRedisArgs for Prefix {
@@ -455,8 +524,11 @@ impl ToRedisArgs for Prefix {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: TimeoutError
 pub enum TimeoutError {
+    /// TIMEOUT
     Timeout,
+    /// ERROR
     Error,
 }
 
@@ -471,8 +543,11 @@ impl ToRedisArgs for TimeoutError {
         }
     }
 }
+/// Redis Type: Operation
 pub enum Operation {
+    /// Unknown
     Count(i64),
+    /// RESET
     Reset,
 }
 
@@ -489,8 +564,11 @@ impl ToRedisArgs for Operation {
         }
     }
 }
+/// Redis Type: Filterby
 pub enum Filterby {
+    /// MODULE
     Module(String),
+    /// ACLCAT
     Aclcat(String),
 }
 
@@ -511,9 +589,13 @@ impl ToRedisArgs for Filterby {
         }
     }
 }
+/// Redis Block: To
 pub struct To {
+    /// host
     pub host: String,
+    /// port
     pub port: i64,
+    /// force
     pub force: bool,
 }
 
@@ -529,6 +611,7 @@ impl ToRedisArgs for To {
         }
     }
 }
+/// Redis Type: TIMEOUT
 pub struct Timeout(i64);
 
 impl ToRedisArgs for Timeout {
@@ -540,8 +623,11 @@ impl ToRedisArgs for Timeout {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: Async
 pub enum Async {
+    /// ASYNC
     Async,
+    /// SYNC
     Sync,
 }
 
@@ -556,6 +642,7 @@ impl ToRedisArgs for Async {
         }
     }
 }
+/// Redis Type: VERSION
 pub struct Version(i64);
 
 impl ToRedisArgs for Version {
@@ -567,6 +654,7 @@ impl ToRedisArgs for Version {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: SAMPLES
 pub struct Samples(i64);
 
 impl ToRedisArgs for Samples {
@@ -578,8 +666,11 @@ impl ToRedisArgs for Samples {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Block: Config
 pub struct Config {
+    /// name
     pub name: String,
+    /// value
     pub value: String,
 }
 
@@ -592,7 +683,9 @@ impl ToRedisArgs for Config {
         self.value.write_redis_args(out);
     }
 }
+/// Redis Block: Args
 pub struct Args {
+    /// arg
     pub arg: String,
 }
 
@@ -604,8 +697,11 @@ impl ToRedisArgs for Args {
         self.arg.write_redis_args(out);
     }
 }
+/// Redis Type: NosaveSave
 pub enum NosaveSave {
+    /// NOSAVE
     Nosave,
+    /// SAVE
     Save,
 }
 
@@ -620,6 +716,7 @@ impl ToRedisArgs for NosaveSave {
         }
     }
 }
+/// Redis Type: LIBRARYNAME
 pub struct Libraryname(String);
 
 impl ToRedisArgs for Libraryname {
@@ -631,9 +728,13 @@ impl ToRedisArgs for Libraryname {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: Policy
 pub enum Policy {
+    /// FLUSH
     Flush,
+    /// APPEND
     Append,
+    /// REPLACE
     Replace,
 }
 
@@ -649,8 +750,11 @@ impl ToRedisArgs for Policy {
         }
     }
 }
+/// Redis Type: Options
 pub enum Options {
+    /// FORCE
     Force,
+    /// TAKEOVER
     Takeover,
 }
 
@@ -665,8 +769,11 @@ impl ToRedisArgs for Options {
         }
     }
 }
+/// Redis Type: HardSoft
 pub enum HardSoft {
+    /// HARD
     Hard,
+    /// SOFT
     Soft,
 }
 
@@ -681,10 +788,15 @@ impl ToRedisArgs for HardSoft {
         }
     }
 }
+/// Redis Type: Subcommand
 pub enum Subcommand {
+    /// IMPORTING
     Importing(String),
+    /// MIGRATING
     Migrating(String),
+    /// NODE
     Node(String),
+    /// STABLE
     Stable,
 }
 
@@ -710,10 +822,15 @@ impl ToRedisArgs for Subcommand {
         }
     }
 }
+/// Redis Type: Unit
 pub enum Unit {
+    /// M
     M,
+    /// KM
     Km,
+    /// FT
     Ft,
+    /// MI
     Mi,
 }
 
@@ -730,8 +847,11 @@ impl ToRedisArgs for Unit {
         }
     }
 }
+/// Redis Type: From
 pub enum From {
+    /// FROMMEMBER
     Frommember(String),
+    /// FROMLONLAT
     Fromlonlat {longitude: f64, latitude: f64},
 }
 
@@ -753,8 +873,11 @@ impl ToRedisArgs for From {
         }
     }
 }
+/// Redis Type: By
 pub enum By {
+    /// Unknown
     Circle {radius: f64},
+    /// Unknown
     Box {width: f64, height: f64},
 }
 
@@ -774,8 +897,11 @@ impl ToRedisArgs for By {
         }
     }
 }
+/// Redis Type: IdOrAuto
 pub enum IdOrAuto {
+    /// *
     Star,
+    /// Unknown
     Id(String),
 }
 
@@ -792,6 +918,7 @@ impl ToRedisArgs for IdOrAuto {
         }
     }
 }
+/// Redis Type: IDLE
 pub struct Idle(i64);
 
 impl ToRedisArgs for Idle {
@@ -803,6 +930,7 @@ impl ToRedisArgs for Idle {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: RETRYCOUNT
 pub struct Retrycount(i64);
 
 impl ToRedisArgs for Retrycount {
@@ -814,6 +942,7 @@ impl ToRedisArgs for Retrycount {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: ENTRIESREAD
 pub struct Entriesread(i64);
 
 impl ToRedisArgs for Entriesread {
@@ -825,7 +954,9 @@ impl ToRedisArgs for Entriesread {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Block: Full
 pub struct Full {
+    /// count
     pub count: Count,
 }
 
@@ -837,6 +968,7 @@ impl ToRedisArgs for Full {
         self.count.write_redis_args(out);
     }
 }
+/// Redis Type: BLOCK
 pub struct Block(i64);
 
 impl ToRedisArgs for Block {
@@ -848,7 +980,9 @@ impl ToRedisArgs for Block {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Block: Streams
 pub struct Streams {
+    /// id
     pub id: String,
 }
 
@@ -860,8 +994,11 @@ impl ToRedisArgs for Streams {
         self.id.write_redis_args(out);
     }
 }
+/// Redis Block: Group
 pub struct Group {
+    /// group
     pub group: String,
+    /// consumer
     pub consumer: String,
 }
 
@@ -874,6 +1011,7 @@ impl ToRedisArgs for Group {
         self.consumer.write_redis_args(out);
     }
 }
+/// Redis Type: ENTRIESADDED
 pub struct Entriesadded(i64);
 
 impl ToRedisArgs for Entriesadded {
@@ -885,6 +1023,7 @@ impl ToRedisArgs for Entriesadded {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: MAXDELETEDID
 pub struct Maxdeletedid(String);
 
 impl ToRedisArgs for Maxdeletedid {
@@ -896,8 +1035,11 @@ impl ToRedisArgs for Maxdeletedid {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Block: Get
 pub struct Get {
+    /// encoding
     pub encoding: String,
+    /// offset
     pub offset: i64,
 }
 

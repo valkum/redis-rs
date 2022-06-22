@@ -49,7 +49,8 @@ impl Generator for CommandsTrait {
 
 impl CommandsTrait {
     fn append_imports(&self, generator: &mut super::CodeGenerator) {
-        generator.buf.push_str("use crate::cmd::Cmd;\n")
+        generator.buf.push_str("use crate::cmd::Cmd;\n");
+        generator.buf.push_str("#[allow(deprecated)]");
     }
 
     fn append_preface(&self, generator: &mut super::CodeGenerator) {
