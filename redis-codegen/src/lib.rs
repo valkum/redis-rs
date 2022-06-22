@@ -87,6 +87,7 @@ fn generate_impls(command_set: CommandSet) -> Result<HashMap<Module, String>> {
         GenerationType::AsyncCommandsTrait,
         GenerationType::Pipeline,
         GenerationType::ClusterPipeline,
+        GenerationType::Tokens,
     ] {
         let module = match module_type {
             GenerationType::CommandsTrait => Module {

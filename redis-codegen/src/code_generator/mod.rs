@@ -9,6 +9,7 @@ use commands_generator::CommandsTrait;
 use comment::Comment;
 use itertools::Itertools;
 use pipeline_generator::PipelineImpl;
+use token_generator::TokenImpl;
 
 mod arguments;
 mod async_commands_generator;
@@ -19,6 +20,7 @@ mod commands_generator;
 mod comment;
 mod constants;
 mod pipeline_generator;
+mod token_generator;
 
 pub static BLACKLIST: &[&str] = &["SCAN", "HSCAN", "SSCAN", "ZSCAN", "CLIENT KILL", "OBJECT"];
 pub static COMMAND_NAME_OVERWRITE: &[(&str, &str)] = &[("MOVE", "move_key")];
@@ -68,10 +70,7 @@ impl<'a> CodeGenerator<'a> {
             GenerationType::ClusterPipeline => Box::new(ClusterPipelineImpl::new(config)),
             // This GenerationType is special, as it won't generate commands but the needed tokens for the commands
             // TODO: This needs some refactoring, I am not happy with how this looks
-            GenerationType::Tokens => {
-                code_gen.append_oneof_tokens(commands);
-                return;
-            }
+            GenerationType::Tokens => Box::new(TokenImpl::new(config)),
         };
 
         code_gen.append_general_imports();
@@ -135,20 +134,5 @@ impl<'a> CodeGenerator<'a> {
                 feature
             ));
         }
-    }
-
-    fn append_oneof_tokens(&mut self, commands: &CommandSet) {
-        let all_oneof_definitions = commands
-            .iter()
-            .filter(|(_, definition)| definition.takes_token())
-            .flat_map(|(_, definition)| {
-                definition
-                    .arguments
-                    .iter()
-                    .filter(|arg| arg.r#type.is_oneof())
-            })
-            .collect::<Vec<_>>();
-        dbg!(all_oneof_definitions);
-        todo!()
     }
 }

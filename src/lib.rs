@@ -365,6 +365,7 @@ pub use crate::connection::{
     parse_redis_url, transaction, Connection, ConnectionAddr, ConnectionInfo, ConnectionLike,
     IntoConnectionInfo, Msg, PubSub, RedisConnectionInfo,
 };
+pub use crate::generated::tokens;
 pub use crate::parser::{parse_redis_value, Parser};
 pub use crate::pipeline::Pipeline;
 
