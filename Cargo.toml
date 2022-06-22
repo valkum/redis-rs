@@ -15,9 +15,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 
 [workspace]
-members = [
-    "redis-codegen"
-]
+members = [ "redis-codegen" ]
 
 [dependencies]
 # These two are generally really common simple dependencies so it does not seem

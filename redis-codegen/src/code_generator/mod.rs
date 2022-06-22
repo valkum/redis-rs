@@ -98,7 +98,6 @@ impl<'a> CodeGenerator<'a> {
         self.push_line("use crate::connection::{Connection, ConnectionLike, Msg};");
     }
 
-    // Todo Improve docs. Add complexity group etc.
     fn append_doc(&mut self, command: &Command) {
         let docs = command.docs().to_owned();
         let doc_comment = Comment(docs);
