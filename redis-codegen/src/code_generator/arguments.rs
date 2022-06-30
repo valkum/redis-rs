@@ -24,7 +24,7 @@ pub(crate) struct Argument<'a> {
     pub r#type: Type,
     pub optional: bool,
     pub multiple: bool,
-    pub config: &'a GenerationConfig,
+    pub config: &'a GenerationConfig<'a>,
 }
 
 impl<'a> Argument<'a> {
@@ -64,6 +64,7 @@ impl<'a> Argument<'a> {
         }
     }
 
+    #[allow(dead_code)]
     pub(crate) fn new_block(
         name: String,
         args: &[Argument],

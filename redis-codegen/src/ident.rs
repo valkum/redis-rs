@@ -39,6 +39,7 @@ where
         "=" => "Equals".to_owned(),
         "~" => "Approx".to_owned(),
         "$" => "LastId".to_owned(),
+        "copy" | "COPY" => "CopyArg".to_owned(),
         _ => ident.to_upper_camel_case(),
     }
 }

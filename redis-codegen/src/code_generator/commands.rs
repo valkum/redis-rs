@@ -5,7 +5,9 @@ use super::COMMAND_NAME_OVERWRITE;
 use crate::commands::ArgType;
 use crate::commands::DocFlag;
 use crate::commands::{CommandArgument, CommandDefinition, CommandGroup};
+use crate::ident::to_camel;
 use crate::ident::to_snake;
+use std::collections::HashMap;
 
 /// An abstract type representing a code generation unit for a command
 #[derive(Debug, Clone)]
@@ -28,11 +30,27 @@ impl<'a> Command<'a> {
         let command = name.clone();
 
         let mut kv_index: (u8, u8) = (0, 0);
-        let args = definition
+        // Collect arguments based on the command definition
+        let mut args = definition
             .arguments
             .iter()
-            .filter_map(|arg| map_argument(&mut kv_index, arg, config))
+            .filter_map(|arg| map_argument(&command, &mut kv_index, arg, config))
             .collect::<Vec<_>>();
+
+        // The previous step can yield arguments with the same identifier. We need to distinguish them thus we refine the collection of arguments.
+        let mut dedup_map: HashMap<String, i32> = HashMap::new();
+        for arg in args.iter_mut() {
+            match dedup_map.entry(arg.name.clone()) {
+                std::collections::hash_map::Entry::Occupied(mut entry) => {
+                    // This argument ident was already used, lets add a number to the end
+                    *entry.get_mut() += 1;
+                    arg.name.push_str(&entry.get().to_string());
+                }
+                std::collections::hash_map::Entry::Vacant(entry) => {
+                    entry.insert(0);
+                }
+            }
+        }
 
         let docs = build_docs(&name, definition, config.kind);
 
@@ -82,19 +100,33 @@ impl<'a> Command<'a> {
 
 // Todo handle key_specs correctly
 fn map_argument<'a>(
+    command_name: &str,
     indices: &mut (u8, u8),
     arg: &CommandArgument,
     config: &'a GenerationConfig,
 ) -> Option<Argument<'a>> {
     let (ref mut key_id, ref mut value_id) = indices;
 
-    // TODO Ignore token arguments until we have proper token handling.
-    // We probably want to generate a type for each token that implements ToRedisArgs and expands to the wrapped type and the Token
-    if arg.token.is_some() {
-        return None;
-    }
-
     let accepts_multiple = arg.multiple && (config.kind == GenerationKind::Full);
+
+    if let Some(token_name) = &arg.token {
+        let name = to_snake(&arg.name);
+        let token_type_name = to_camel(token_name);
+        if let Some(type_name) = config
+            .type_registry
+            .resolve(&[command_name, &token_type_name])
+        {
+            return Some(Argument::new_concrete(
+                name,
+                type_name,
+                arg.optional,
+                accepts_multiple,
+                config,
+            ));
+        } else {
+            eprintln!("Missing type for {command_name}.{name} falling back to generic ToRedisArgs");
+        }
+    }
 
     match arg.r#type {
         ArgType::Key { key_spec_index: _ } => {
@@ -178,48 +210,25 @@ fn map_argument<'a>(
             ))
         }
         // Creates Tuple arguments
-        // TODO: For now we do not allow nested block arguments
-        ArgType::Block {
-            arguments: ref sub_arguments,
-        } => {
-            let idx = *value_id;
-            *value_id += 1;
-
+        ArgType::Block { arguments: _ } => {
             let name = to_snake(&arg.name);
-
-            // Generate Arguments for each sub_argument
-            // Returns None if there are nested block arguments, for now.
-            let sub_arguments = sub_arguments
-                .iter()
-                .map(|arg| {
-                    if matches!(&arg.r#type, &ArgType::Block { arguments: _ }) {
-                        return None;
-                    }
-                    map_argument(indices, arg, config)
+            let type_name = to_camel(&arg.name);
+            config
+                .type_registry
+                .resolve(&[command_name, &type_name])
+                .map(|type_name| {
+                    Argument::new_concrete(name, type_name, arg.optional, accepts_multiple, config)
                 })
-                .collect::<Option<Vec<_>>>();
-
-            if let Some(sub_arguments) = sub_arguments {
-                // Create traits for the tuples
-                Some(Argument::new_block(
-                    name,
-                    &sub_arguments,
-                    arg.optional,
-                    accepts_multiple,
-                    config,
-                ))
-            } else {
-                let r#trait = "ToRedisArgs".to_string();
-
-                Some(Argument::new_generic(
-                    name,
-                    format!("T{}", idx),
-                    r#trait,
-                    arg.optional,
-                    accepts_multiple,
-                    config,
-                ))
-            }
+        }
+        ArgType::Oneof { arguments: _ } => {
+            let name = to_snake(&arg.name);
+            let type_name = to_camel(&arg.name);
+            config
+                .type_registry
+                .resolve(&[command_name, &type_name])
+                .map(|type_name| {
+                    Argument::new_concrete(name, type_name, arg.optional, accepts_multiple, config)
+                })
         }
 
         _ => None,

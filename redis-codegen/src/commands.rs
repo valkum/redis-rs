@@ -11,6 +11,7 @@ impl CommandSet {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[allow(dead_code)]
 pub struct CommandDefinition {
     pub(crate) summary: String,
     pub(crate) since: Version,
@@ -35,28 +36,8 @@ pub struct CommandDefinition {
     pub(crate) hints: Vec<String>,
 }
 
-impl CommandDefinition {
-    /// Returns whether this command accepts any multiple arguments
-    pub(crate) fn accepts_multiple(&self) -> bool {
-        // This currently checks only if any of the top level arguments is marked as multiple
-        // Arguments marked as multiple in
-        self.arguments.iter().any(|arg| arg.multiple)
-    }
-
-    /// Returns whether this command accepts any token arguments
-    pub(crate) fn takes_token(&self) -> bool {
-        self.arguments.iter().any(|arg| arg.r#type.is_oneof())
-    }
-}
-
 #[derive(Debug, Clone, Copy, Deserialize)]
 pub(crate) struct Arity(i8);
-
-impl Arity {
-    fn is_fixed(&self) -> bool {
-        self.0 > 0
-    }
-}
 
 #[derive(Debug, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 #[serde(rename_all = "kebab-case")]
@@ -331,14 +312,4 @@ pub(crate) enum ArgType {
     PureToken,
     Oneof { arguments: Vec<CommandArgument> },
     Block { arguments: Vec<CommandArgument> },
-}
-
-impl ArgType {
-    pub(crate) fn is_oneof(&self) -> bool {
-        matches!(self, ArgType::Oneof { .. })
-    }
-
-    pub(crate) fn is_block(&self) -> bool {
-        matches!(self, ArgType::Block { .. })
-    }
 }

@@ -5,13 +5,13 @@ use super::{
 };
 use crate::commands::CommandDefinition;
 
-pub(crate) struct AsyncCommandsTrait {
+pub(crate) struct AsyncCommandsTrait<'a> {
     lifetime: String,
-    pub(crate) config: GenerationConfig,
+    pub(crate) config: &'a GenerationConfig<'a>,
 }
 
-impl AsyncCommandsTrait {
-    pub fn new(config: GenerationConfig) -> Self {
+impl<'a> AsyncCommandsTrait<'a> {
+    pub fn new(config: &'a GenerationConfig) -> Self {
         Self {
             lifetime: "\'a".to_owned(),
             config,
@@ -19,7 +19,7 @@ impl AsyncCommandsTrait {
     }
 }
 
-impl Generator for AsyncCommandsTrait {
+impl Generator for AsyncCommandsTrait<'_> {
     fn generate(
         &self,
         generator: &mut super::CodeGenerator,
@@ -31,7 +31,7 @@ impl Generator for AsyncCommandsTrait {
 
         generator.depth += 1;
         for &(command_name, definition) in commands {
-            let command = Command::new(command_name.to_owned(), definition, &self.config);
+            let command = Command::new(command_name.to_owned(), definition, self.config);
             if !super::BLACKLIST.contains(&command_name) {
                 self.append_command(generator, &command);
                 generator.buf.push('\n')
@@ -42,7 +42,7 @@ impl Generator for AsyncCommandsTrait {
     }
 }
 
-impl AsyncCommandsTrait {
+impl AsyncCommandsTrait<'_> {
     fn append_imports(&self, generator: &mut super::CodeGenerator) {
         generator.push_line("#![cfg_attr(rustfmt, rustfmt_skip)]");
         generator.push_line("use crate::cmd::{Cmd, Iter};");
@@ -55,8 +55,6 @@ impl AsyncCommandsTrait {
         generator
             .push_line("pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {");
     }
-
-    fn append_appendix(&self, generator: &mut super::CodeGenerator) {}
 
     fn append_command(&self, generator: &mut super::CodeGenerator, command: &Command) {
         log::debug!("Command: {:?}", command.fn_name());

@@ -6,16 +6,16 @@ use super::{
 use crate::commands::CommandDefinition;
 use itertools::Itertools;
 
-pub(crate) struct ClusterPipelineImpl {
-    pub(crate) config: GenerationConfig,
+pub(crate) struct ClusterPipelineImpl<'a> {
+    pub(crate) config: &'a GenerationConfig<'a>,
 }
-impl ClusterPipelineImpl {
-    pub fn new(config: GenerationConfig) -> Self {
+impl<'a> ClusterPipelineImpl<'a> {
+    pub fn new(config: &'a GenerationConfig) -> Self {
         Self { config }
     }
 }
 
-impl Generator for ClusterPipelineImpl {
+impl Generator for ClusterPipelineImpl<'_> {
     fn generate(
         &self,
         generator: &mut super::CodeGenerator,
@@ -27,7 +27,7 @@ impl Generator for ClusterPipelineImpl {
 
         generator.depth += 1;
         for &(command_name, definition) in commands {
-            let command = Command::new(command_name.to_owned(), definition, &self.config);
+            let command = Command::new(command_name.to_owned(), definition, self.config);
             if !super::BLACKLIST.contains(&command_name) {
                 self.append_command(generator, &command);
                 generator.buf.push('\n')
@@ -47,7 +47,7 @@ impl Generator for ClusterPipelineImpl {
 //     self.add_command(::std::mem::replace($body, Cmd::new()))
 // }
 
-impl ClusterPipelineImpl {
+impl ClusterPipelineImpl<'_> {
     fn append_imports(&self, generator: &mut super::CodeGenerator) {
         generator.push_line("#![cfg_attr(rustfmt, rustfmt_skip)]");
         generator.push_line("#[cfg(feature = \"cluster\")]");
@@ -117,16 +117,6 @@ impl ClusterPipelineImpl {
     /// self.add_command(::std::mem::replace($body, Cmd::new()))
     /// ```
     fn append_fn_body(&self, generator: &mut super::CodeGenerator, command: &Command) {
-        // generator.push_line("let mut rv = Cmd::new();");
-        // generator.push_line(&format!("rv.arg(\"{}\");", command.command()));
-        // for arg in command.arguments() {
-        //     generator.push_line(&format!("rv.arg({});", arg.name));
-        // }
-        // generator.push_line("rv");
-        // // TODO does this work without the replace?
-        // // generator.push_line(&format!("let rv = ::std::mem::replace(rv, Cmd::new())"));
-        // generator.push_line("self.add_command(rv)");
-        // ::std::mem::replace($body, Cmd::new()) is basically Cmd::$fn_name
         generator.push_line(&format!(
             "self.add_command(Cmd::{}({}))",
             command.fn_name(),

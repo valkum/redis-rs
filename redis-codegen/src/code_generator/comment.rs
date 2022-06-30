@@ -2,7 +2,7 @@ pub(crate) struct Comment(pub Vec<String>);
 
 pub enum CommentKind {
     Outer,
-    InnerLine
+    InnerLine,
 }
 impl Default for CommentKind {
     fn default() -> Self {

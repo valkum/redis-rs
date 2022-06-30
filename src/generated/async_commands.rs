@@ -46,12 +46,14 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @keyspace
     /// * @write
     /// * @slow
-    fn copy<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a>(source: K0, destination: K1) -> Self {
+    fn copy<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a>(source: K0, destination: K1, destination_db: Option<crate::generated::types::Db>, replace: Option<crate::generated::types::Replace>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("COPY");
             rv.arg(source);
             rv.arg(destination);
+            rv.arg(destination_db);
+            rv.arg(replace);
             rv.query_async(self).await
         })
     }
@@ -137,12 +139,13 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @keyspace
     /// * @write
     /// * @fast
-    fn expire<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, seconds: i64) -> Self {
+    fn expire<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, seconds: i64, condition: Option<crate::generated::types::Condition>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("EXPIRE");
             rv.arg(key);
             rv.arg(seconds);
+            rv.arg(condition);
             rv.query_async(self).await
         })
     }
@@ -161,11 +164,12 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @keyspace
     /// * @write
     /// * @fast
-    fn expireat<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0) -> Self {
+    fn expireat<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, condition: Option<crate::generated::types::Condition>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("EXPIREAT");
             rv.arg(key);
+            rv.arg(condition);
             rv.query_async(self).await
         })
     }
@@ -231,14 +235,19 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @slow
     /// * @dangerous
-    fn migrate<'a, T0: ToRedisArgs + Send + Sync + 'a>(host: T0, port: i64, destination_db: i64, timeout: i64) -> Self {
+    fn migrate<'a, T0: ToRedisArgs + Send + Sync + 'a, K0: ToRedisArgs + Send + Sync + 'a>(host: T0, port: i64, key_or_empty_string: crate::generated::types::KeyOrEmptyString, destination_db: i64, timeout: i64, copy: Option<crate::generated::types::CopyArg>, replace: Option<crate::generated::types::Replace>, authentication: Option<crate::generated::types::Authentication>, key: Option<&[K0]>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("MIGRATE");
             rv.arg(host);
             rv.arg(port);
+            rv.arg(key_or_empty_string);
             rv.arg(destination_db);
             rv.arg(timeout);
+            rv.arg(copy);
+            rv.arg(replace);
+            rv.arg(authentication);
+            rv.arg(key);
             rv.query_async(self).await
         })
     }
@@ -413,12 +422,13 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @keyspace
     /// * @write
     /// * @fast
-    fn pexpire<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, milliseconds: i64) -> Self {
+    fn pexpire<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, milliseconds: i64, condition: Option<crate::generated::types::Condition>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("PEXPIRE");
             rv.arg(key);
             rv.arg(milliseconds);
+            rv.arg(condition);
             rv.query_async(self).await
         })
     }
@@ -437,11 +447,12 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @keyspace
     /// * @write
     /// * @fast
-    fn pexpireat<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0) -> Self {
+    fn pexpireat<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, condition: Option<crate::generated::types::Condition>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("PEXPIREAT");
             rv.arg(key);
+            rv.arg(condition);
             rv.query_async(self).await
         })
     }
@@ -575,13 +586,17 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @slow
     /// * @dangerous
-    fn restore<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, ttl: i64, serialized_value: T0) -> Self {
+    fn restore<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, ttl: i64, serialized_value: T0, replace: Option<crate::generated::types::Replace>, absttl: Option<crate::generated::types::Absttl>, seconds: Option<crate::generated::types::Idletime>, frequency: Option<crate::generated::types::Freq>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("RESTORE");
             rv.arg(key);
             rv.arg(ttl);
             rv.arg(serialized_value);
+            rv.arg(replace);
+            rv.arg(absttl);
+            rv.arg(seconds);
+            rv.arg(frequency);
             rv.query_async(self).await
         })
     }
@@ -604,11 +619,17 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @list
     /// * @slow
     /// * @dangerous
-    fn sort<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0) -> Self {
+    fn sort<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a, K2: ToRedisArgs + Send + Sync + 'a, K3: ToRedisArgs + Send + Sync + 'a>(key: K0, pattern: Option<K1>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[K2]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>, destination: Option<K3>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("SORT");
             rv.arg(key);
+            rv.arg(pattern);
+            rv.arg(offset_count);
+            rv.arg(pattern1);
+            rv.arg(order);
+            rv.arg(sorting);
+            rv.arg(destination);
             rv.query_async(self).await
         })
     }
@@ -630,11 +651,16 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @list
     /// * @slow
     /// * @dangerous
-    fn sort_ro<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0) -> Self {
+    fn sort_ro<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a, K2: ToRedisArgs + Send + Sync + 'a>(key: K0, pattern: Option<K1>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[K2]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("SORT_RO");
             rv.arg(key);
+            rv.arg(pattern);
+            rv.arg(offset_count);
+            rv.arg(pattern1);
+            rv.arg(order);
+            rv.arg(sorting);
             rv.query_async(self).await
         })
     }
@@ -887,11 +913,12 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @string
     /// * @fast
-    fn getex<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0) -> Self {
+    fn getex<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, expiration: Option<crate::generated::types::Expiration>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("GETEX");
             rv.arg(key);
+            rv.arg(expiration);
             rv.query_async(self).await
         })
     }
@@ -1035,12 +1062,16 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @read
     /// * @string
     /// * @slow
-    fn lcs<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a>(key1: K0, key2: K1) -> Self {
+    fn lcs<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a>(key1: K0, key2: K1, len: Option<crate::generated::types::Len>, idx: Option<crate::generated::types::Idx>, len1: Option<crate::generated::types::Minmatchlen>, withmatchlen: Option<crate::generated::types::Withmatchlen>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("LCS");
             rv.arg(key1);
             rv.arg(key2);
+            rv.arg(len);
+            rv.arg(idx);
+            rv.arg(len1);
+            rv.arg(withmatchlen);
             rv.query_async(self).await
         })
     }
@@ -1082,7 +1113,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @string
     /// * @slow
-    fn mset<'a, K0: ToRedisArgs, T1: ToRedisArgs + Send + Sync + 'a>(key_value: &[(K0, T1)]) -> Self {
+    fn mset<'a>(key_value: &[crate::generated::types::KeyValue]) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("MSET");
@@ -1105,7 +1136,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @string
     /// * @slow
-    fn msetnx<'a, K0: ToRedisArgs, T1: ToRedisArgs + Send + Sync + 'a>(key_value: &[(K0, T1)]) -> Self {
+    fn msetnx<'a>(key_value: &[crate::generated::types::KeyValue]) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("MSETNX");
@@ -1154,12 +1185,15 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @string
     /// * @slow
-    fn set<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, value: T0) -> Self {
+    fn set<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, value: T0, condition: Option<crate::generated::types::set::Condition>, get: Option<crate::generated::types::Get>, expiration: Option<crate::generated::types::set::Expiration>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("SET");
             rv.arg(key);
             rv.arg(value);
+            rv.arg(condition);
+            rv.arg(get);
+            rv.arg(expiration);
             rv.query_async(self).await
         })
     }
@@ -1306,12 +1340,14 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @list
     /// * @slow
     /// * @blocking
-    fn blmove<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a>(source: K0, destination: K1, timeout: f64) -> Self {
+    fn blmove<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a>(source: K0, destination: K1, wherefrom: crate::generated::types::Wherefrom, whereto: crate::generated::types::Whereto, timeout: f64) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("BLMOVE");
             rv.arg(source);
             rv.arg(destination);
+            rv.arg(wherefrom);
+            rv.arg(whereto);
             rv.arg(timeout);
             rv.query_async(self).await
         })
@@ -1333,13 +1369,15 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @list
     /// * @slow
     /// * @blocking
-    fn blmpop<'a, K0: ToRedisArgs + Send + Sync + 'a>(timeout: f64, numkeys: i64, key: &[K0]) -> Self {
+    fn blmpop<'a, K0: ToRedisArgs + Send + Sync + 'a>(timeout: f64, numkeys: i64, key: &[K0], r#where: crate::generated::types::Where, count: Option<crate::generated::types::Count>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("BLMPOP");
             rv.arg(timeout);
             rv.arg(numkeys);
             rv.arg(key);
+            rv.arg(r#where);
+            rv.arg(count);
             rv.query_async(self).await
         })
     }
@@ -1464,11 +1502,12 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @list
     /// * @slow
-    fn linsert<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, pivot: T0, element: T1) -> Self {
+    fn linsert<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, r#where: crate::generated::types::linsert::Where, pivot: T0, element: T1) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("LINSERT");
             rv.arg(key);
+            rv.arg(r#where);
             rv.arg(pivot);
             rv.arg(element);
             rv.query_async(self).await
@@ -1512,12 +1551,14 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @list
     /// * @slow
-    fn lmove<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a>(source: K0, destination: K1) -> Self {
+    fn lmove<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a>(source: K0, destination: K1, wherefrom: crate::generated::types::Wherefrom, whereto: crate::generated::types::Whereto) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("LMOVE");
             rv.arg(source);
             rv.arg(destination);
+            rv.arg(wherefrom);
+            rv.arg(whereto);
             rv.query_async(self).await
         })
     }
@@ -1536,12 +1577,14 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @list
     /// * @slow
-    fn lmpop<'a, K0: ToRedisArgs + Send + Sync + 'a>(numkeys: i64, key: &[K0]) -> Self {
+    fn lmpop<'a, K0: ToRedisArgs + Send + Sync + 'a>(numkeys: i64, key: &[K0], r#where: crate::generated::types::Where, count: Option<crate::generated::types::Count>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("LMPOP");
             rv.arg(numkeys);
             rv.arg(key);
+            rv.arg(r#where);
+            rv.arg(count);
             rv.query_async(self).await
         })
     }
@@ -1583,12 +1626,15 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @read
     /// * @list
     /// * @slow
-    fn lpos<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, element: T0) -> Self {
+    fn lpos<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, element: T0, rank: Option<crate::generated::types::Rank>, num_matches: Option<crate::generated::types::Count>, len: Option<crate::generated::types::Maxlen>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("LPOS");
             rv.arg(key);
             rv.arg(element);
+            rv.arg(rank);
+            rv.arg(num_matches);
+            rv.arg(len);
             rv.query_async(self).await
         })
     }
@@ -1971,12 +2017,13 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @read
     /// * @set
     /// * @slow
-    fn sintercard<'a, K0: ToRedisArgs + Send + Sync + 'a>(numkeys: i64, key: &[K0]) -> Self {
+    fn sintercard<'a, K0: ToRedisArgs + Send + Sync + 'a>(numkeys: i64, key: &[K0], limit: Option<crate::generated::types::sintercard::Limit>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("SINTERCARD");
             rv.arg(numkeys);
             rv.arg(key);
+            rv.arg(limit);
             rv.query_async(self).await
         })
     }
@@ -2233,13 +2280,15 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @sortedset
     /// * @slow
     /// * @blocking
-    fn bzmpop<'a, K0: ToRedisArgs + Send + Sync + 'a>(timeout: f64, numkeys: i64, key: &[K0]) -> Self {
+    fn bzmpop<'a, K0: ToRedisArgs + Send + Sync + 'a>(timeout: f64, numkeys: i64, key: &[K0], r#where: crate::generated::types::bzmpop::Where, count: Option<crate::generated::types::Count>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("BZMPOP");
             rv.arg(timeout);
             rv.arg(numkeys);
             rv.arg(key);
+            rv.arg(r#where);
+            rv.arg(count);
             rv.query_async(self).await
         })
     }
@@ -2313,11 +2362,15 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @sortedset
     /// * @fast
-    fn zadd<'a, K0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, score_member: &[(f64, T1)]) -> Self {
+    fn zadd<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, condition: Option<crate::generated::types::set::Condition>, comparison: Option<crate::generated::types::Comparison>, change: Option<crate::generated::types::Ch>, increment: Option<crate::generated::types::Incr>, score_member: &[crate::generated::types::ScoreMember]) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ZADD");
             rv.arg(key);
+            rv.arg(condition);
+            rv.arg(comparison);
+            rv.arg(change);
+            rv.arg(increment);
             rv.arg(score_member);
             rv.query_async(self).await
         })
@@ -2385,12 +2438,13 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zdiff<'a, K0: ToRedisArgs + Send + Sync + 'a>(numkeys: i64, key: &[K0]) -> Self {
+    fn zdiff<'a, K0: ToRedisArgs + Send + Sync + 'a>(numkeys: i64, key: &[K0], withscores: Option<crate::generated::types::Withscores>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ZDIFF");
             rv.arg(numkeys);
             rv.arg(key);
+            rv.arg(withscores);
             rv.query_async(self).await
         })
     }
@@ -2461,12 +2515,15 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zinter<'a, K0: ToRedisArgs + Send + Sync + 'a>(numkeys: i64, key: &[K0]) -> Self {
+    fn zinter<'a, K0: ToRedisArgs + Send + Sync + 'a>(numkeys: i64, key: &[K0], weight: Option<&[crate::generated::types::Weights]>, aggregate: Option<crate::generated::types::Aggregate>, withscores: Option<crate::generated::types::Withscores>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ZINTER");
             rv.arg(numkeys);
             rv.arg(key);
+            rv.arg(weight);
+            rv.arg(aggregate);
+            rv.arg(withscores);
             rv.query_async(self).await
         })
     }
@@ -2485,12 +2542,13 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zintercard<'a, K0: ToRedisArgs + Send + Sync + 'a>(numkeys: i64, key: &[K0]) -> Self {
+    fn zintercard<'a, K0: ToRedisArgs + Send + Sync + 'a>(numkeys: i64, key: &[K0], limit: Option<crate::generated::types::sintercard::Limit>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ZINTERCARD");
             rv.arg(numkeys);
             rv.arg(key);
+            rv.arg(limit);
             rv.query_async(self).await
         })
     }
@@ -2510,13 +2568,15 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zinterstore<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a>(destination: K0, numkeys: i64, key: &[K1]) -> Self {
+    fn zinterstore<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a>(destination: K0, numkeys: i64, key: &[K1], weight: Option<&[crate::generated::types::Weights]>, aggregate: Option<crate::generated::types::Aggregate>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ZINTERSTORE");
             rv.arg(destination);
             rv.arg(numkeys);
             rv.arg(key);
+            rv.arg(weight);
+            rv.arg(aggregate);
             rv.query_async(self).await
         })
     }
@@ -2560,12 +2620,14 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zmpop<'a, K0: ToRedisArgs + Send + Sync + 'a>(numkeys: i64, key: &[K0]) -> Self {
+    fn zmpop<'a, K0: ToRedisArgs + Send + Sync + 'a>(numkeys: i64, key: &[K0], r#where: crate::generated::types::bzmpop::Where, count: Option<crate::generated::types::Count>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ZMPOP");
             rv.arg(numkeys);
             rv.arg(key);
+            rv.arg(r#where);
+            rv.arg(count);
             rv.query_async(self).await
         })
     }
@@ -2655,7 +2717,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zrandmember<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, options: Option<T0>) -> Self {
+    fn zrandmember<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, options: Option<crate::generated::types::Options>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ZRANDMEMBER");
@@ -2678,13 +2740,17 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zrange<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, min: T0, max: T1) -> Self {
+    fn zrange<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, min: T0, max: T1, sortby: Option<crate::generated::types::Sortby>, rev: Option<crate::generated::types::Rev>, offset_count: Option<crate::generated::types::Limit>, withscores: Option<crate::generated::types::Withscores>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ZRANGE");
             rv.arg(key);
             rv.arg(min);
             rv.arg(max);
+            rv.arg(sortby);
+            rv.arg(rev);
+            rv.arg(offset_count);
+            rv.arg(withscores);
             rv.query_async(self).await
         })
     }
@@ -2705,13 +2771,14 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @sortedset
     /// * @slow
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    fn zrangebylex<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, min: T0, max: T1) -> Self {
+    fn zrangebylex<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, min: T0, max: T1, offset_count: Option<crate::generated::types::Limit>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ZRANGEBYLEX");
             rv.arg(key);
             rv.arg(min);
             rv.arg(max);
+            rv.arg(offset_count);
             rv.query_async(self).await
         })
     }
@@ -2732,13 +2799,15 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @sortedset
     /// * @slow
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    fn zrangebyscore<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, min: f64, max: f64) -> Self {
+    fn zrangebyscore<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, min: f64, max: f64, withscores: Option<crate::generated::types::Withscores>, offset_count: Option<crate::generated::types::Limit>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ZRANGEBYSCORE");
             rv.arg(key);
             rv.arg(min);
             rv.arg(max);
+            rv.arg(withscores);
+            rv.arg(offset_count);
             rv.query_async(self).await
         })
     }
@@ -2757,7 +2826,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zrangestore<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(dst: K0, src: K1, min: T0, max: T1) -> Self {
+    fn zrangestore<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(dst: K0, src: K1, min: T0, max: T1, sortby: Option<crate::generated::types::Sortby>, rev: Option<crate::generated::types::Rev>, offset_count: Option<crate::generated::types::Limit>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ZRANGESTORE");
@@ -2765,6 +2834,9 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
             rv.arg(src);
             rv.arg(min);
             rv.arg(max);
+            rv.arg(sortby);
+            rv.arg(rev);
+            rv.arg(offset_count);
             rv.query_async(self).await
         })
     }
@@ -2905,13 +2977,14 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @sortedset
     /// * @slow
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    fn zrevrange<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, start: i64, stop: i64) -> Self {
+    fn zrevrange<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, start: i64, stop: i64, withscores: Option<crate::generated::types::Withscores>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ZREVRANGE");
             rv.arg(key);
             rv.arg(start);
             rv.arg(stop);
+            rv.arg(withscores);
             rv.query_async(self).await
         })
     }
@@ -2932,13 +3005,14 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @sortedset
     /// * @slow
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    fn zrevrangebylex<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, max: T0, min: T1) -> Self {
+    fn zrevrangebylex<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, max: T0, min: T1, offset_count: Option<crate::generated::types::Limit>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ZREVRANGEBYLEX");
             rv.arg(key);
             rv.arg(max);
             rv.arg(min);
+            rv.arg(offset_count);
             rv.query_async(self).await
         })
     }
@@ -2959,13 +3033,15 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @sortedset
     /// * @slow
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    fn zrevrangebyscore<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, max: f64, min: f64) -> Self {
+    fn zrevrangebyscore<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, max: f64, min: f64, withscores: Option<crate::generated::types::Withscores>, offset_count: Option<crate::generated::types::Limit>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ZREVRANGEBYSCORE");
             rv.arg(key);
             rv.arg(max);
             rv.arg(min);
+            rv.arg(withscores);
+            rv.arg(offset_count);
             rv.query_async(self).await
         })
     }
@@ -3032,12 +3108,15 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zunion<'a, K0: ToRedisArgs + Send + Sync + 'a>(numkeys: i64, key: &[K0]) -> Self {
+    fn zunion<'a, K0: ToRedisArgs + Send + Sync + 'a>(numkeys: i64, key: &[K0], weight: Option<&[crate::generated::types::Weights]>, aggregate: Option<crate::generated::types::Aggregate>, withscores: Option<crate::generated::types::Withscores>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ZUNION");
             rv.arg(numkeys);
             rv.arg(key);
+            rv.arg(weight);
+            rv.arg(aggregate);
+            rv.arg(withscores);
             rv.query_async(self).await
         })
     }
@@ -3057,13 +3136,15 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @sortedset
     /// * @slow
-    fn zunionstore<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a>(destination: K0, numkeys: i64, key: &[K1]) -> Self {
+    fn zunionstore<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a>(destination: K0, numkeys: i64, key: &[K1], weight: Option<&[crate::generated::types::Weights]>, aggregate: Option<crate::generated::types::Aggregate>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ZUNIONSTORE");
             rv.arg(destination);
             rv.arg(numkeys);
             rv.arg(key);
+            rv.arg(weight);
+            rv.arg(aggregate);
             rv.query_async(self).await
         })
     }
@@ -3301,7 +3382,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @hash
     /// * @fast
     #[deprecated = "Deprecated in redis since redis version 4.0.0."]
-    fn hmset<'a, K0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs, T2: ToRedisArgs + Send + Sync + 'a>(key: K0, field_value: &[(T1, T2)]) -> Self {
+    fn hmset<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, field_value: &[crate::generated::types::FieldValue]) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("HMSET");
@@ -3324,7 +3405,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @read
     /// * @hash
     /// * @slow
-    fn hrandfield<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, options: Option<T0>) -> Self {
+    fn hrandfield<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, options: Option<crate::generated::types::hrandfield::Options>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("HRANDFIELD");
@@ -3349,7 +3430,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @hash
     /// * @fast
-    fn hset<'a, K0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs, T2: ToRedisArgs + Send + Sync + 'a>(key: K0, field_value: &[(T1, T2)]) -> Self {
+    fn hset<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, field_value: &[crate::generated::types::FieldValue]) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("HSET");
@@ -3446,7 +3527,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn psubscribe<'a, K0: ToRedisArgs + Send + Sync + 'a>(pattern: &[K0]) -> Self {
+    fn psubscribe<'a>(pattern: &[crate::generated::types::Pattern]) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("PSUBSCRIBE");
@@ -3954,10 +4035,11 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn client_caching<'a>() -> Self {
+    fn client_caching<'a>(mode: crate::generated::types::Mode) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("CLIENT CACHING");
+            rv.arg(mode);
             rv.query_async(self).await
         })
     }
@@ -4088,10 +4170,12 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    fn client_list<'a>() -> Self {
+    fn client_list<'a>(normal_master_replica_pubsub: Option<crate::generated::types::client_list::Type>, id: Option<crate::generated::types::client_list::Id>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("CLIENT LIST");
+            rv.arg(normal_master_replica_pubsub);
+            rv.arg(id);
             rv.query_async(self).await
         })
     }
@@ -4113,10 +4197,11 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    fn client_no_evict<'a>() -> Self {
+    fn client_no_evict<'a>(enabled: crate::generated::types::Enabled) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("CLIENT NO-EVICT");
+            rv.arg(enabled);
             rv.query_async(self).await
         })
     }
@@ -4138,11 +4223,12 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    fn client_pause<'a>(timeout: i64) -> Self {
+    fn client_pause<'a>(timeout: i64, mode: Option<crate::generated::types::client_pause::Mode>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("CLIENT PAUSE");
             rv.arg(timeout);
+            rv.arg(mode);
             rv.query_async(self).await
         })
     }
@@ -4161,10 +4247,11 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn client_reply<'a>() -> Self {
+    fn client_reply<'a>(on_off_skip: crate::generated::types::OnOffSkip) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("CLIENT REPLY");
+            rv.arg(on_off_skip);
             rv.query_async(self).await
         })
     }
@@ -4206,10 +4293,17 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn client_tracking<'a>() -> Self {
+    fn client_tracking<'a>(status: crate::generated::types::Status, client_id: Option<crate::generated::types::Redirect>, prefix: Option<&[crate::generated::types::Prefix]>, bcast: Option<crate::generated::types::Bcast>, optin: Option<crate::generated::types::Optin>, optout: Option<crate::generated::types::Optout>, noloop: Option<crate::generated::types::Noloop>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("CLIENT TRACKING");
+            rv.arg(status);
+            rv.arg(client_id);
+            rv.arg(prefix);
+            rv.arg(bcast);
+            rv.arg(optin);
+            rv.arg(optout);
+            rv.arg(noloop);
             rv.query_async(self).await
         })
     }
@@ -4253,11 +4347,12 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    fn client_unblock<'a>(client_id: i64) -> Self {
+    fn client_unblock<'a>(client_id: i64, timeout_error: Option<crate::generated::types::TimeoutError>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("CLIENT UNBLOCK");
             rv.arg(client_id);
+            rv.arg(timeout_error);
             rv.query_async(self).await
         })
     }
@@ -4325,7 +4420,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// ACL Categories:
     /// * @fast
     /// * @connection
-    fn hello<'a, T0: ToRedisArgs + Send + Sync + 'a>(arguments: Option<T0>) -> Self {
+    fn hello<'a>(arguments: Option<crate::generated::types::Arguments>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("HELLO");
@@ -4670,10 +4765,11 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    fn acl_log<'a>() -> Self {
+    fn acl_log<'a>(operation: Option<crate::generated::types::Operation>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("ACL LOG");
+            rv.arg(operation);
             rv.query_async(self).await
         })
     }
@@ -4819,10 +4915,11 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn bgsave<'a>() -> Self {
+    fn bgsave<'a>(schedule: Option<crate::generated::types::Schedule>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("BGSAVE");
+            rv.arg(schedule);
             rv.query_async(self).await
         })
     }
@@ -4989,10 +5086,11 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    fn command_list<'a>() -> Self {
+    fn command_list<'a>(filterby: Option<crate::generated::types::Filterby>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("COMMAND LIST");
+            rv.arg(filterby);
             rv.query_async(self).await
         })
     }
@@ -5030,7 +5128,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn config_get<'a, T1: ToRedisArgs + Send + Sync + 'a>(parameter: &[T1]) -> Self {
+    fn config_get<'a>(parameter: &[crate::generated::types::Parameter]) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("CONFIG GET");
@@ -5123,7 +5221,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn config_set<'a, T1: ToRedisArgs, T2: ToRedisArgs + Send + Sync + 'a>(parameter_value: &[(T1, T2)]) -> Self {
+    fn config_set<'a>(parameter_value: &[crate::generated::types::ParameterValue]) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("CONFIG SET");
@@ -5193,10 +5291,13 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn failover<'a>() -> Self {
+    fn failover<'a>(target: Option<crate::generated::types::To>, abort: Option<crate::generated::types::Abort>, milliseconds: Option<crate::generated::types::failover::Timeout>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("FAILOVER");
+            rv.arg(target);
+            rv.arg(abort);
+            rv.arg(milliseconds);
             rv.query_async(self).await
         })
     }
@@ -5215,10 +5316,11 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @slow
     /// * @dangerous
-    fn flushall<'a>() -> Self {
+    fn flushall<'a>(r#async: Option<crate::generated::types::Async>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("FLUSHALL");
+            rv.arg(r#async);
             rv.query_async(self).await
         })
     }
@@ -5237,10 +5339,11 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @slow
     /// * @dangerous
-    fn flushdb<'a>() -> Self {
+    fn flushdb<'a>(r#async: Option<crate::generated::types::Async>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("FLUSHDB");
+            rv.arg(r#async);
             rv.query_async(self).await
         })
     }
@@ -5487,10 +5590,11 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// ACL Categories:
     /// * @read
     /// * @fast
-    fn lolwut<'a>() -> Self {
+    fn lolwut<'a>(version: Option<crate::generated::types::Version>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("LOLWUT");
+            rv.arg(version);
             rv.query_async(self).await
         })
     }
@@ -5612,11 +5716,12 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// ACL Categories:
     /// * @read
     /// * @slow
-    fn memory_usage<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0) -> Self {
+    fn memory_usage<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, count: Option<crate::generated::types::Samples>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("MEMORY USAGE");
             rv.arg(key);
+            rv.arg(count);
             rv.query_async(self).await
         })
     }
@@ -5720,11 +5825,13 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn module_loadex<'a, T0: ToRedisArgs + Send + Sync + 'a>(path: T0) -> Self {
+    fn module_loadex<'a, T0: ToRedisArgs + Send + Sync + 'a>(path: T0, configs: Option<&[crate::generated::types::Config]>, args: Option<&[crate::generated::types::Args]>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("MODULE LOADEX");
             rv.arg(path);
+            rv.arg(configs);
+            rv.arg(args);
             rv.query_async(self).await
         })
     }
@@ -5868,13 +5975,17 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @slow
     /// * @dangerous
-    fn restore_asking<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, ttl: i64, serialized_value: T0) -> Self {
+    fn restore_asking<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, ttl: i64, serialized_value: T0, replace: Option<crate::generated::types::Replace>, absttl: Option<crate::generated::types::Absttl>, seconds: Option<crate::generated::types::Idletime>, frequency: Option<crate::generated::types::Freq>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("RESTORE-ASKING");
             rv.arg(key);
             rv.arg(ttl);
             rv.arg(serialized_value);
+            rv.arg(replace);
+            rv.arg(absttl);
+            rv.arg(seconds);
+            rv.arg(frequency);
             rv.query_async(self).await
         })
     }
@@ -5945,10 +6056,14 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn shutdown<'a>() -> Self {
+    fn shutdown<'a>(nosave_save: Option<crate::generated::types::NosaveSave>, now: Option<crate::generated::types::Now>, force: Option<crate::generated::types::Force>, abort: Option<crate::generated::types::Abort>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("SHUTDOWN");
+            rv.arg(nosave_save);
+            rv.arg(now);
+            rv.arg(force);
+            rv.arg(abort);
             rv.query_async(self).await
         })
     }
@@ -6403,10 +6518,11 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @slow
     /// * @scripting
-    fn function_flush<'a>() -> Self {
+    fn function_flush<'a>(r#async: Option<crate::generated::types::Async>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("FUNCTION FLUSH");
+            rv.arg(r#async);
             rv.query_async(self).await
         })
     }
@@ -6465,10 +6581,12 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn function_list<'a>() -> Self {
+    fn function_list<'a>(library_name_pattern: Option<crate::generated::types::Libraryname>, withcode: Option<crate::generated::types::Withcode>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("FUNCTION LIST");
+            rv.arg(library_name_pattern);
+            rv.arg(withcode);
             rv.query_async(self).await
         })
     }
@@ -6488,10 +6606,11 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @slow
     /// * @scripting
-    fn function_load<'a, T0: ToRedisArgs + Send + Sync + 'a>(function_code: T0) -> Self {
+    fn function_load<'a, T0: ToRedisArgs + Send + Sync + 'a>(replace: Option<crate::generated::types::Replace>, function_code: T0) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("FUNCTION LOAD");
+            rv.arg(replace);
             rv.arg(function_code);
             rv.query_async(self).await
         })
@@ -6512,11 +6631,12 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @slow
     /// * @scripting
-    fn function_restore<'a, T0: ToRedisArgs + Send + Sync + 'a>(serialized_value: T0) -> Self {
+    fn function_restore<'a, T0: ToRedisArgs + Send + Sync + 'a>(serialized_value: T0, policy: Option<crate::generated::types::Policy>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("FUNCTION RESTORE");
             rv.arg(serialized_value);
+            rv.arg(policy);
             rv.query_async(self).await
         })
     }
@@ -6571,10 +6691,11 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn script_debug<'a>() -> Self {
+    fn script_debug<'a>(mode: crate::generated::types::script_debug::Mode) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("SCRIPT DEBUG");
+            rv.arg(mode);
             rv.query_async(self).await
         })
     }
@@ -6612,10 +6733,11 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    fn script_flush<'a>() -> Self {
+    fn script_flush<'a>(r#async: Option<crate::generated::types::Async>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("SCRIPT FLUSH");
+            rv.arg(r#async);
             rv.query_async(self).await
         })
     }
@@ -6880,7 +7002,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_addslotsrange<'a>(start_slot_end_slot: &[(i64, i64)]) -> Self {
+    fn cluster_addslotsrange<'a>(start_slot_end_slot: &[crate::generated::types::StartSlotEndSlot]) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("CLUSTER ADDSLOTSRANGE");
@@ -6994,7 +7116,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_delslotsrange<'a>(start_slot_end_slot: &[(i64, i64)]) -> Self {
+    fn cluster_delslotsrange<'a>(start_slot_end_slot: &[crate::generated::types::StartSlotEndSlot]) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("CLUSTER DELSLOTSRANGE");
@@ -7018,10 +7140,11 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_failover<'a>() -> Self {
+    fn cluster_failover<'a>(options: Option<crate::generated::types::cluster_failover::Options>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("CLUSTER FAILOVER");
+            rv.arg(options);
             rv.query_async(self).await
         })
     }
@@ -7297,10 +7420,11 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_reset<'a>() -> Self {
+    fn cluster_reset<'a>(hard_soft: Option<crate::generated::types::HardSoft>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("CLUSTER RESET");
+            rv.arg(hard_soft);
             rv.query_async(self).await
         })
     }
@@ -7367,11 +7491,12 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_setslot<'a>(slot: i64) -> Self {
+    fn cluster_setslot<'a>(slot: i64, subcommand: crate::generated::types::cluster_setslot::Subcommand) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("CLUSTER SETSLOT");
             rv.arg(slot);
+            rv.arg(subcommand);
             rv.query_async(self).await
         })
     }
@@ -7503,11 +7628,13 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geoadd<'a, K0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, longitude_latitude_member: &[(f64, f64, T1)]) -> Self {
+    fn geoadd<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, condition: Option<crate::generated::types::set::Condition>, change: Option<crate::generated::types::Ch>, longitude_latitude_member: &[crate::generated::types::LongitudeLatitudeMember]) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("GEOADD");
             rv.arg(key);
+            rv.arg(condition);
+            rv.arg(change);
             rv.arg(longitude_latitude_member);
             rv.query_async(self).await
         })
@@ -7528,13 +7655,14 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geodist<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, member1: T0, member2: T1) -> Self {
+    fn geodist<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, member1: T0, member2: T1, unit: Option<crate::generated::types::Unit>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("GEODIST");
             rv.arg(key);
             rv.arg(member1);
             rv.arg(member2);
+            rv.arg(unit);
             rv.query_async(self).await
         })
     }
@@ -7609,7 +7737,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    fn georadius<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, longitude: f64, latitude: f64, radius: f64, count: Option<T0>) -> Self {
+    fn georadius<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a, K2: ToRedisArgs + Send + Sync + 'a>(key: K0, longitude: f64, latitude: f64, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<K1>, key2: Option<K2>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("GEORADIUS");
@@ -7617,7 +7745,14 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
             rv.arg(longitude);
             rv.arg(latitude);
             rv.arg(radius);
+            rv.arg(unit);
+            rv.arg(withcoord);
+            rv.arg(withdist);
+            rv.arg(withhash);
             rv.arg(count);
+            rv.arg(order);
+            rv.arg(key1);
+            rv.arg(key2);
             rv.query_async(self).await
         })
     }
@@ -7642,14 +7777,21 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    fn georadiusbymember<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, member: T0, radius: f64, count: Option<T1>) -> Self {
+    fn georadiusbymember<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a, K2: ToRedisArgs + Send + Sync + 'a>(key: K0, member: T0, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<K1>, key2: Option<K2>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("GEORADIUSBYMEMBER");
             rv.arg(key);
             rv.arg(member);
             rv.arg(radius);
+            rv.arg(unit);
+            rv.arg(withcoord);
+            rv.arg(withdist);
+            rv.arg(withhash);
             rv.arg(count);
+            rv.arg(order);
+            rv.arg(key1);
+            rv.arg(key2);
             rv.query_async(self).await
         })
     }
@@ -7672,14 +7814,19 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    fn georadiusbymember_ro<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, member: T0, radius: f64, count: Option<T1>) -> Self {
+    fn georadiusbymember_ro<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, member: T0, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("GEORADIUSBYMEMBER_RO");
             rv.arg(key);
             rv.arg(member);
             rv.arg(radius);
+            rv.arg(unit);
+            rv.arg(withcoord);
+            rv.arg(withdist);
+            rv.arg(withhash);
             rv.arg(count);
+            rv.arg(order);
             rv.query_async(self).await
         })
     }
@@ -7702,7 +7849,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    fn georadius_ro<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, longitude: f64, latitude: f64, radius: f64, count: Option<T0>) -> Self {
+    fn georadius_ro<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, longitude: f64, latitude: f64, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("GEORADIUS_RO");
@@ -7710,7 +7857,12 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
             rv.arg(longitude);
             rv.arg(latitude);
             rv.arg(radius);
+            rv.arg(unit);
+            rv.arg(withcoord);
+            rv.arg(withdist);
+            rv.arg(withhash);
             rv.arg(count);
+            rv.arg(order);
             rv.query_async(self).await
         })
     }
@@ -7730,12 +7882,18 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geosearch<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, count: Option<T0>) -> Self {
+    fn geosearch<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, from: crate::generated::types::From, by: crate::generated::types::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("GEOSEARCH");
             rv.arg(key);
+            rv.arg(from);
+            rv.arg(by);
+            rv.arg(order);
             rv.arg(count);
+            rv.arg(withcoord);
+            rv.arg(withdist);
+            rv.arg(withhash);
             rv.query_async(self).await
         })
     }
@@ -7756,13 +7914,17 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geosearchstore<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(destination: K0, source: K1, count: Option<T0>) -> Self {
+    fn geosearchstore<'a, K0: ToRedisArgs + Send + Sync + 'a, K1: ToRedisArgs + Send + Sync + 'a>(destination: K0, source: K1, from: crate::generated::types::From, by: crate::generated::types::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, storedist: Option<crate::generated::types::Storedist>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("GEOSEARCHSTORE");
             rv.arg(destination);
             rv.arg(source);
+            rv.arg(from);
+            rv.arg(by);
+            rv.arg(order);
             rv.arg(count);
+            rv.arg(storedist);
             rv.query_async(self).await
         })
     }
@@ -7811,12 +7973,14 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xadd<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T2: ToRedisArgs, T3: ToRedisArgs + Send + Sync + 'a>(key: K0, trim: Option<T0>, field_value: &[(T2, T3)]) -> Self {
+    fn xadd<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, nomkstream: Option<crate::generated::types::Nomkstream>, trim: Option<crate::generated::types::Trim>, id_or_auto: crate::generated::types::IdOrAuto, field_value: &[crate::generated::types::FieldValue]) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("XADD");
             rv.arg(key);
+            rv.arg(nomkstream);
             rv.arg(trim);
+            rv.arg(id_or_auto);
             rv.arg(field_value);
             rv.query_async(self).await
         })
@@ -7838,7 +8002,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xautoclaim<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a, T2: ToRedisArgs + Send + Sync + 'a, T3: ToRedisArgs + Send + Sync + 'a>(key: K0, group: T0, consumer: T1, min_idle_time: T2, start: T3) -> Self {
+    fn xautoclaim<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a, T2: ToRedisArgs + Send + Sync + 'a, T3: ToRedisArgs + Send + Sync + 'a>(key: K0, group: T0, consumer: T1, min_idle_time: T2, start: T3, count: Option<crate::generated::types::Count>, justid: Option<crate::generated::types::Justid>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("XAUTOCLAIM");
@@ -7847,6 +8011,8 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
             rv.arg(consumer);
             rv.arg(min_idle_time);
             rv.arg(start);
+            rv.arg(count);
+            rv.arg(justid);
             rv.query_async(self).await
         })
     }
@@ -7867,7 +8033,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xclaim<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a, T2: ToRedisArgs + Send + Sync + 'a, T3: ToRedisArgs + Send + Sync + 'a>(key: K0, group: T0, consumer: T1, min_idle_time: T2, id: &[T3]) -> Self {
+    fn xclaim<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a, T2: ToRedisArgs + Send + Sync + 'a, T3: ToRedisArgs + Send + Sync + 'a>(key: K0, group: T0, consumer: T1, min_idle_time: T2, id: &[T3], ms: Option<crate::generated::types::Idle>, count: Option<crate::generated::types::Retrycount>, force: Option<crate::generated::types::Force>, justid: Option<crate::generated::types::Justid>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("XCLAIM");
@@ -7876,6 +8042,10 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
             rv.arg(consumer);
             rv.arg(min_idle_time);
             rv.arg(id);
+            rv.arg(ms);
+            rv.arg(count);
+            rv.arg(force);
+            rv.arg(justid);
             rv.query_async(self).await
         })
     }
@@ -7941,12 +8111,15 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xgroup_create<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, groupname: T0) -> Self {
+    fn xgroup_create<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, groupname: T0, id: crate::generated::types::xgroup_create::Id, mkstream: Option<crate::generated::types::Mkstream>, entries_read: Option<crate::generated::types::Entriesread>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("XGROUP CREATE");
             rv.arg(key);
             rv.arg(groupname);
+            rv.arg(id);
+            rv.arg(mkstream);
+            rv.arg(entries_read);
             rv.query_async(self).await
         })
     }
@@ -8067,12 +8240,14 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xgroup_setid<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, groupname: T0) -> Self {
+    fn xgroup_setid<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, groupname: T0, id: crate::generated::types::xgroup_create::Id, entries_read: Option<crate::generated::types::Entriesread>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("XGROUP SETID");
             rv.arg(key);
             rv.arg(groupname);
+            rv.arg(id);
+            rv.arg(entries_read);
             rv.query_async(self).await
         })
     }
@@ -8183,11 +8358,12 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xinfo_stream<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0) -> Self {
+    fn xinfo_stream<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, full: Option<crate::generated::types::Full>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("XINFO STREAM");
             rv.arg(key);
+            rv.arg(full);
             rv.query_async(self).await
         })
     }
@@ -8232,7 +8408,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xpending<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, group: T0, filters: Option<T1>) -> Self {
+    fn xpending<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, group: T0, filters: Option<crate::generated::types::Filters>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("XPENDING");
@@ -8258,13 +8434,14 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xrange<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, start: T0, end: T1) -> Self {
+    fn xrange<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, start: T0, end: T1, count: Option<crate::generated::types::Count>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("XRANGE");
             rv.arg(key);
             rv.arg(start);
             rv.arg(end);
+            rv.arg(count);
             rv.query_async(self).await
         })
     }
@@ -8287,10 +8464,13 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @blocking
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xread<'a>() -> Self {
+    fn xread<'a>(count: Option<crate::generated::types::Count>, milliseconds: Option<crate::generated::types::Block>, streams: crate::generated::types::Streams) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("XREAD");
+            rv.arg(count);
+            rv.arg(milliseconds);
+            rv.arg(streams);
             rv.query_async(self).await
         })
     }
@@ -8313,10 +8493,15 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @blocking
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xreadgroup<'a>() -> Self {
+    fn xreadgroup<'a>(group_consumer: crate::generated::types::xreadgroup::Group, count: Option<crate::generated::types::Count>, milliseconds: Option<crate::generated::types::Block>, noack: Option<crate::generated::types::Noack>, streams: crate::generated::types::Streams) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("XREADGROUP");
+            rv.arg(group_consumer);
+            rv.arg(count);
+            rv.arg(milliseconds);
+            rv.arg(noack);
+            rv.arg(streams);
             rv.query_async(self).await
         })
     }
@@ -8336,13 +8521,14 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xrevrange<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, end: T0, start: T1) -> Self {
+    fn xrevrange<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a, T1: ToRedisArgs + Send + Sync + 'a>(key: K0, end: T0, start: T1, count: Option<crate::generated::types::Count>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("XREVRANGE");
             rv.arg(key);
             rv.arg(end);
             rv.arg(start);
+            rv.arg(count);
             rv.query_async(self).await
         })
     }
@@ -8364,12 +8550,14 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xsetid<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, last_id: T0) -> Self {
+    fn xsetid<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, last_id: T0, entries_added: Option<crate::generated::types::Entriesadded>, max_deleted_entry_id: Option<crate::generated::types::Maxdeletedid>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("XSETID");
             rv.arg(key);
             rv.arg(last_id);
+            rv.arg(entries_added);
+            rv.arg(max_deleted_entry_id);
             rv.query_async(self).await
         })
     }
@@ -8389,7 +8577,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    fn xtrim<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, trim: T0) -> Self {
+    fn xtrim<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, trim: crate::generated::types::Trim) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("XTRIM");
@@ -8412,7 +8600,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @read
     /// * @bitmap
     /// * @slow
-    fn bitcount<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, index: Option<T0>) -> Self {
+    fn bitcount<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, index: Option<crate::generated::types::bitcount::Index>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("BITCOUNT");
@@ -8437,11 +8625,12 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @write
     /// * @bitmap
     /// * @slow
-    fn bitfield<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0) -> Self {
+    fn bitfield<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, operation: &[crate::generated::types::bitfield::Operation]) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("BITFIELD");
             rv.arg(key);
+            rv.arg(operation);
             rv.query_async(self).await
         })
     }
@@ -8460,11 +8649,12 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @read
     /// * @bitmap
     /// * @fast
-    fn bitfield_ro<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0) -> Self {
+    fn bitfield_ro<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, encoding_offset: &[crate::generated::types::bitfield_ro::Get]) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("BITFIELD_RO");
             rv.arg(key);
+            rv.arg(encoding_offset);
             rv.query_async(self).await
         })
     }
@@ -8507,7 +8697,7 @@ pub trait AsyncCommands : crate::aio::ConnectionLike + Send + Sized {
     /// * @read
     /// * @bitmap
     /// * @slow
-    fn bitpos<'a, K0: ToRedisArgs + Send + Sync + 'a, T0: ToRedisArgs + Send + Sync + 'a>(key: K0, bit: i64, index: Option<T0>) -> Self {
+    fn bitpos<'a, K0: ToRedisArgs + Send + Sync + 'a>(key: K0, bit: i64, index: Option<crate::generated::types::bitpos::Index>) -> Self {
         Box::pin(async move {
             let mut rv = Cmd::new();
             rv.arg("BITPOS");

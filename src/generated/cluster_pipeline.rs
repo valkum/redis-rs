@@ -23,8 +23,8 @@ impl ClusterPipeline {
     /// * @keyspace
     /// * @write
     /// * @slow
-    pub fn copy<K0: ToRedisArgs, K1: ToRedisArgs>(&mut self, source: K0, destination: K1) -> &mut Self {
-        self.add_command(Cmd::copy(source, destination))
+    pub fn copy<K0: ToRedisArgs, K1: ToRedisArgs>(&mut self, source: K0, destination: K1, destination_db: Option<crate::generated::types::Db>, replace: Option<crate::generated::types::Replace>) -> &mut Self {
+        self.add_command(Cmd::copy(source, destination, destination_db, replace))
     }
 
     /// DEL
@@ -93,8 +93,8 @@ impl ClusterPipeline {
     /// * @keyspace
     /// * @write
     /// * @fast
-    pub fn expire<K0: ToRedisArgs>(&mut self, key: K0, seconds: i64) -> &mut Self {
-        self.add_command(Cmd::expire(key, seconds))
+    pub fn expire<K0: ToRedisArgs>(&mut self, key: K0, seconds: i64, condition: Option<crate::generated::types::Condition>) -> &mut Self {
+        self.add_command(Cmd::expire(key, seconds, condition))
     }
 
     /// EXPIREAT
@@ -111,8 +111,8 @@ impl ClusterPipeline {
     /// * @keyspace
     /// * @write
     /// * @fast
-    pub fn expireat<K0: ToRedisArgs>(&mut self, key: K0) -> &mut Self {
-        self.add_command(Cmd::expireat(key))
+    pub fn expireat<K0: ToRedisArgs>(&mut self, key: K0, condition: Option<crate::generated::types::Condition>) -> &mut Self {
+        self.add_command(Cmd::expireat(key, condition))
     }
 
     /// EXPIRETIME
@@ -166,8 +166,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @slow
     /// * @dangerous
-    pub fn migrate<T0: ToRedisArgs>(&mut self, host: T0, port: i64, destination_db: i64, timeout: i64) -> &mut Self {
-        self.add_command(Cmd::migrate(host, port, destination_db, timeout))
+    pub fn migrate<T0: ToRedisArgs, K0: ToRedisArgs>(&mut self, host: T0, port: i64, key_or_empty_string: crate::generated::types::KeyOrEmptyString, destination_db: i64, timeout: i64, copy: Option<crate::generated::types::CopyArg>, replace: Option<crate::generated::types::Replace>, authentication: Option<crate::generated::types::Authentication>, key: Option<&[K0]>) -> &mut Self {
+        self.add_command(Cmd::migrate(host, port, key_or_empty_string, destination_db, timeout, copy, replace, authentication, key))
     }
 
     /// MOVE
@@ -305,8 +305,8 @@ impl ClusterPipeline {
     /// * @keyspace
     /// * @write
     /// * @fast
-    pub fn pexpire<K0: ToRedisArgs>(&mut self, key: K0, milliseconds: i64) -> &mut Self {
-        self.add_command(Cmd::pexpire(key, milliseconds))
+    pub fn pexpire<K0: ToRedisArgs>(&mut self, key: K0, milliseconds: i64, condition: Option<crate::generated::types::Condition>) -> &mut Self {
+        self.add_command(Cmd::pexpire(key, milliseconds, condition))
     }
 
     /// PEXPIREAT
@@ -323,8 +323,8 @@ impl ClusterPipeline {
     /// * @keyspace
     /// * @write
     /// * @fast
-    pub fn pexpireat<K0: ToRedisArgs>(&mut self, key: K0) -> &mut Self {
-        self.add_command(Cmd::pexpireat(key))
+    pub fn pexpireat<K0: ToRedisArgs>(&mut self, key: K0, condition: Option<crate::generated::types::Condition>) -> &mut Self {
+        self.add_command(Cmd::pexpireat(key, condition))
     }
 
     /// PEXPIRETIME
@@ -430,8 +430,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @slow
     /// * @dangerous
-    pub fn restore<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, ttl: i64, serialized_value: T0) -> &mut Self {
-        self.add_command(Cmd::restore(key, ttl, serialized_value))
+    pub fn restore<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, ttl: i64, serialized_value: T0, replace: Option<crate::generated::types::Replace>, absttl: Option<crate::generated::types::Absttl>, seconds: Option<crate::generated::types::Idletime>, frequency: Option<crate::generated::types::Freq>) -> &mut Self {
+        self.add_command(Cmd::restore(key, ttl, serialized_value, replace, absttl, seconds, frequency))
     }
 
     /// SORT
@@ -452,8 +452,8 @@ impl ClusterPipeline {
     /// * @list
     /// * @slow
     /// * @dangerous
-    pub fn sort<K0: ToRedisArgs>(&mut self, key: K0) -> &mut Self {
-        self.add_command(Cmd::sort(key))
+    pub fn sort<K0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs, K3: ToRedisArgs>(&mut self, key: K0, pattern: Option<K1>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[K2]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>, destination: Option<K3>) -> &mut Self {
+        self.add_command(Cmd::sort(key, pattern, offset_count, pattern1, order, sorting, destination))
     }
 
     /// SORT_RO
@@ -473,8 +473,8 @@ impl ClusterPipeline {
     /// * @list
     /// * @slow
     /// * @dangerous
-    pub fn sort_ro<K0: ToRedisArgs>(&mut self, key: K0) -> &mut Self {
-        self.add_command(Cmd::sort_ro(key))
+    pub fn sort_ro<K0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs>(&mut self, key: K0, pattern: Option<K1>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[K2]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>) -> &mut Self {
+        self.add_command(Cmd::sort_ro(key, pattern, offset_count, pattern1, order, sorting))
     }
 
     /// TOUCH
@@ -672,8 +672,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @string
     /// * @fast
-    pub fn getex<K0: ToRedisArgs>(&mut self, key: K0) -> &mut Self {
-        self.add_command(Cmd::getex(key))
+    pub fn getex<K0: ToRedisArgs>(&mut self, key: K0, expiration: Option<crate::generated::types::Expiration>) -> &mut Self {
+        self.add_command(Cmd::getex(key, expiration))
     }
 
     /// GETRANGE
@@ -785,8 +785,8 @@ impl ClusterPipeline {
     /// * @read
     /// * @string
     /// * @slow
-    pub fn lcs<K0: ToRedisArgs, K1: ToRedisArgs>(&mut self, key1: K0, key2: K1) -> &mut Self {
-        self.add_command(Cmd::lcs(key1, key2))
+    pub fn lcs<K0: ToRedisArgs, K1: ToRedisArgs>(&mut self, key1: K0, key2: K1, len: Option<crate::generated::types::Len>, idx: Option<crate::generated::types::Idx>, len1: Option<crate::generated::types::Minmatchlen>, withmatchlen: Option<crate::generated::types::Withmatchlen>) -> &mut Self {
+        self.add_command(Cmd::lcs(key1, key2, len, idx, len1, withmatchlen))
     }
 
     /// MGET
@@ -821,7 +821,7 @@ impl ClusterPipeline {
     /// * @write
     /// * @string
     /// * @slow
-    pub fn mset<K0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key_value: &[(K0, T1)]) -> &mut Self {
+    pub fn mset(&mut self, key_value: &[crate::generated::types::KeyValue]) -> &mut Self {
         self.add_command(Cmd::mset(key_value))
     }
 
@@ -839,7 +839,7 @@ impl ClusterPipeline {
     /// * @write
     /// * @string
     /// * @slow
-    pub fn msetnx<K0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key_value: &[(K0, T1)]) -> &mut Self {
+    pub fn msetnx(&mut self, key_value: &[crate::generated::types::KeyValue]) -> &mut Self {
         self.add_command(Cmd::msetnx(key_value))
     }
 
@@ -876,8 +876,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @string
     /// * @slow
-    pub fn set<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, value: T0) -> &mut Self {
-        self.add_command(Cmd::set(key, value))
+    pub fn set<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, value: T0, condition: Option<crate::generated::types::set::Condition>, get: Option<crate::generated::types::Get>, expiration: Option<crate::generated::types::set::Expiration>) -> &mut Self {
+        self.add_command(Cmd::set(key, value, condition, get, expiration))
     }
 
     /// SETEX
@@ -990,8 +990,8 @@ impl ClusterPipeline {
     /// * @list
     /// * @slow
     /// * @blocking
-    pub fn blmove<K0: ToRedisArgs, K1: ToRedisArgs>(&mut self, source: K0, destination: K1, timeout: f64) -> &mut Self {
-        self.add_command(Cmd::blmove(source, destination, timeout))
+    pub fn blmove<K0: ToRedisArgs, K1: ToRedisArgs>(&mut self, source: K0, destination: K1, wherefrom: crate::generated::types::Wherefrom, whereto: crate::generated::types::Whereto, timeout: f64) -> &mut Self {
+        self.add_command(Cmd::blmove(source, destination, wherefrom, whereto, timeout))
     }
 
     /// BLMPOP
@@ -1010,8 +1010,8 @@ impl ClusterPipeline {
     /// * @list
     /// * @slow
     /// * @blocking
-    pub fn blmpop<K0: ToRedisArgs>(&mut self, timeout: f64, numkeys: i64, key: &[K0]) -> &mut Self {
-        self.add_command(Cmd::blmpop(timeout, numkeys, key))
+    pub fn blmpop<K0: ToRedisArgs>(&mut self, timeout: f64, numkeys: i64, key: &[K0], r#where: crate::generated::types::Where, count: Option<crate::generated::types::Count>) -> &mut Self {
+        self.add_command(Cmd::blmpop(timeout, numkeys, key, r#where, count))
     }
 
     /// BLPOP
@@ -1109,8 +1109,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @list
     /// * @slow
-    pub fn linsert<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, pivot: T0, element: T1) -> &mut Self {
-        self.add_command(Cmd::linsert(key, pivot, element))
+    pub fn linsert<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, r#where: crate::generated::types::linsert::Where, pivot: T0, element: T1) -> &mut Self {
+        self.add_command(Cmd::linsert(key, r#where, pivot, element))
     }
 
     /// LLEN
@@ -1145,8 +1145,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @list
     /// * @slow
-    pub fn lmove<K0: ToRedisArgs, K1: ToRedisArgs>(&mut self, source: K0, destination: K1) -> &mut Self {
-        self.add_command(Cmd::lmove(source, destination))
+    pub fn lmove<K0: ToRedisArgs, K1: ToRedisArgs>(&mut self, source: K0, destination: K1, wherefrom: crate::generated::types::Wherefrom, whereto: crate::generated::types::Whereto) -> &mut Self {
+        self.add_command(Cmd::lmove(source, destination, wherefrom, whereto))
     }
 
     /// LMPOP
@@ -1163,8 +1163,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @list
     /// * @slow
-    pub fn lmpop<K0: ToRedisArgs>(&mut self, numkeys: i64, key: &[K0]) -> &mut Self {
-        self.add_command(Cmd::lmpop(numkeys, key))
+    pub fn lmpop<K0: ToRedisArgs>(&mut self, numkeys: i64, key: &[K0], r#where: crate::generated::types::Where, count: Option<crate::generated::types::Count>) -> &mut Self {
+        self.add_command(Cmd::lmpop(numkeys, key, r#where, count))
     }
 
     /// LPOP
@@ -1198,8 +1198,8 @@ impl ClusterPipeline {
     /// * @read
     /// * @list
     /// * @slow
-    pub fn lpos<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, element: T0) -> &mut Self {
-        self.add_command(Cmd::lpos(key, element))
+    pub fn lpos<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, element: T0, rank: Option<crate::generated::types::Rank>, num_matches: Option<crate::generated::types::Count>, len: Option<crate::generated::types::Maxlen>) -> &mut Self {
+        self.add_command(Cmd::lpos(key, element, rank, num_matches, len))
     }
 
     /// LPUSH
@@ -1489,8 +1489,8 @@ impl ClusterPipeline {
     /// * @read
     /// * @set
     /// * @slow
-    pub fn sintercard<K0: ToRedisArgs>(&mut self, numkeys: i64, key: &[K0]) -> &mut Self {
-        self.add_command(Cmd::sintercard(numkeys, key))
+    pub fn sintercard<K0: ToRedisArgs>(&mut self, numkeys: i64, key: &[K0], limit: Option<crate::generated::types::sintercard::Limit>) -> &mut Self {
+        self.add_command(Cmd::sintercard(numkeys, key, limit))
     }
 
     /// SINTERSTORE
@@ -1686,8 +1686,8 @@ impl ClusterPipeline {
     /// * @sortedset
     /// * @slow
     /// * @blocking
-    pub fn bzmpop<K0: ToRedisArgs>(&mut self, timeout: f64, numkeys: i64, key: &[K0]) -> &mut Self {
-        self.add_command(Cmd::bzmpop(timeout, numkeys, key))
+    pub fn bzmpop<K0: ToRedisArgs>(&mut self, timeout: f64, numkeys: i64, key: &[K0], r#where: crate::generated::types::bzmpop::Where, count: Option<crate::generated::types::Count>) -> &mut Self {
+        self.add_command(Cmd::bzmpop(timeout, numkeys, key, r#where, count))
     }
 
     /// BZPOPMAX
@@ -1747,8 +1747,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @sortedset
     /// * @fast
-    pub fn zadd<K0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, score_member: &[(f64, T1)]) -> &mut Self {
-        self.add_command(Cmd::zadd(key, score_member))
+    pub fn zadd<K0: ToRedisArgs>(&mut self, key: K0, condition: Option<crate::generated::types::set::Condition>, comparison: Option<crate::generated::types::Comparison>, change: Option<crate::generated::types::Ch>, increment: Option<crate::generated::types::Incr>, score_member: &[crate::generated::types::ScoreMember]) -> &mut Self {
+        self.add_command(Cmd::zadd(key, condition, comparison, change, increment, score_member))
     }
 
     /// ZCARD
@@ -1801,8 +1801,8 @@ impl ClusterPipeline {
     /// * @read
     /// * @sortedset
     /// * @slow
-    pub fn zdiff<K0: ToRedisArgs>(&mut self, numkeys: i64, key: &[K0]) -> &mut Self {
-        self.add_command(Cmd::zdiff(numkeys, key))
+    pub fn zdiff<K0: ToRedisArgs>(&mut self, numkeys: i64, key: &[K0], withscores: Option<crate::generated::types::Withscores>) -> &mut Self {
+        self.add_command(Cmd::zdiff(numkeys, key, withscores))
     }
 
     /// ZDIFFSTORE
@@ -1857,8 +1857,8 @@ impl ClusterPipeline {
     /// * @read
     /// * @sortedset
     /// * @slow
-    pub fn zinter<K0: ToRedisArgs>(&mut self, numkeys: i64, key: &[K0]) -> &mut Self {
-        self.add_command(Cmd::zinter(numkeys, key))
+    pub fn zinter<K0: ToRedisArgs>(&mut self, numkeys: i64, key: &[K0], weight: Option<&[crate::generated::types::Weights]>, aggregate: Option<crate::generated::types::Aggregate>, withscores: Option<crate::generated::types::Withscores>) -> &mut Self {
+        self.add_command(Cmd::zinter(numkeys, key, weight, aggregate, withscores))
     }
 
     /// ZINTERCARD
@@ -1875,8 +1875,8 @@ impl ClusterPipeline {
     /// * @read
     /// * @sortedset
     /// * @slow
-    pub fn zintercard<K0: ToRedisArgs>(&mut self, numkeys: i64, key: &[K0]) -> &mut Self {
-        self.add_command(Cmd::zintercard(numkeys, key))
+    pub fn zintercard<K0: ToRedisArgs>(&mut self, numkeys: i64, key: &[K0], limit: Option<crate::generated::types::sintercard::Limit>) -> &mut Self {
+        self.add_command(Cmd::zintercard(numkeys, key, limit))
     }
 
     /// ZINTERSTORE
@@ -1894,8 +1894,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @sortedset
     /// * @slow
-    pub fn zinterstore<K0: ToRedisArgs, K1: ToRedisArgs>(&mut self, destination: K0, numkeys: i64, key: &[K1]) -> &mut Self {
-        self.add_command(Cmd::zinterstore(destination, numkeys, key))
+    pub fn zinterstore<K0: ToRedisArgs, K1: ToRedisArgs>(&mut self, destination: K0, numkeys: i64, key: &[K1], weight: Option<&[crate::generated::types::Weights]>, aggregate: Option<crate::generated::types::Aggregate>) -> &mut Self {
+        self.add_command(Cmd::zinterstore(destination, numkeys, key, weight, aggregate))
     }
 
     /// ZLEXCOUNT
@@ -1930,8 +1930,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @sortedset
     /// * @slow
-    pub fn zmpop<K0: ToRedisArgs>(&mut self, numkeys: i64, key: &[K0]) -> &mut Self {
-        self.add_command(Cmd::zmpop(numkeys, key))
+    pub fn zmpop<K0: ToRedisArgs>(&mut self, numkeys: i64, key: &[K0], r#where: crate::generated::types::bzmpop::Where, count: Option<crate::generated::types::Count>) -> &mut Self {
+        self.add_command(Cmd::zmpop(numkeys, key, r#where, count))
     }
 
     /// ZMSCORE
@@ -2001,7 +2001,7 @@ impl ClusterPipeline {
     /// * @read
     /// * @sortedset
     /// * @slow
-    pub fn zrandmember<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, options: Option<T0>) -> &mut Self {
+    pub fn zrandmember<K0: ToRedisArgs>(&mut self, key: K0, options: Option<crate::generated::types::Options>) -> &mut Self {
         self.add_command(Cmd::zrandmember(key, options))
     }
 
@@ -2018,8 +2018,8 @@ impl ClusterPipeline {
     /// * @read
     /// * @sortedset
     /// * @slow
-    pub fn zrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, min: T0, max: T1) -> &mut Self {
-        self.add_command(Cmd::zrange(key, min, max))
+    pub fn zrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, min: T0, max: T1, sortby: Option<crate::generated::types::Sortby>, rev: Option<crate::generated::types::Rev>, offset_count: Option<crate::generated::types::Limit>, withscores: Option<crate::generated::types::Withscores>) -> &mut Self {
+        self.add_command(Cmd::zrange(key, min, max, sortby, rev, offset_count, withscores))
     }
 
     /// ZRANGEBYLEX
@@ -2038,8 +2038,8 @@ impl ClusterPipeline {
     /// * @sortedset
     /// * @slow
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn zrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, min: T0, max: T1) -> &mut Self {
-        self.add_command(Cmd::zrangebylex(key, min, max))
+    pub fn zrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, min: T0, max: T1, offset_count: Option<crate::generated::types::Limit>) -> &mut Self {
+        self.add_command(Cmd::zrangebylex(key, min, max, offset_count))
     }
 
     /// ZRANGEBYSCORE
@@ -2058,8 +2058,8 @@ impl ClusterPipeline {
     /// * @sortedset
     /// * @slow
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn zrangebyscore<K0: ToRedisArgs>(&mut self, key: K0, min: f64, max: f64) -> &mut Self {
-        self.add_command(Cmd::zrangebyscore(key, min, max))
+    pub fn zrangebyscore<K0: ToRedisArgs>(&mut self, key: K0, min: f64, max: f64, withscores: Option<crate::generated::types::Withscores>, offset_count: Option<crate::generated::types::Limit>) -> &mut Self {
+        self.add_command(Cmd::zrangebyscore(key, min, max, withscores, offset_count))
     }
 
     /// ZRANGESTORE
@@ -2076,8 +2076,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @sortedset
     /// * @slow
-    pub fn zrangestore<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, dst: K0, src: K1, min: T0, max: T1) -> &mut Self {
-        self.add_command(Cmd::zrangestore(dst, src, min, max))
+    pub fn zrangestore<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, dst: K0, src: K1, min: T0, max: T1, sortby: Option<crate::generated::types::Sortby>, rev: Option<crate::generated::types::Rev>, offset_count: Option<crate::generated::types::Limit>) -> &mut Self {
+        self.add_command(Cmd::zrangestore(dst, src, min, max, sortby, rev, offset_count))
     }
 
     /// ZRANK
@@ -2183,8 +2183,8 @@ impl ClusterPipeline {
     /// * @sortedset
     /// * @slow
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn zrevrange<K0: ToRedisArgs>(&mut self, key: K0, start: i64, stop: i64) -> &mut Self {
-        self.add_command(Cmd::zrevrange(key, start, stop))
+    pub fn zrevrange<K0: ToRedisArgs>(&mut self, key: K0, start: i64, stop: i64, withscores: Option<crate::generated::types::Withscores>) -> &mut Self {
+        self.add_command(Cmd::zrevrange(key, start, stop, withscores))
     }
 
     /// ZREVRANGEBYLEX
@@ -2203,8 +2203,8 @@ impl ClusterPipeline {
     /// * @sortedset
     /// * @slow
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn zrevrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, max: T0, min: T1) -> &mut Self {
-        self.add_command(Cmd::zrevrangebylex(key, max, min))
+    pub fn zrevrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, max: T0, min: T1, offset_count: Option<crate::generated::types::Limit>) -> &mut Self {
+        self.add_command(Cmd::zrevrangebylex(key, max, min, offset_count))
     }
 
     /// ZREVRANGEBYSCORE
@@ -2223,8 +2223,8 @@ impl ClusterPipeline {
     /// * @sortedset
     /// * @slow
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn zrevrangebyscore<K0: ToRedisArgs>(&mut self, key: K0, max: f64, min: f64) -> &mut Self {
-        self.add_command(Cmd::zrevrangebyscore(key, max, min))
+    pub fn zrevrangebyscore<K0: ToRedisArgs>(&mut self, key: K0, max: f64, min: f64, withscores: Option<crate::generated::types::Withscores>, offset_count: Option<crate::generated::types::Limit>) -> &mut Self {
+        self.add_command(Cmd::zrevrangebyscore(key, max, min, withscores, offset_count))
     }
 
     /// ZREVRANK
@@ -2277,8 +2277,8 @@ impl ClusterPipeline {
     /// * @read
     /// * @sortedset
     /// * @slow
-    pub fn zunion<K0: ToRedisArgs>(&mut self, numkeys: i64, key: &[K0]) -> &mut Self {
-        self.add_command(Cmd::zunion(numkeys, key))
+    pub fn zunion<K0: ToRedisArgs>(&mut self, numkeys: i64, key: &[K0], weight: Option<&[crate::generated::types::Weights]>, aggregate: Option<crate::generated::types::Aggregate>, withscores: Option<crate::generated::types::Withscores>) -> &mut Self {
+        self.add_command(Cmd::zunion(numkeys, key, weight, aggregate, withscores))
     }
 
     /// ZUNIONSTORE
@@ -2296,8 +2296,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @sortedset
     /// * @slow
-    pub fn zunionstore<K0: ToRedisArgs, K1: ToRedisArgs>(&mut self, destination: K0, numkeys: i64, key: &[K1]) -> &mut Self {
-        self.add_command(Cmd::zunionstore(destination, numkeys, key))
+    pub fn zunionstore<K0: ToRedisArgs, K1: ToRedisArgs>(&mut self, destination: K0, numkeys: i64, key: &[K1], weight: Option<&[crate::generated::types::Weights]>, aggregate: Option<crate::generated::types::Aggregate>) -> &mut Self {
+        self.add_command(Cmd::zunionstore(destination, numkeys, key, weight, aggregate))
     }
 
     /// HDEL
@@ -2480,7 +2480,7 @@ impl ClusterPipeline {
     /// * @hash
     /// * @fast
     #[deprecated = "Deprecated in redis since redis version 4.0.0."]
-    pub fn hmset<K0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs>(&mut self, key: K0, field_value: &[(T1, T2)]) -> &mut Self {
+    pub fn hmset<K0: ToRedisArgs>(&mut self, key: K0, field_value: &[crate::generated::types::FieldValue]) -> &mut Self {
         self.add_command(Cmd::hmset(key, field_value))
     }
 
@@ -2497,7 +2497,7 @@ impl ClusterPipeline {
     /// * @read
     /// * @hash
     /// * @slow
-    pub fn hrandfield<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, options: Option<T0>) -> &mut Self {
+    pub fn hrandfield<K0: ToRedisArgs>(&mut self, key: K0, options: Option<crate::generated::types::hrandfield::Options>) -> &mut Self {
         self.add_command(Cmd::hrandfield(key, options))
     }
 
@@ -2516,7 +2516,7 @@ impl ClusterPipeline {
     /// * @write
     /// * @hash
     /// * @fast
-    pub fn hset<K0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs>(&mut self, key: K0, field_value: &[(T1, T2)]) -> &mut Self {
+    pub fn hset<K0: ToRedisArgs>(&mut self, key: K0, field_value: &[crate::generated::types::FieldValue]) -> &mut Self {
         self.add_command(Cmd::hset(key, field_value))
     }
 
@@ -2589,7 +2589,7 @@ impl ClusterPipeline {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    pub fn psubscribe<K0: ToRedisArgs>(&mut self, pattern: &[K0]) -> &mut Self {
+    pub fn psubscribe(&mut self, pattern: &[crate::generated::types::Pattern]) -> &mut Self {
         self.add_command(Cmd::psubscribe(pattern))
     }
 
@@ -2992,8 +2992,8 @@ impl ClusterPipeline {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    pub fn client_caching(&mut self) -> &mut Self {
-        self.add_command(Cmd::client_caching())
+    pub fn client_caching(&mut self, mode: crate::generated::types::Mode) -> &mut Self {
+        self.add_command(Cmd::client_caching(mode))
     }
 
     /// CLIENT GETNAME
@@ -3102,8 +3102,8 @@ impl ClusterPipeline {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    pub fn client_list(&mut self) -> &mut Self {
-        self.add_command(Cmd::client_list())
+    pub fn client_list(&mut self, normal_master_replica_pubsub: Option<crate::generated::types::client_list::Type>, id: Option<crate::generated::types::client_list::Id>) -> &mut Self {
+        self.add_command(Cmd::client_list(normal_master_replica_pubsub, id))
     }
 
     /// CLIENT NO-EVICT
@@ -3123,8 +3123,8 @@ impl ClusterPipeline {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    pub fn client_no_evict(&mut self) -> &mut Self {
-        self.add_command(Cmd::client_no_evict())
+    pub fn client_no_evict(&mut self, enabled: crate::generated::types::Enabled) -> &mut Self {
+        self.add_command(Cmd::client_no_evict(enabled))
     }
 
     /// CLIENT PAUSE
@@ -3144,8 +3144,8 @@ impl ClusterPipeline {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    pub fn client_pause(&mut self, timeout: i64) -> &mut Self {
-        self.add_command(Cmd::client_pause(timeout))
+    pub fn client_pause(&mut self, timeout: i64, mode: Option<crate::generated::types::client_pause::Mode>) -> &mut Self {
+        self.add_command(Cmd::client_pause(timeout, mode))
     }
 
     /// CLIENT REPLY
@@ -3162,8 +3162,8 @@ impl ClusterPipeline {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    pub fn client_reply(&mut self) -> &mut Self {
-        self.add_command(Cmd::client_reply())
+    pub fn client_reply(&mut self, on_off_skip: crate::generated::types::OnOffSkip) -> &mut Self {
+        self.add_command(Cmd::client_reply(on_off_skip))
     }
 
     /// CLIENT SETNAME
@@ -3198,8 +3198,8 @@ impl ClusterPipeline {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    pub fn client_tracking(&mut self) -> &mut Self {
-        self.add_command(Cmd::client_tracking())
+    pub fn client_tracking(&mut self, status: crate::generated::types::Status, client_id: Option<crate::generated::types::Redirect>, prefix: Option<&[crate::generated::types::Prefix]>, bcast: Option<crate::generated::types::Bcast>, optin: Option<crate::generated::types::Optin>, optout: Option<crate::generated::types::Optout>, noloop: Option<crate::generated::types::Noloop>) -> &mut Self {
+        self.add_command(Cmd::client_tracking(status, client_id, prefix, bcast, optin, optout, noloop))
     }
 
     /// CLIENT TRACKINGINFO
@@ -3237,8 +3237,8 @@ impl ClusterPipeline {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    pub fn client_unblock(&mut self, client_id: i64) -> &mut Self {
-        self.add_command(Cmd::client_unblock(client_id))
+    pub fn client_unblock(&mut self, client_id: i64, timeout_error: Option<crate::generated::types::TimeoutError>) -> &mut Self {
+        self.add_command(Cmd::client_unblock(client_id, timeout_error))
     }
 
     /// CLIENT UNPAUSE
@@ -3295,7 +3295,7 @@ impl ClusterPipeline {
     /// ACL Categories:
     /// * @fast
     /// * @connection
-    pub fn hello<T0: ToRedisArgs>(&mut self, arguments: Option<T0>) -> &mut Self {
+    pub fn hello(&mut self, arguments: Option<crate::generated::types::Arguments>) -> &mut Self {
         self.add_command(Cmd::hello(arguments))
     }
 
@@ -3574,8 +3574,8 @@ impl ClusterPipeline {
     /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    pub fn acl_log(&mut self) -> &mut Self {
-        self.add_command(Cmd::acl_log())
+    pub fn acl_log(&mut self, operation: Option<crate::generated::types::Operation>) -> &mut Self {
+        self.add_command(Cmd::acl_log(operation))
     }
 
     /// ACL SAVE
@@ -3697,8 +3697,8 @@ impl ClusterPipeline {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn bgsave(&mut self) -> &mut Self {
-        self.add_command(Cmd::bgsave())
+    pub fn bgsave(&mut self, schedule: Option<crate::generated::types::Schedule>) -> &mut Self {
+        self.add_command(Cmd::bgsave(schedule))
     }
 
     /// COMMAND
@@ -3833,8 +3833,8 @@ impl ClusterPipeline {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    pub fn command_list(&mut self) -> &mut Self {
-        self.add_command(Cmd::command_list())
+    pub fn command_list(&mut self, filterby: Option<crate::generated::types::Filterby>) -> &mut Self {
+        self.add_command(Cmd::command_list(filterby))
     }
 
     /// CONFIG
@@ -3866,7 +3866,7 @@ impl ClusterPipeline {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn config_get<T1: ToRedisArgs>(&mut self, parameter: &[T1]) -> &mut Self {
+    pub fn config_get(&mut self, parameter: &[crate::generated::types::Parameter]) -> &mut Self {
         self.add_command(Cmd::config_get(parameter))
     }
 
@@ -3942,7 +3942,7 @@ impl ClusterPipeline {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn config_set<T1: ToRedisArgs, T2: ToRedisArgs>(&mut self, parameter_value: &[(T1, T2)]) -> &mut Self {
+    pub fn config_set(&mut self, parameter_value: &[crate::generated::types::ParameterValue]) -> &mut Self {
         self.add_command(Cmd::config_set(parameter_value))
     }
 
@@ -3999,8 +3999,8 @@ impl ClusterPipeline {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn failover(&mut self) -> &mut Self {
-        self.add_command(Cmd::failover())
+    pub fn failover(&mut self, target: Option<crate::generated::types::To>, abort: Option<crate::generated::types::Abort>, milliseconds: Option<crate::generated::types::failover::Timeout>) -> &mut Self {
+        self.add_command(Cmd::failover(target, abort, milliseconds))
     }
 
     /// FLUSHALL
@@ -4017,8 +4017,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @slow
     /// * @dangerous
-    pub fn flushall(&mut self) -> &mut Self {
-        self.add_command(Cmd::flushall())
+    pub fn flushall(&mut self, r#async: Option<crate::generated::types::Async>) -> &mut Self {
+        self.add_command(Cmd::flushall(r#async))
     }
 
     /// FLUSHDB
@@ -4035,8 +4035,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @slow
     /// * @dangerous
-    pub fn flushdb(&mut self) -> &mut Self {
-        self.add_command(Cmd::flushdb())
+    pub fn flushdb(&mut self, r#async: Option<crate::generated::types::Async>) -> &mut Self {
+        self.add_command(Cmd::flushdb(r#async))
     }
 
     /// INFO
@@ -4236,8 +4236,8 @@ impl ClusterPipeline {
     /// ACL Categories:
     /// * @read
     /// * @fast
-    pub fn lolwut(&mut self) -> &mut Self {
-        self.add_command(Cmd::lolwut())
+    pub fn lolwut(&mut self, version: Option<crate::generated::types::Version>) -> &mut Self {
+        self.add_command(Cmd::lolwut(version))
     }
 
     /// MEMORY
@@ -4333,8 +4333,8 @@ impl ClusterPipeline {
     /// ACL Categories:
     /// * @read
     /// * @slow
-    pub fn memory_usage<K0: ToRedisArgs>(&mut self, key: K0) -> &mut Self {
-        self.add_command(Cmd::memory_usage(key))
+    pub fn memory_usage<K0: ToRedisArgs>(&mut self, key: K0, count: Option<crate::generated::types::Samples>) -> &mut Self {
+        self.add_command(Cmd::memory_usage(key, count))
     }
 
     /// MODULE
@@ -4418,8 +4418,8 @@ impl ClusterPipeline {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn module_loadex<T0: ToRedisArgs>(&mut self, path: T0) -> &mut Self {
-        self.add_command(Cmd::module_loadex(path))
+    pub fn module_loadex<T0: ToRedisArgs>(&mut self, path: T0, configs: Option<&[crate::generated::types::Config]>, args: Option<&[crate::generated::types::Args]>) -> &mut Self {
+        self.add_command(Cmd::module_loadex(path, configs, args))
     }
 
     /// MODULE UNLOAD
@@ -4536,8 +4536,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @slow
     /// * @dangerous
-    pub fn restore_asking<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, ttl: i64, serialized_value: T0) -> &mut Self {
-        self.add_command(Cmd::restore_asking(key, ttl, serialized_value))
+    pub fn restore_asking<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, ttl: i64, serialized_value: T0, replace: Option<crate::generated::types::Replace>, absttl: Option<crate::generated::types::Absttl>, seconds: Option<crate::generated::types::Idletime>, frequency: Option<crate::generated::types::Freq>) -> &mut Self {
+        self.add_command(Cmd::restore_asking(key, ttl, serialized_value, replace, absttl, seconds, frequency))
     }
 
     /// ROLE
@@ -4598,8 +4598,8 @@ impl ClusterPipeline {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn shutdown(&mut self) -> &mut Self {
-        self.add_command(Cmd::shutdown())
+    pub fn shutdown(&mut self, nosave_save: Option<crate::generated::types::NosaveSave>, now: Option<crate::generated::types::Now>, force: Option<crate::generated::types::Force>, abort: Option<crate::generated::types::Abort>) -> &mut Self {
+        self.add_command(Cmd::shutdown(nosave_save, now, force, abort))
     }
 
     /// SLAVEOF
@@ -4950,8 +4950,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @slow
     /// * @scripting
-    pub fn function_flush(&mut self) -> &mut Self {
-        self.add_command(Cmd::function_flush())
+    pub fn function_flush(&mut self, r#async: Option<crate::generated::types::Async>) -> &mut Self {
+        self.add_command(Cmd::function_flush(r#async))
     }
 
     /// FUNCTION HELP
@@ -5000,8 +5000,8 @@ impl ClusterPipeline {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    pub fn function_list(&mut self) -> &mut Self {
-        self.add_command(Cmd::function_list())
+    pub fn function_list(&mut self, library_name_pattern: Option<crate::generated::types::Libraryname>, withcode: Option<crate::generated::types::Withcode>) -> &mut Self {
+        self.add_command(Cmd::function_list(library_name_pattern, withcode))
     }
 
     /// FUNCTION LOAD
@@ -5019,8 +5019,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @slow
     /// * @scripting
-    pub fn function_load<T0: ToRedisArgs>(&mut self, function_code: T0) -> &mut Self {
-        self.add_command(Cmd::function_load(function_code))
+    pub fn function_load<T0: ToRedisArgs>(&mut self, replace: Option<crate::generated::types::Replace>, function_code: T0) -> &mut Self {
+        self.add_command(Cmd::function_load(replace, function_code))
     }
 
     /// FUNCTION RESTORE
@@ -5038,8 +5038,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @slow
     /// * @scripting
-    pub fn function_restore<T0: ToRedisArgs>(&mut self, serialized_value: T0) -> &mut Self {
-        self.add_command(Cmd::function_restore(serialized_value))
+    pub fn function_restore<T0: ToRedisArgs>(&mut self, serialized_value: T0, policy: Option<crate::generated::types::Policy>) -> &mut Self {
+        self.add_command(Cmd::function_restore(serialized_value, policy))
     }
 
     /// FUNCTION STATS
@@ -5084,8 +5084,8 @@ impl ClusterPipeline {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    pub fn script_debug(&mut self) -> &mut Self {
-        self.add_command(Cmd::script_debug())
+    pub fn script_debug(&mut self, mode: crate::generated::types::script_debug::Mode) -> &mut Self {
+        self.add_command(Cmd::script_debug(mode))
     }
 
     /// SCRIPT EXISTS
@@ -5116,8 +5116,8 @@ impl ClusterPipeline {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    pub fn script_flush(&mut self) -> &mut Self {
-        self.add_command(Cmd::script_flush())
+    pub fn script_flush(&mut self, r#async: Option<crate::generated::types::Async>) -> &mut Self {
+        self.add_command(Cmd::script_flush(r#async))
     }
 
     /// SCRIPT HELP
@@ -5327,7 +5327,7 @@ impl ClusterPipeline {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn cluster_addslotsrange(&mut self, start_slot_end_slot: &[(i64, i64)]) -> &mut Self {
+    pub fn cluster_addslotsrange(&mut self, start_slot_end_slot: &[crate::generated::types::StartSlotEndSlot]) -> &mut Self {
         self.add_command(Cmd::cluster_addslotsrange(start_slot_end_slot))
     }
 
@@ -5417,7 +5417,7 @@ impl ClusterPipeline {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn cluster_delslotsrange(&mut self, start_slot_end_slot: &[(i64, i64)]) -> &mut Self {
+    pub fn cluster_delslotsrange(&mut self, start_slot_end_slot: &[crate::generated::types::StartSlotEndSlot]) -> &mut Self {
         self.add_command(Cmd::cluster_delslotsrange(start_slot_end_slot))
     }
 
@@ -5436,8 +5436,8 @@ impl ClusterPipeline {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn cluster_failover(&mut self) -> &mut Self {
-        self.add_command(Cmd::cluster_failover())
+    pub fn cluster_failover(&mut self, options: Option<crate::generated::types::cluster_failover::Options>) -> &mut Self {
+        self.add_command(Cmd::cluster_failover(options))
     }
 
     /// CLUSTER FLUSHSLOTS
@@ -5655,8 +5655,8 @@ impl ClusterPipeline {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn cluster_reset(&mut self) -> &mut Self {
-        self.add_command(Cmd::cluster_reset())
+    pub fn cluster_reset(&mut self, hard_soft: Option<crate::generated::types::HardSoft>) -> &mut Self {
+        self.add_command(Cmd::cluster_reset(hard_soft))
     }
 
     /// CLUSTER SAVECONFIG
@@ -5712,8 +5712,8 @@ impl ClusterPipeline {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn cluster_setslot(&mut self, slot: i64) -> &mut Self {
-        self.add_command(Cmd::cluster_setslot(slot))
+    pub fn cluster_setslot(&mut self, slot: i64, subcommand: crate::generated::types::cluster_setslot::Subcommand) -> &mut Self {
+        self.add_command(Cmd::cluster_setslot(slot, subcommand))
     }
 
     /// CLUSTER SHARDS
@@ -5822,8 +5822,8 @@ impl ClusterPipeline {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    pub fn geoadd<K0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, longitude_latitude_member: &[(f64, f64, T1)]) -> &mut Self {
-        self.add_command(Cmd::geoadd(key, longitude_latitude_member))
+    pub fn geoadd<K0: ToRedisArgs>(&mut self, key: K0, condition: Option<crate::generated::types::set::Condition>, change: Option<crate::generated::types::Ch>, longitude_latitude_member: &[crate::generated::types::LongitudeLatitudeMember]) -> &mut Self {
+        self.add_command(Cmd::geoadd(key, condition, change, longitude_latitude_member))
     }
 
     /// GEODIST
@@ -5841,8 +5841,8 @@ impl ClusterPipeline {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    pub fn geodist<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, member1: T0, member2: T1) -> &mut Self {
-        self.add_command(Cmd::geodist(key, member1, member2))
+    pub fn geodist<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, member1: T0, member2: T1, unit: Option<crate::generated::types::Unit>) -> &mut Self {
+        self.add_command(Cmd::geodist(key, member1, member2, unit))
     }
 
     /// GEOHASH
@@ -5903,8 +5903,8 @@ impl ClusterPipeline {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn georadius<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, longitude: f64, latitude: f64, radius: f64, count: Option<T0>) -> &mut Self {
-        self.add_command(Cmd::georadius(key, longitude, latitude, radius, count))
+    pub fn georadius<K0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs>(&mut self, key: K0, longitude: f64, latitude: f64, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<K1>, key2: Option<K2>) -> &mut Self {
+        self.add_command(Cmd::georadius(key, longitude, latitude, radius, unit, withcoord, withdist, withhash, count, order, key1, key2))
     }
 
     /// GEORADIUSBYMEMBER
@@ -5927,8 +5927,8 @@ impl ClusterPipeline {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn georadiusbymember<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, member: T0, radius: f64, count: Option<T1>) -> &mut Self {
-        self.add_command(Cmd::georadiusbymember(key, member, radius, count))
+    pub fn georadiusbymember<K0: ToRedisArgs, T0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs>(&mut self, key: K0, member: T0, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<K1>, key2: Option<K2>) -> &mut Self {
+        self.add_command(Cmd::georadiusbymember(key, member, radius, unit, withcoord, withdist, withhash, count, order, key1, key2))
     }
 
     /// GEORADIUSBYMEMBER_RO
@@ -5949,8 +5949,8 @@ impl ClusterPipeline {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn georadiusbymember_ro<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, member: T0, radius: f64, count: Option<T1>) -> &mut Self {
-        self.add_command(Cmd::georadiusbymember_ro(key, member, radius, count))
+    pub fn georadiusbymember_ro<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, member: T0, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>) -> &mut Self {
+        self.add_command(Cmd::georadiusbymember_ro(key, member, radius, unit, withcoord, withdist, withhash, count, order))
     }
 
     /// GEORADIUS_RO
@@ -5971,8 +5971,8 @@ impl ClusterPipeline {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn georadius_ro<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, longitude: f64, latitude: f64, radius: f64, count: Option<T0>) -> &mut Self {
-        self.add_command(Cmd::georadius_ro(key, longitude, latitude, radius, count))
+    pub fn georadius_ro<K0: ToRedisArgs>(&mut self, key: K0, longitude: f64, latitude: f64, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>) -> &mut Self {
+        self.add_command(Cmd::georadius_ro(key, longitude, latitude, radius, unit, withcoord, withdist, withhash, count, order))
     }
 
     /// GEOSEARCH
@@ -5990,8 +5990,8 @@ impl ClusterPipeline {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    pub fn geosearch<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, count: Option<T0>) -> &mut Self {
-        self.add_command(Cmd::geosearch(key, count))
+    pub fn geosearch<K0: ToRedisArgs>(&mut self, key: K0, from: crate::generated::types::From, by: crate::generated::types::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>) -> &mut Self {
+        self.add_command(Cmd::geosearch(key, from, by, order, count, withcoord, withdist, withhash))
     }
 
     /// GEOSEARCHSTORE
@@ -6010,8 +6010,8 @@ impl ClusterPipeline {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    pub fn geosearchstore<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs>(&mut self, destination: K0, source: K1, count: Option<T0>) -> &mut Self {
-        self.add_command(Cmd::geosearchstore(destination, source, count))
+    pub fn geosearchstore<K0: ToRedisArgs, K1: ToRedisArgs>(&mut self, destination: K0, source: K1, from: crate::generated::types::From, by: crate::generated::types::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, storedist: Option<crate::generated::types::Storedist>) -> &mut Self {
+        self.add_command(Cmd::geosearchstore(destination, source, from, by, order, count, storedist))
     }
 
     /// XACK
@@ -6051,8 +6051,8 @@ impl ClusterPipeline {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xadd<K0: ToRedisArgs, T0: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(&mut self, key: K0, trim: Option<T0>, field_value: &[(T2, T3)]) -> &mut Self {
-        self.add_command(Cmd::xadd(key, trim, field_value))
+    pub fn xadd<K0: ToRedisArgs>(&mut self, key: K0, nomkstream: Option<crate::generated::types::Nomkstream>, trim: Option<crate::generated::types::Trim>, id_or_auto: crate::generated::types::IdOrAuto, field_value: &[crate::generated::types::FieldValue]) -> &mut Self {
+        self.add_command(Cmd::xadd(key, nomkstream, trim, id_or_auto, field_value))
     }
 
     /// XAUTOCLAIM
@@ -6071,8 +6071,8 @@ impl ClusterPipeline {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xautoclaim<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(&mut self, key: K0, group: T0, consumer: T1, min_idle_time: T2, start: T3) -> &mut Self {
-        self.add_command(Cmd::xautoclaim(key, group, consumer, min_idle_time, start))
+    pub fn xautoclaim<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(&mut self, key: K0, group: T0, consumer: T1, min_idle_time: T2, start: T3, count: Option<crate::generated::types::Count>, justid: Option<crate::generated::types::Justid>) -> &mut Self {
+        self.add_command(Cmd::xautoclaim(key, group, consumer, min_idle_time, start, count, justid))
     }
 
     /// XCLAIM
@@ -6091,8 +6091,8 @@ impl ClusterPipeline {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xclaim<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(&mut self, key: K0, group: T0, consumer: T1, min_idle_time: T2, id: &[T3]) -> &mut Self {
-        self.add_command(Cmd::xclaim(key, group, consumer, min_idle_time, id))
+    pub fn xclaim<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(&mut self, key: K0, group: T0, consumer: T1, min_idle_time: T2, id: &[T3], ms: Option<crate::generated::types::Idle>, count: Option<crate::generated::types::Retrycount>, force: Option<crate::generated::types::Force>, justid: Option<crate::generated::types::Justid>) -> &mut Self {
+        self.add_command(Cmd::xclaim(key, group, consumer, min_idle_time, id, ms, count, force, justid))
     }
 
     /// XDEL
@@ -6146,8 +6146,8 @@ impl ClusterPipeline {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xgroup_create<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, groupname: T0) -> &mut Self {
-        self.add_command(Cmd::xgroup_create(key, groupname))
+    pub fn xgroup_create<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, groupname: T0, id: crate::generated::types::xgroup_create::Id, mkstream: Option<crate::generated::types::Mkstream>, entries_read: Option<crate::generated::types::Entriesread>) -> &mut Self {
+        self.add_command(Cmd::xgroup_create(key, groupname, id, mkstream, entries_read))
     }
 
     /// XGROUP CREATECONSUMER
@@ -6242,8 +6242,8 @@ impl ClusterPipeline {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xgroup_setid<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, groupname: T0) -> &mut Self {
-        self.add_command(Cmd::xgroup_setid(key, groupname))
+    pub fn xgroup_setid<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, groupname: T0, id: crate::generated::types::xgroup_create::Id, entries_read: Option<crate::generated::types::Entriesread>) -> &mut Self {
+        self.add_command(Cmd::xgroup_setid(key, groupname, id, entries_read))
     }
 
     /// XINFO
@@ -6333,8 +6333,8 @@ impl ClusterPipeline {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xinfo_stream<K0: ToRedisArgs>(&mut self, key: K0) -> &mut Self {
-        self.add_command(Cmd::xinfo_stream(key))
+    pub fn xinfo_stream<K0: ToRedisArgs>(&mut self, key: K0, full: Option<crate::generated::types::Full>) -> &mut Self {
+        self.add_command(Cmd::xinfo_stream(key, full))
     }
 
     /// XLEN
@@ -6372,7 +6372,7 @@ impl ClusterPipeline {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xpending<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, group: T0, filters: Option<T1>) -> &mut Self {
+    pub fn xpending<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, group: T0, filters: Option<crate::generated::types::Filters>) -> &mut Self {
         self.add_command(Cmd::xpending(key, group, filters))
     }
 
@@ -6391,8 +6391,8 @@ impl ClusterPipeline {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, start: T0, end: T1) -> &mut Self {
-        self.add_command(Cmd::xrange(key, start, end))
+    pub fn xrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, start: T0, end: T1, count: Option<crate::generated::types::Count>) -> &mut Self {
+        self.add_command(Cmd::xrange(key, start, end, count))
     }
 
     /// XREAD
@@ -6413,8 +6413,8 @@ impl ClusterPipeline {
     /// * @blocking
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xread(&mut self) -> &mut Self {
-        self.add_command(Cmd::xread())
+    pub fn xread(&mut self, count: Option<crate::generated::types::Count>, milliseconds: Option<crate::generated::types::Block>, streams: crate::generated::types::Streams) -> &mut Self {
+        self.add_command(Cmd::xread(count, milliseconds, streams))
     }
 
     /// XREADGROUP
@@ -6435,8 +6435,8 @@ impl ClusterPipeline {
     /// * @blocking
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xreadgroup(&mut self) -> &mut Self {
-        self.add_command(Cmd::xreadgroup())
+    pub fn xreadgroup(&mut self, group_consumer: crate::generated::types::xreadgroup::Group, count: Option<crate::generated::types::Count>, milliseconds: Option<crate::generated::types::Block>, noack: Option<crate::generated::types::Noack>, streams: crate::generated::types::Streams) -> &mut Self {
+        self.add_command(Cmd::xreadgroup(group_consumer, count, milliseconds, noack, streams))
     }
 
     /// XREVRANGE
@@ -6454,8 +6454,8 @@ impl ClusterPipeline {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xrevrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, end: T0, start: T1) -> &mut Self {
-        self.add_command(Cmd::xrevrange(key, end, start))
+    pub fn xrevrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, end: T0, start: T1, count: Option<crate::generated::types::Count>) -> &mut Self {
+        self.add_command(Cmd::xrevrange(key, end, start, count))
     }
 
     /// XSETID
@@ -6475,8 +6475,8 @@ impl ClusterPipeline {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xsetid<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, last_id: T0) -> &mut Self {
-        self.add_command(Cmd::xsetid(key, last_id))
+    pub fn xsetid<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, last_id: T0, entries_added: Option<crate::generated::types::Entriesadded>, max_deleted_entry_id: Option<crate::generated::types::Maxdeletedid>) -> &mut Self {
+        self.add_command(Cmd::xsetid(key, last_id, entries_added, max_deleted_entry_id))
     }
 
     /// XTRIM
@@ -6494,7 +6494,7 @@ impl ClusterPipeline {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xtrim<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, trim: T0) -> &mut Self {
+    pub fn xtrim<K0: ToRedisArgs>(&mut self, key: K0, trim: crate::generated::types::Trim) -> &mut Self {
         self.add_command(Cmd::xtrim(key, trim))
     }
 
@@ -6511,7 +6511,7 @@ impl ClusterPipeline {
     /// * @read
     /// * @bitmap
     /// * @slow
-    pub fn bitcount<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, index: Option<T0>) -> &mut Self {
+    pub fn bitcount<K0: ToRedisArgs>(&mut self, key: K0, index: Option<crate::generated::types::bitcount::Index>) -> &mut Self {
         self.add_command(Cmd::bitcount(key, index))
     }
 
@@ -6530,8 +6530,8 @@ impl ClusterPipeline {
     /// * @write
     /// * @bitmap
     /// * @slow
-    pub fn bitfield<K0: ToRedisArgs>(&mut self, key: K0) -> &mut Self {
-        self.add_command(Cmd::bitfield(key))
+    pub fn bitfield<K0: ToRedisArgs>(&mut self, key: K0, operation: &[crate::generated::types::bitfield::Operation]) -> &mut Self {
+        self.add_command(Cmd::bitfield(key, operation))
     }
 
     /// BITFIELD_RO
@@ -6548,8 +6548,8 @@ impl ClusterPipeline {
     /// * @read
     /// * @bitmap
     /// * @fast
-    pub fn bitfield_ro<K0: ToRedisArgs>(&mut self, key: K0) -> &mut Self {
-        self.add_command(Cmd::bitfield_ro(key))
+    pub fn bitfield_ro<K0: ToRedisArgs>(&mut self, key: K0, encoding_offset: &[crate::generated::types::bitfield_ro::Get]) -> &mut Self {
+        self.add_command(Cmd::bitfield_ro(key, encoding_offset))
     }
 
     /// BITOP
@@ -6583,7 +6583,7 @@ impl ClusterPipeline {
     /// * @read
     /// * @bitmap
     /// * @slow
-    pub fn bitpos<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, bit: i64, index: Option<T0>) -> &mut Self {
+    pub fn bitpos<K0: ToRedisArgs>(&mut self, key: K0, bit: i64, index: Option<crate::generated::types::bitpos::Index>) -> &mut Self {
         self.add_command(Cmd::bitpos(key, bit, index))
     }
 

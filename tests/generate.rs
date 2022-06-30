@@ -19,7 +19,12 @@ async fn sync_command_json() {
 fn generated_code_is_fresh() {
     let tmp_dir = tempfile::tempdir().unwrap();
     fs::create_dir_all(&tmp_dir).unwrap();
-    redis_codegen::generate_commands(&"docs/commands.json", Some(&tmp_dir)).unwrap();
+    redis_codegen::generate_commands(
+        &"docs/commands.json",
+        Some(&tmp_dir),
+        "crate::generated::types".to_owned(),
+    )
+    .unwrap();
 
     let mut modules = Vec::new();
     for entry in fs::read_dir(&tmp_dir).unwrap() {
@@ -63,12 +68,13 @@ fn generated_code_is_fresh() {
         .collect::<Vec<_>>();
 
     // Compare the old version and new version and fail the test if they're different.
-
-    if versions[0] != versions[1] {
-        let _ = fs::remove_dir_all(SOURCE_DIR);
-        fs::rename(tmp_dir, SOURCE_DIR).unwrap();
-        panic!("generated code in the repository is outdated, updating...");
+    if versions[0] == versions[1] {
+        return;
     }
+
+    let _ = fs::remove_dir_all(SOURCE_DIR);
+    fs::rename(tmp_dir, SOURCE_DIR).unwrap();
+    panic!("generated code in the repository is outdated, updating...");
 }
 
 const BASE_URI: &str = "https://raw.githubusercontent.com/redis/redis-doc/master/commands.json";

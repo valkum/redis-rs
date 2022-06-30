@@ -1,17 +1,17 @@
-use super::{commands::Command, constants::append_constant_docs, GenerationConfig, Generator};
+use super::{commands::Command, GenerationConfig, Generator};
 use crate::commands::CommandDefinition;
 
-pub(crate) struct CommandImpl {
-    pub(crate) config: GenerationConfig,
+pub(crate) struct CommandImpl<'a> {
+    pub(crate) config: &'a GenerationConfig<'a>,
 }
 
-impl CommandImpl {
-    pub fn new(config: GenerationConfig) -> Self {
+impl<'a> CommandImpl<'a> {
+    pub fn new(config: &'a GenerationConfig) -> Self {
         Self { config }
     }
 }
 
-impl Generator for CommandImpl {
+impl Generator for CommandImpl<'_> {
     fn generate(
         &self,
         generator: &mut super::CodeGenerator,
@@ -23,7 +23,7 @@ impl Generator for CommandImpl {
 
         generator.depth += 1;
         for &(command_name, definition) in commands {
-            let command = Command::new(command_name.to_owned(), definition, &self.config);
+            let command = Command::new(command_name.to_owned(), definition, self.config);
             if !super::BLACKLIST.contains(&command_name) {
                 self.append_command(generator, &command);
                 generator.buf.push('\n')
@@ -34,7 +34,7 @@ impl Generator for CommandImpl {
     }
 }
 
-impl CommandImpl {
+impl CommandImpl<'_> {
     fn append_imports(&self, generator: &mut super::CodeGenerator) {
         generator.push_line("#![cfg_attr(rustfmt, rustfmt_skip)]");
         generator.push_line("use crate::cmd::{cmd, Cmd};");
@@ -94,7 +94,12 @@ impl CommandImpl {
 
     /// Appends the function body. Generates:
     /// ```
-    /// ::std::mem::replace($body, Cmd::new())
+    /// let mut rv = Cmd::new();
+    /// rv.arg("command");
+    /// ...
+    /// rv.arg(arg);
+    /// ...
+    /// rv
     /// ```
     fn append_fn_body(&self, generator: &mut super::CodeGenerator, command: &Command) {
         generator.push_line("let mut rv = Cmd::new();");
@@ -103,7 +108,5 @@ impl CommandImpl {
             generator.push_line(&format!("rv.arg({});", arg.name));
         }
         generator.push_line("rv");
-        // TODO does this work without the replace?
-        // generator.push_line(&format!("::std::mem::replace(rv, Cmd::new())"));
     }
 }

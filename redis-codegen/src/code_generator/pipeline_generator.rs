@@ -8,16 +8,16 @@ use super::{
     GenerationConfig, Generator,
 };
 
-pub(crate) struct PipelineImpl {
-    pub(crate) config: GenerationConfig,
+pub(crate) struct PipelineImpl<'a> {
+    pub(crate) config: &'a GenerationConfig<'a>,
 }
-impl PipelineImpl {
-    pub fn new(config: GenerationConfig) -> Self {
+impl<'a> PipelineImpl<'a> {
+    pub fn new(config: &'a GenerationConfig) -> Self {
         Self { config }
     }
 }
 
-impl Generator for PipelineImpl {
+impl Generator for PipelineImpl<'_> {
     fn generate(
         &self,
         generator: &mut super::CodeGenerator,
@@ -29,7 +29,7 @@ impl Generator for PipelineImpl {
 
         generator.depth += 1;
         for &(command_name, definition) in commands {
-            let command = Command::new(command_name.to_owned(), definition, &self.config);
+            let command = Command::new(command_name.to_owned(), definition, self.config);
             if !super::BLACKLIST.contains(&command_name) {
                 self.append_command(generator, &command);
                 generator.buf.push('\n')
@@ -40,7 +40,7 @@ impl Generator for PipelineImpl {
     }
 }
 
-impl PipelineImpl {
+impl<'a> PipelineImpl<'a> {
     fn append_imports(&self, generator: &mut super::CodeGenerator) {
         generator.push_line("#![cfg_attr(rustfmt, rustfmt_skip)]");
         generator.push_line("#[allow(deprecated)]");
@@ -105,19 +105,9 @@ impl PipelineImpl {
 
     /// Appends the function body. Generates:
     /// ```
-    /// self.add_command(::std::mem::replace($body, Cmd::new()))
+    /// self.add_command(Cmd::command(args)))
     /// ```
     fn append_fn_body(&self, generator: &mut super::CodeGenerator, command: &Command) {
-        // generator.push_line("let mut rv = Cmd::new();");
-        // generator.push_line(&format!("rv.arg(\"{}\");", command.command()));
-        // for arg in command.arguments() {
-        //     generator.push_line(&format!("rv.arg({});", arg.name));
-        // }
-        // generator.push_line("rv");
-        // // TODO does this work without the replace?
-        // // generator.push_line(&format!("let rv = ::std::mem::replace(rv, Cmd::new())"));
-        // generator.push_line("self.add_command(rv)");
-        // ::std::mem::replace($body, Cmd::new()) is basically Cmd::$fn_name
         generator.push_line(&format!(
             "self.add_command(Cmd::{}({}))",
             command.fn_name(),

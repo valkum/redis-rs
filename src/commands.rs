@@ -21,7 +21,7 @@ use crate::acl;
 ///
 /// These are not generated, as the redis commands.json currently does not mark the return types of the commands.
 /// TODO: can we improve the FromRedisValue to always set the cursor and let the caller decide if they want to use IntoIter or a Into concrete conversion or is this a bad idea? Is this even possible.
-/// Needs some experimantation, I guess.
+/// Needs some experimentation, I guess.
 pub trait IteratorCommands: ConnectionLike + Sized {
     /// Incrementally iterate the keys space.
     #[inline]

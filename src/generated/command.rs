@@ -17,11 +17,13 @@ impl Cmd {
     /// * @keyspace
     /// * @write
     /// * @slow
-    pub fn copy<K0: ToRedisArgs, K1: ToRedisArgs>(source: K0, destination: K1) -> Self {
+    pub fn copy<K0: ToRedisArgs, K1: ToRedisArgs>(source: K0, destination: K1, destination_db: Option<crate::generated::types::Db>, replace: Option<crate::generated::types::Replace>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("COPY");
         rv.arg(source);
         rv.arg(destination);
+        rv.arg(destination_db);
+        rv.arg(replace);
         rv
     }
 
@@ -100,11 +102,12 @@ impl Cmd {
     /// * @keyspace
     /// * @write
     /// * @fast
-    pub fn expire<K0: ToRedisArgs>(key: K0, seconds: i64) -> Self {
+    pub fn expire<K0: ToRedisArgs>(key: K0, seconds: i64, condition: Option<crate::generated::types::Condition>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("EXPIRE");
         rv.arg(key);
         rv.arg(seconds);
+        rv.arg(condition);
         rv
     }
 
@@ -122,10 +125,11 @@ impl Cmd {
     /// * @keyspace
     /// * @write
     /// * @fast
-    pub fn expireat<K0: ToRedisArgs>(key: K0) -> Self {
+    pub fn expireat<K0: ToRedisArgs>(key: K0, condition: Option<crate::generated::types::Condition>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("EXPIREAT");
         rv.arg(key);
+        rv.arg(condition);
         rv
     }
 
@@ -186,13 +190,18 @@ impl Cmd {
     /// * @write
     /// * @slow
     /// * @dangerous
-    pub fn migrate<T0: ToRedisArgs>(host: T0, port: i64, destination_db: i64, timeout: i64) -> Self {
+    pub fn migrate<T0: ToRedisArgs, K0: ToRedisArgs>(host: T0, port: i64, key_or_empty_string: crate::generated::types::KeyOrEmptyString, destination_db: i64, timeout: i64, copy: Option<crate::generated::types::CopyArg>, replace: Option<crate::generated::types::Replace>, authentication: Option<crate::generated::types::Authentication>, key: Option<&[K0]>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("MIGRATE");
         rv.arg(host);
         rv.arg(port);
+        rv.arg(key_or_empty_string);
         rv.arg(destination_db);
         rv.arg(timeout);
+        rv.arg(copy);
+        rv.arg(replace);
+        rv.arg(authentication);
+        rv.arg(key);
         rv
     }
 
@@ -352,11 +361,12 @@ impl Cmd {
     /// * @keyspace
     /// * @write
     /// * @fast
-    pub fn pexpire<K0: ToRedisArgs>(key: K0, milliseconds: i64) -> Self {
+    pub fn pexpire<K0: ToRedisArgs>(key: K0, milliseconds: i64, condition: Option<crate::generated::types::Condition>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("PEXPIRE");
         rv.arg(key);
         rv.arg(milliseconds);
+        rv.arg(condition);
         rv
     }
 
@@ -374,10 +384,11 @@ impl Cmd {
     /// * @keyspace
     /// * @write
     /// * @fast
-    pub fn pexpireat<K0: ToRedisArgs>(key: K0) -> Self {
+    pub fn pexpireat<K0: ToRedisArgs>(key: K0, condition: Option<crate::generated::types::Condition>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("PEXPIREAT");
         rv.arg(key);
+        rv.arg(condition);
         rv
     }
 
@@ -500,12 +511,16 @@ impl Cmd {
     /// * @write
     /// * @slow
     /// * @dangerous
-    pub fn restore<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, ttl: i64, serialized_value: T0) -> Self {
+    pub fn restore<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, ttl: i64, serialized_value: T0, replace: Option<crate::generated::types::Replace>, absttl: Option<crate::generated::types::Absttl>, seconds: Option<crate::generated::types::Idletime>, frequency: Option<crate::generated::types::Freq>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("RESTORE");
         rv.arg(key);
         rv.arg(ttl);
         rv.arg(serialized_value);
+        rv.arg(replace);
+        rv.arg(absttl);
+        rv.arg(seconds);
+        rv.arg(frequency);
         rv
     }
 
@@ -527,10 +542,16 @@ impl Cmd {
     /// * @list
     /// * @slow
     /// * @dangerous
-    pub fn sort<K0: ToRedisArgs>(key: K0) -> Self {
+    pub fn sort<K0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs, K3: ToRedisArgs>(key: K0, pattern: Option<K1>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[K2]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>, destination: Option<K3>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("SORT");
         rv.arg(key);
+        rv.arg(pattern);
+        rv.arg(offset_count);
+        rv.arg(pattern1);
+        rv.arg(order);
+        rv.arg(sorting);
+        rv.arg(destination);
         rv
     }
 
@@ -551,10 +572,15 @@ impl Cmd {
     /// * @list
     /// * @slow
     /// * @dangerous
-    pub fn sort_ro<K0: ToRedisArgs>(key: K0) -> Self {
+    pub fn sort_ro<K0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs>(key: K0, pattern: Option<K1>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[K2]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("SORT_RO");
         rv.arg(key);
+        rv.arg(pattern);
+        rv.arg(offset_count);
+        rv.arg(pattern1);
+        rv.arg(order);
+        rv.arg(sorting);
         rv
     }
 
@@ -786,10 +812,11 @@ impl Cmd {
     /// * @write
     /// * @string
     /// * @fast
-    pub fn getex<K0: ToRedisArgs>(key: K0) -> Self {
+    pub fn getex<K0: ToRedisArgs>(key: K0, expiration: Option<crate::generated::types::Expiration>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("GETEX");
         rv.arg(key);
+        rv.arg(expiration);
         rv
     }
 
@@ -922,11 +949,15 @@ impl Cmd {
     /// * @read
     /// * @string
     /// * @slow
-    pub fn lcs<K0: ToRedisArgs, K1: ToRedisArgs>(key1: K0, key2: K1) -> Self {
+    pub fn lcs<K0: ToRedisArgs, K1: ToRedisArgs>(key1: K0, key2: K1, len: Option<crate::generated::types::Len>, idx: Option<crate::generated::types::Idx>, len1: Option<crate::generated::types::Minmatchlen>, withmatchlen: Option<crate::generated::types::Withmatchlen>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("LCS");
         rv.arg(key1);
         rv.arg(key2);
+        rv.arg(len);
+        rv.arg(idx);
+        rv.arg(len1);
+        rv.arg(withmatchlen);
         rv
     }
 
@@ -965,7 +996,7 @@ impl Cmd {
     /// * @write
     /// * @string
     /// * @slow
-    pub fn mset<K0: ToRedisArgs, T1: ToRedisArgs>(key_value: &[(K0, T1)]) -> Self {
+    pub fn mset(key_value: &[crate::generated::types::KeyValue]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("MSET");
         rv.arg(key_value);
@@ -986,7 +1017,7 @@ impl Cmd {
     /// * @write
     /// * @string
     /// * @slow
-    pub fn msetnx<K0: ToRedisArgs, T1: ToRedisArgs>(key_value: &[(K0, T1)]) -> Self {
+    pub fn msetnx(key_value: &[crate::generated::types::KeyValue]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("MSETNX");
         rv.arg(key_value);
@@ -1031,11 +1062,14 @@ impl Cmd {
     /// * @write
     /// * @string
     /// * @slow
-    pub fn set<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, value: T0) -> Self {
+    pub fn set<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, value: T0, condition: Option<crate::generated::types::set::Condition>, get: Option<crate::generated::types::Get>, expiration: Option<crate::generated::types::set::Expiration>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("SET");
         rv.arg(key);
         rv.arg(value);
+        rv.arg(condition);
+        rv.arg(get);
+        rv.arg(expiration);
         rv
     }
 
@@ -1171,11 +1205,13 @@ impl Cmd {
     /// * @list
     /// * @slow
     /// * @blocking
-    pub fn blmove<K0: ToRedisArgs, K1: ToRedisArgs>(source: K0, destination: K1, timeout: f64) -> Self {
+    pub fn blmove<K0: ToRedisArgs, K1: ToRedisArgs>(source: K0, destination: K1, wherefrom: crate::generated::types::Wherefrom, whereto: crate::generated::types::Whereto, timeout: f64) -> Self {
         let mut rv = Cmd::new();
         rv.arg("BLMOVE");
         rv.arg(source);
         rv.arg(destination);
+        rv.arg(wherefrom);
+        rv.arg(whereto);
         rv.arg(timeout);
         rv
     }
@@ -1196,12 +1232,14 @@ impl Cmd {
     /// * @list
     /// * @slow
     /// * @blocking
-    pub fn blmpop<K0: ToRedisArgs>(timeout: f64, numkeys: i64, key: &[K0]) -> Self {
+    pub fn blmpop<K0: ToRedisArgs>(timeout: f64, numkeys: i64, key: &[K0], r#where: crate::generated::types::Where, count: Option<crate::generated::types::Count>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("BLMPOP");
         rv.arg(timeout);
         rv.arg(numkeys);
         rv.arg(key);
+        rv.arg(r#where);
+        rv.arg(count);
         rv
     }
 
@@ -1317,10 +1355,11 @@ impl Cmd {
     /// * @write
     /// * @list
     /// * @slow
-    pub fn linsert<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, pivot: T0, element: T1) -> Self {
+    pub fn linsert<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, r#where: crate::generated::types::linsert::Where, pivot: T0, element: T1) -> Self {
         let mut rv = Cmd::new();
         rv.arg("LINSERT");
         rv.arg(key);
+        rv.arg(r#where);
         rv.arg(pivot);
         rv.arg(element);
         rv
@@ -1361,11 +1400,13 @@ impl Cmd {
     /// * @write
     /// * @list
     /// * @slow
-    pub fn lmove<K0: ToRedisArgs, K1: ToRedisArgs>(source: K0, destination: K1) -> Self {
+    pub fn lmove<K0: ToRedisArgs, K1: ToRedisArgs>(source: K0, destination: K1, wherefrom: crate::generated::types::Wherefrom, whereto: crate::generated::types::Whereto) -> Self {
         let mut rv = Cmd::new();
         rv.arg("LMOVE");
         rv.arg(source);
         rv.arg(destination);
+        rv.arg(wherefrom);
+        rv.arg(whereto);
         rv
     }
 
@@ -1383,11 +1424,13 @@ impl Cmd {
     /// * @write
     /// * @list
     /// * @slow
-    pub fn lmpop<K0: ToRedisArgs>(numkeys: i64, key: &[K0]) -> Self {
+    pub fn lmpop<K0: ToRedisArgs>(numkeys: i64, key: &[K0], r#where: crate::generated::types::Where, count: Option<crate::generated::types::Count>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("LMPOP");
         rv.arg(numkeys);
         rv.arg(key);
+        rv.arg(r#where);
+        rv.arg(count);
         rv
     }
 
@@ -1426,11 +1469,14 @@ impl Cmd {
     /// * @read
     /// * @list
     /// * @slow
-    pub fn lpos<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: T0) -> Self {
+    pub fn lpos<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, element: T0, rank: Option<crate::generated::types::Rank>, num_matches: Option<crate::generated::types::Count>, len: Option<crate::generated::types::Maxlen>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("LPOS");
         rv.arg(key);
         rv.arg(element);
+        rv.arg(rank);
+        rv.arg(num_matches);
+        rv.arg(len);
         rv
     }
 
@@ -1782,11 +1828,12 @@ impl Cmd {
     /// * @read
     /// * @set
     /// * @slow
-    pub fn sintercard<K0: ToRedisArgs>(numkeys: i64, key: &[K0]) -> Self {
+    pub fn sintercard<K0: ToRedisArgs>(numkeys: i64, key: &[K0], limit: Option<crate::generated::types::sintercard::Limit>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("SINTERCARD");
         rv.arg(numkeys);
         rv.arg(key);
+        rv.arg(limit);
         rv
     }
 
@@ -2022,12 +2069,14 @@ impl Cmd {
     /// * @sortedset
     /// * @slow
     /// * @blocking
-    pub fn bzmpop<K0: ToRedisArgs>(timeout: f64, numkeys: i64, key: &[K0]) -> Self {
+    pub fn bzmpop<K0: ToRedisArgs>(timeout: f64, numkeys: i64, key: &[K0], r#where: crate::generated::types::bzmpop::Where, count: Option<crate::generated::types::Count>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("BZMPOP");
         rv.arg(timeout);
         rv.arg(numkeys);
         rv.arg(key);
+        rv.arg(r#where);
+        rv.arg(count);
         rv
     }
 
@@ -2096,10 +2145,14 @@ impl Cmd {
     /// * @write
     /// * @sortedset
     /// * @fast
-    pub fn zadd<K0: ToRedisArgs, T1: ToRedisArgs>(key: K0, score_member: &[(f64, T1)]) -> Self {
+    pub fn zadd<K0: ToRedisArgs>(key: K0, condition: Option<crate::generated::types::set::Condition>, comparison: Option<crate::generated::types::Comparison>, change: Option<crate::generated::types::Ch>, increment: Option<crate::generated::types::Incr>, score_member: &[crate::generated::types::ScoreMember]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZADD");
         rv.arg(key);
+        rv.arg(condition);
+        rv.arg(comparison);
+        rv.arg(change);
+        rv.arg(increment);
         rv.arg(score_member);
         rv
     }
@@ -2162,11 +2215,12 @@ impl Cmd {
     /// * @read
     /// * @sortedset
     /// * @slow
-    pub fn zdiff<K0: ToRedisArgs>(numkeys: i64, key: &[K0]) -> Self {
+    pub fn zdiff<K0: ToRedisArgs>(numkeys: i64, key: &[K0], withscores: Option<crate::generated::types::Withscores>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZDIFF");
         rv.arg(numkeys);
         rv.arg(key);
+        rv.arg(withscores);
         rv
     }
 
@@ -2232,11 +2286,14 @@ impl Cmd {
     /// * @read
     /// * @sortedset
     /// * @slow
-    pub fn zinter<K0: ToRedisArgs>(numkeys: i64, key: &[K0]) -> Self {
+    pub fn zinter<K0: ToRedisArgs>(numkeys: i64, key: &[K0], weight: Option<&[crate::generated::types::Weights]>, aggregate: Option<crate::generated::types::Aggregate>, withscores: Option<crate::generated::types::Withscores>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZINTER");
         rv.arg(numkeys);
         rv.arg(key);
+        rv.arg(weight);
+        rv.arg(aggregate);
+        rv.arg(withscores);
         rv
     }
 
@@ -2254,11 +2311,12 @@ impl Cmd {
     /// * @read
     /// * @sortedset
     /// * @slow
-    pub fn zintercard<K0: ToRedisArgs>(numkeys: i64, key: &[K0]) -> Self {
+    pub fn zintercard<K0: ToRedisArgs>(numkeys: i64, key: &[K0], limit: Option<crate::generated::types::sintercard::Limit>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZINTERCARD");
         rv.arg(numkeys);
         rv.arg(key);
+        rv.arg(limit);
         rv
     }
 
@@ -2277,12 +2335,14 @@ impl Cmd {
     /// * @write
     /// * @sortedset
     /// * @slow
-    pub fn zinterstore<K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, numkeys: i64, key: &[K1]) -> Self {
+    pub fn zinterstore<K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, numkeys: i64, key: &[K1], weight: Option<&[crate::generated::types::Weights]>, aggregate: Option<crate::generated::types::Aggregate>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZINTERSTORE");
         rv.arg(destination);
         rv.arg(numkeys);
         rv.arg(key);
+        rv.arg(weight);
+        rv.arg(aggregate);
         rv
     }
 
@@ -2323,11 +2383,13 @@ impl Cmd {
     /// * @write
     /// * @sortedset
     /// * @slow
-    pub fn zmpop<K0: ToRedisArgs>(numkeys: i64, key: &[K0]) -> Self {
+    pub fn zmpop<K0: ToRedisArgs>(numkeys: i64, key: &[K0], r#where: crate::generated::types::bzmpop::Where, count: Option<crate::generated::types::Count>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZMPOP");
         rv.arg(numkeys);
         rv.arg(key);
+        rv.arg(r#where);
+        rv.arg(count);
         rv
     }
 
@@ -2410,7 +2472,7 @@ impl Cmd {
     /// * @read
     /// * @sortedset
     /// * @slow
-    pub fn zrandmember<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, options: Option<T0>) -> Self {
+    pub fn zrandmember<K0: ToRedisArgs>(key: K0, options: Option<crate::generated::types::Options>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZRANDMEMBER");
         rv.arg(key);
@@ -2431,12 +2493,16 @@ impl Cmd {
     /// * @read
     /// * @sortedset
     /// * @slow
-    pub fn zrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1) -> Self {
+    pub fn zrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1, sortby: Option<crate::generated::types::Sortby>, rev: Option<crate::generated::types::Rev>, offset_count: Option<crate::generated::types::Limit>, withscores: Option<crate::generated::types::Withscores>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZRANGE");
         rv.arg(key);
         rv.arg(min);
         rv.arg(max);
+        rv.arg(sortby);
+        rv.arg(rev);
+        rv.arg(offset_count);
+        rv.arg(withscores);
         rv
     }
 
@@ -2456,12 +2522,13 @@ impl Cmd {
     /// * @sortedset
     /// * @slow
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn zrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1) -> Self {
+    pub fn zrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1, offset_count: Option<crate::generated::types::Limit>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZRANGEBYLEX");
         rv.arg(key);
         rv.arg(min);
         rv.arg(max);
+        rv.arg(offset_count);
         rv
     }
 
@@ -2481,12 +2548,14 @@ impl Cmd {
     /// * @sortedset
     /// * @slow
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn zrangebyscore<K0: ToRedisArgs>(key: K0, min: f64, max: f64) -> Self {
+    pub fn zrangebyscore<K0: ToRedisArgs>(key: K0, min: f64, max: f64, withscores: Option<crate::generated::types::Withscores>, offset_count: Option<crate::generated::types::Limit>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZRANGEBYSCORE");
         rv.arg(key);
         rv.arg(min);
         rv.arg(max);
+        rv.arg(withscores);
+        rv.arg(offset_count);
         rv
     }
 
@@ -2504,13 +2573,16 @@ impl Cmd {
     /// * @write
     /// * @sortedset
     /// * @slow
-    pub fn zrangestore<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(dst: K0, src: K1, min: T0, max: T1) -> Self {
+    pub fn zrangestore<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(dst: K0, src: K1, min: T0, max: T1, sortby: Option<crate::generated::types::Sortby>, rev: Option<crate::generated::types::Rev>, offset_count: Option<crate::generated::types::Limit>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZRANGESTORE");
         rv.arg(dst);
         rv.arg(src);
         rv.arg(min);
         rv.arg(max);
+        rv.arg(sortby);
+        rv.arg(rev);
+        rv.arg(offset_count);
         rv
     }
 
@@ -2640,12 +2712,13 @@ impl Cmd {
     /// * @sortedset
     /// * @slow
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn zrevrange<K0: ToRedisArgs>(key: K0, start: i64, stop: i64) -> Self {
+    pub fn zrevrange<K0: ToRedisArgs>(key: K0, start: i64, stop: i64, withscores: Option<crate::generated::types::Withscores>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZREVRANGE");
         rv.arg(key);
         rv.arg(start);
         rv.arg(stop);
+        rv.arg(withscores);
         rv
     }
 
@@ -2665,12 +2738,13 @@ impl Cmd {
     /// * @sortedset
     /// * @slow
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn zrevrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, max: T0, min: T1) -> Self {
+    pub fn zrevrangebylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, max: T0, min: T1, offset_count: Option<crate::generated::types::Limit>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZREVRANGEBYLEX");
         rv.arg(key);
         rv.arg(max);
         rv.arg(min);
+        rv.arg(offset_count);
         rv
     }
 
@@ -2690,12 +2764,14 @@ impl Cmd {
     /// * @sortedset
     /// * @slow
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn zrevrangebyscore<K0: ToRedisArgs>(key: K0, max: f64, min: f64) -> Self {
+    pub fn zrevrangebyscore<K0: ToRedisArgs>(key: K0, max: f64, min: f64, withscores: Option<crate::generated::types::Withscores>, offset_count: Option<crate::generated::types::Limit>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZREVRANGEBYSCORE");
         rv.arg(key);
         rv.arg(max);
         rv.arg(min);
+        rv.arg(withscores);
+        rv.arg(offset_count);
         rv
     }
 
@@ -2757,11 +2833,14 @@ impl Cmd {
     /// * @read
     /// * @sortedset
     /// * @slow
-    pub fn zunion<K0: ToRedisArgs>(numkeys: i64, key: &[K0]) -> Self {
+    pub fn zunion<K0: ToRedisArgs>(numkeys: i64, key: &[K0], weight: Option<&[crate::generated::types::Weights]>, aggregate: Option<crate::generated::types::Aggregate>, withscores: Option<crate::generated::types::Withscores>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZUNION");
         rv.arg(numkeys);
         rv.arg(key);
+        rv.arg(weight);
+        rv.arg(aggregate);
+        rv.arg(withscores);
         rv
     }
 
@@ -2780,12 +2859,14 @@ impl Cmd {
     /// * @write
     /// * @sortedset
     /// * @slow
-    pub fn zunionstore<K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, numkeys: i64, key: &[K1]) -> Self {
+    pub fn zunionstore<K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, numkeys: i64, key: &[K1], weight: Option<&[crate::generated::types::Weights]>, aggregate: Option<crate::generated::types::Aggregate>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZUNIONSTORE");
         rv.arg(destination);
         rv.arg(numkeys);
         rv.arg(key);
+        rv.arg(weight);
+        rv.arg(aggregate);
         rv
     }
 
@@ -3004,7 +3085,7 @@ impl Cmd {
     /// * @hash
     /// * @fast
     #[deprecated = "Deprecated in redis since redis version 4.0.0."]
-    pub fn hmset<K0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs>(key: K0, field_value: &[(T1, T2)]) -> Self {
+    pub fn hmset<K0: ToRedisArgs>(key: K0, field_value: &[crate::generated::types::FieldValue]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("HMSET");
         rv.arg(key);
@@ -3025,7 +3106,7 @@ impl Cmd {
     /// * @read
     /// * @hash
     /// * @slow
-    pub fn hrandfield<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, options: Option<T0>) -> Self {
+    pub fn hrandfield<K0: ToRedisArgs>(key: K0, options: Option<crate::generated::types::hrandfield::Options>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("HRANDFIELD");
         rv.arg(key);
@@ -3048,7 +3129,7 @@ impl Cmd {
     /// * @write
     /// * @hash
     /// * @fast
-    pub fn hset<K0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs>(key: K0, field_value: &[(T1, T2)]) -> Self {
+    pub fn hset<K0: ToRedisArgs>(key: K0, field_value: &[crate::generated::types::FieldValue]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("HSET");
         rv.arg(key);
@@ -3137,7 +3218,7 @@ impl Cmd {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    pub fn psubscribe<K0: ToRedisArgs>(pattern: &[K0]) -> Self {
+    pub fn psubscribe(pattern: &[crate::generated::types::Pattern]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("PSUBSCRIBE");
         rv.arg(pattern);
@@ -3601,9 +3682,10 @@ impl Cmd {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    pub fn client_caching() -> Self {
+    pub fn client_caching(mode: crate::generated::types::Mode) -> Self {
         let mut rv = Cmd::new();
         rv.arg("CLIENT CACHING");
+        rv.arg(mode);
         rv
     }
 
@@ -3723,9 +3805,11 @@ impl Cmd {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    pub fn client_list() -> Self {
+    pub fn client_list(normal_master_replica_pubsub: Option<crate::generated::types::client_list::Type>, id: Option<crate::generated::types::client_list::Id>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("CLIENT LIST");
+        rv.arg(normal_master_replica_pubsub);
+        rv.arg(id);
         rv
     }
 
@@ -3746,9 +3830,10 @@ impl Cmd {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    pub fn client_no_evict() -> Self {
+    pub fn client_no_evict(enabled: crate::generated::types::Enabled) -> Self {
         let mut rv = Cmd::new();
         rv.arg("CLIENT NO-EVICT");
+        rv.arg(enabled);
         rv
     }
 
@@ -3769,10 +3854,11 @@ impl Cmd {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    pub fn client_pause(timeout: i64) -> Self {
+    pub fn client_pause(timeout: i64, mode: Option<crate::generated::types::client_pause::Mode>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("CLIENT PAUSE");
         rv.arg(timeout);
+        rv.arg(mode);
         rv
     }
 
@@ -3790,9 +3876,10 @@ impl Cmd {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    pub fn client_reply() -> Self {
+    pub fn client_reply(on_off_skip: crate::generated::types::OnOffSkip) -> Self {
         let mut rv = Cmd::new();
         rv.arg("CLIENT REPLY");
+        rv.arg(on_off_skip);
         rv
     }
 
@@ -3831,9 +3918,16 @@ impl Cmd {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    pub fn client_tracking() -> Self {
+    pub fn client_tracking(status: crate::generated::types::Status, client_id: Option<crate::generated::types::Redirect>, prefix: Option<&[crate::generated::types::Prefix]>, bcast: Option<crate::generated::types::Bcast>, optin: Option<crate::generated::types::Optin>, optout: Option<crate::generated::types::Optout>, noloop: Option<crate::generated::types::Noloop>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("CLIENT TRACKING");
+        rv.arg(status);
+        rv.arg(client_id);
+        rv.arg(prefix);
+        rv.arg(bcast);
+        rv.arg(optin);
+        rv.arg(optout);
+        rv.arg(noloop);
         rv
     }
 
@@ -3874,10 +3968,11 @@ impl Cmd {
     /// * @slow
     /// * @dangerous
     /// * @connection
-    pub fn client_unblock(client_id: i64) -> Self {
+    pub fn client_unblock(client_id: i64, timeout_error: Option<crate::generated::types::TimeoutError>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("CLIENT UNBLOCK");
         rv.arg(client_id);
+        rv.arg(timeout_error);
         rv
     }
 
@@ -3940,7 +4035,7 @@ impl Cmd {
     /// ACL Categories:
     /// * @fast
     /// * @connection
-    pub fn hello<T0: ToRedisArgs>(arguments: Option<T0>) -> Self {
+    pub fn hello(arguments: Option<crate::generated::types::Arguments>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("HELLO");
         rv.arg(arguments);
@@ -4257,9 +4352,10 @@ impl Cmd {
     /// * @dangerous
     #[cfg(feature = "acl")]
     #[cfg_attr(docsrs, doc(cfg(feature = "acl")))]
-    pub fn acl_log() -> Self {
+    pub fn acl_log(operation: Option<crate::generated::types::Operation>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ACL LOG");
+        rv.arg(operation);
         rv
     }
 
@@ -4394,9 +4490,10 @@ impl Cmd {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn bgsave() -> Self {
+    pub fn bgsave(schedule: Option<crate::generated::types::Schedule>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("BGSAVE");
+        rv.arg(schedule);
         rv
     }
 
@@ -4548,9 +4645,10 @@ impl Cmd {
     /// ACL Categories:
     /// * @slow
     /// * @connection
-    pub fn command_list() -> Self {
+    pub fn command_list(filterby: Option<crate::generated::types::Filterby>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("COMMAND LIST");
+        rv.arg(filterby);
         rv
     }
 
@@ -4585,7 +4683,7 @@ impl Cmd {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn config_get<T1: ToRedisArgs>(parameter: &[T1]) -> Self {
+    pub fn config_get(parameter: &[crate::generated::types::Parameter]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("CONFIG GET");
         rv.arg(parameter);
@@ -4670,7 +4768,7 @@ impl Cmd {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn config_set<T1: ToRedisArgs, T2: ToRedisArgs>(parameter_value: &[(T1, T2)]) -> Self {
+    pub fn config_set(parameter_value: &[crate::generated::types::ParameterValue]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("CONFIG SET");
         rv.arg(parameter_value);
@@ -4734,9 +4832,12 @@ impl Cmd {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn failover() -> Self {
+    pub fn failover(target: Option<crate::generated::types::To>, abort: Option<crate::generated::types::Abort>, milliseconds: Option<crate::generated::types::failover::Timeout>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("FAILOVER");
+        rv.arg(target);
+        rv.arg(abort);
+        rv.arg(milliseconds);
         rv
     }
 
@@ -4754,9 +4855,10 @@ impl Cmd {
     /// * @write
     /// * @slow
     /// * @dangerous
-    pub fn flushall() -> Self {
+    pub fn flushall(r#async: Option<crate::generated::types::Async>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("FLUSHALL");
+        rv.arg(r#async);
         rv
     }
 
@@ -4774,9 +4876,10 @@ impl Cmd {
     /// * @write
     /// * @slow
     /// * @dangerous
-    pub fn flushdb() -> Self {
+    pub fn flushdb(r#async: Option<crate::generated::types::Async>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("FLUSHDB");
+        rv.arg(r#async);
         rv
     }
 
@@ -5002,9 +5105,10 @@ impl Cmd {
     /// ACL Categories:
     /// * @read
     /// * @fast
-    pub fn lolwut() -> Self {
+    pub fn lolwut(version: Option<crate::generated::types::Version>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("LOLWUT");
+        rv.arg(version);
         rv
     }
 
@@ -5113,10 +5217,11 @@ impl Cmd {
     /// ACL Categories:
     /// * @read
     /// * @slow
-    pub fn memory_usage<K0: ToRedisArgs>(key: K0) -> Self {
+    pub fn memory_usage<K0: ToRedisArgs>(key: K0, count: Option<crate::generated::types::Samples>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("MEMORY USAGE");
         rv.arg(key);
+        rv.arg(count);
         rv
     }
 
@@ -5211,10 +5316,12 @@ impl Cmd {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn module_loadex<T0: ToRedisArgs>(path: T0) -> Self {
+    pub fn module_loadex<T0: ToRedisArgs>(path: T0, configs: Option<&[crate::generated::types::Config]>, args: Option<&[crate::generated::types::Args]>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("MODULE LOADEX");
         rv.arg(path);
+        rv.arg(configs);
+        rv.arg(args);
         rv
     }
 
@@ -5347,12 +5454,16 @@ impl Cmd {
     /// * @write
     /// * @slow
     /// * @dangerous
-    pub fn restore_asking<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, ttl: i64, serialized_value: T0) -> Self {
+    pub fn restore_asking<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, ttl: i64, serialized_value: T0, replace: Option<crate::generated::types::Replace>, absttl: Option<crate::generated::types::Absttl>, seconds: Option<crate::generated::types::Idletime>, frequency: Option<crate::generated::types::Freq>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("RESTORE-ASKING");
         rv.arg(key);
         rv.arg(ttl);
         rv.arg(serialized_value);
+        rv.arg(replace);
+        rv.arg(absttl);
+        rv.arg(seconds);
+        rv.arg(frequency);
         rv
     }
 
@@ -5418,9 +5529,13 @@ impl Cmd {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn shutdown() -> Self {
+    pub fn shutdown(nosave_save: Option<crate::generated::types::NosaveSave>, now: Option<crate::generated::types::Now>, force: Option<crate::generated::types::Force>, abort: Option<crate::generated::types::Abort>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("SHUTDOWN");
+        rv.arg(nosave_save);
+        rv.arg(now);
+        rv.arg(force);
+        rv.arg(abort);
         rv
     }
 
@@ -5838,9 +5953,10 @@ impl Cmd {
     /// * @write
     /// * @slow
     /// * @scripting
-    pub fn function_flush() -> Self {
+    pub fn function_flush(r#async: Option<crate::generated::types::Async>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("FUNCTION FLUSH");
+        rv.arg(r#async);
         rv
     }
 
@@ -5894,9 +6010,11 @@ impl Cmd {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    pub fn function_list() -> Self {
+    pub fn function_list(library_name_pattern: Option<crate::generated::types::Libraryname>, withcode: Option<crate::generated::types::Withcode>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("FUNCTION LIST");
+        rv.arg(library_name_pattern);
+        rv.arg(withcode);
         rv
     }
 
@@ -5915,9 +6033,10 @@ impl Cmd {
     /// * @write
     /// * @slow
     /// * @scripting
-    pub fn function_load<T0: ToRedisArgs>(function_code: T0) -> Self {
+    pub fn function_load<T0: ToRedisArgs>(replace: Option<crate::generated::types::Replace>, function_code: T0) -> Self {
         let mut rv = Cmd::new();
         rv.arg("FUNCTION LOAD");
+        rv.arg(replace);
         rv.arg(function_code);
         rv
     }
@@ -5937,10 +6056,11 @@ impl Cmd {
     /// * @write
     /// * @slow
     /// * @scripting
-    pub fn function_restore<T0: ToRedisArgs>(serialized_value: T0) -> Self {
+    pub fn function_restore<T0: ToRedisArgs>(serialized_value: T0, policy: Option<crate::generated::types::Policy>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("FUNCTION RESTORE");
         rv.arg(serialized_value);
+        rv.arg(policy);
         rv
     }
 
@@ -5990,9 +6110,10 @@ impl Cmd {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    pub fn script_debug() -> Self {
+    pub fn script_debug(mode: crate::generated::types::script_debug::Mode) -> Self {
         let mut rv = Cmd::new();
         rv.arg("SCRIPT DEBUG");
+        rv.arg(mode);
         rv
     }
 
@@ -6027,9 +6148,10 @@ impl Cmd {
     /// ACL Categories:
     /// * @slow
     /// * @scripting
-    pub fn script_flush() -> Self {
+    pub fn script_flush(r#async: Option<crate::generated::types::Async>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("SCRIPT FLUSH");
+        rv.arg(r#async);
         rv
     }
 
@@ -6271,7 +6393,7 @@ impl Cmd {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn cluster_addslotsrange(start_slot_end_slot: &[(i64, i64)]) -> Self {
+    pub fn cluster_addslotsrange(start_slot_end_slot: &[crate::generated::types::StartSlotEndSlot]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("CLUSTER ADDSLOTSRANGE");
         rv.arg(start_slot_end_slot);
@@ -6375,7 +6497,7 @@ impl Cmd {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn cluster_delslotsrange(start_slot_end_slot: &[(i64, i64)]) -> Self {
+    pub fn cluster_delslotsrange(start_slot_end_slot: &[crate::generated::types::StartSlotEndSlot]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("CLUSTER DELSLOTSRANGE");
         rv.arg(start_slot_end_slot);
@@ -6397,9 +6519,10 @@ impl Cmd {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn cluster_failover() -> Self {
+    pub fn cluster_failover(options: Option<crate::generated::types::cluster_failover::Options>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("CLUSTER FAILOVER");
+        rv.arg(options);
         rv
     }
 
@@ -6650,9 +6773,10 @@ impl Cmd {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn cluster_reset() -> Self {
+    pub fn cluster_reset(hard_soft: Option<crate::generated::types::HardSoft>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("CLUSTER RESET");
+        rv.arg(hard_soft);
         rv
     }
 
@@ -6714,10 +6838,11 @@ impl Cmd {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn cluster_setslot(slot: i64) -> Self {
+    pub fn cluster_setslot(slot: i64, subcommand: crate::generated::types::cluster_setslot::Subcommand) -> Self {
         let mut rv = Cmd::new();
         rv.arg("CLUSTER SETSLOT");
         rv.arg(slot);
+        rv.arg(subcommand);
         rv
     }
 
@@ -6838,10 +6963,12 @@ impl Cmd {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    pub fn geoadd<K0: ToRedisArgs, T1: ToRedisArgs>(key: K0, longitude_latitude_member: &[(f64, f64, T1)]) -> Self {
+    pub fn geoadd<K0: ToRedisArgs>(key: K0, condition: Option<crate::generated::types::set::Condition>, change: Option<crate::generated::types::Ch>, longitude_latitude_member: &[crate::generated::types::LongitudeLatitudeMember]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("GEOADD");
         rv.arg(key);
+        rv.arg(condition);
+        rv.arg(change);
         rv.arg(longitude_latitude_member);
         rv
     }
@@ -6861,12 +6988,13 @@ impl Cmd {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    pub fn geodist<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, member1: T0, member2: T1) -> Self {
+    pub fn geodist<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, member1: T0, member2: T1, unit: Option<crate::generated::types::Unit>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("GEODIST");
         rv.arg(key);
         rv.arg(member1);
         rv.arg(member2);
+        rv.arg(unit);
         rv
     }
 
@@ -6936,14 +7064,21 @@ impl Cmd {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn georadius<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, longitude: f64, latitude: f64, radius: f64, count: Option<T0>) -> Self {
+    pub fn georadius<K0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs>(key: K0, longitude: f64, latitude: f64, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<K1>, key2: Option<K2>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("GEORADIUS");
         rv.arg(key);
         rv.arg(longitude);
         rv.arg(latitude);
         rv.arg(radius);
+        rv.arg(unit);
+        rv.arg(withcoord);
+        rv.arg(withdist);
+        rv.arg(withhash);
         rv.arg(count);
+        rv.arg(order);
+        rv.arg(key1);
+        rv.arg(key2);
         rv
     }
 
@@ -6967,13 +7102,20 @@ impl Cmd {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn georadiusbymember<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, member: T0, radius: f64, count: Option<T1>) -> Self {
+    pub fn georadiusbymember<K0: ToRedisArgs, T0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs>(key: K0, member: T0, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<K1>, key2: Option<K2>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("GEORADIUSBYMEMBER");
         rv.arg(key);
         rv.arg(member);
         rv.arg(radius);
+        rv.arg(unit);
+        rv.arg(withcoord);
+        rv.arg(withdist);
+        rv.arg(withhash);
         rv.arg(count);
+        rv.arg(order);
+        rv.arg(key1);
+        rv.arg(key2);
         rv
     }
 
@@ -6995,13 +7137,18 @@ impl Cmd {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn georadiusbymember_ro<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, member: T0, radius: f64, count: Option<T1>) -> Self {
+    pub fn georadiusbymember_ro<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("GEORADIUSBYMEMBER_RO");
         rv.arg(key);
         rv.arg(member);
         rv.arg(radius);
+        rv.arg(unit);
+        rv.arg(withcoord);
+        rv.arg(withdist);
+        rv.arg(withhash);
         rv.arg(count);
+        rv.arg(order);
         rv
     }
 
@@ -7023,14 +7170,19 @@ impl Cmd {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn georadius_ro<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, longitude: f64, latitude: f64, radius: f64, count: Option<T0>) -> Self {
+    pub fn georadius_ro<K0: ToRedisArgs>(key: K0, longitude: f64, latitude: f64, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("GEORADIUS_RO");
         rv.arg(key);
         rv.arg(longitude);
         rv.arg(latitude);
         rv.arg(radius);
+        rv.arg(unit);
+        rv.arg(withcoord);
+        rv.arg(withdist);
+        rv.arg(withhash);
         rv.arg(count);
+        rv.arg(order);
         rv
     }
 
@@ -7049,11 +7201,17 @@ impl Cmd {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    pub fn geosearch<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, count: Option<T0>) -> Self {
+    pub fn geosearch<K0: ToRedisArgs>(key: K0, from: crate::generated::types::From, by: crate::generated::types::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("GEOSEARCH");
         rv.arg(key);
+        rv.arg(from);
+        rv.arg(by);
+        rv.arg(order);
         rv.arg(count);
+        rv.arg(withcoord);
+        rv.arg(withdist);
+        rv.arg(withhash);
         rv
     }
 
@@ -7073,12 +7231,16 @@ impl Cmd {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    pub fn geosearchstore<K0: ToRedisArgs, K1: ToRedisArgs, T0: ToRedisArgs>(destination: K0, source: K1, count: Option<T0>) -> Self {
+    pub fn geosearchstore<K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, source: K1, from: crate::generated::types::From, by: crate::generated::types::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, storedist: Option<crate::generated::types::Storedist>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("GEOSEARCHSTORE");
         rv.arg(destination);
         rv.arg(source);
+        rv.arg(from);
+        rv.arg(by);
+        rv.arg(order);
         rv.arg(count);
+        rv.arg(storedist);
         rv
     }
 
@@ -7124,11 +7286,13 @@ impl Cmd {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xadd<K0: ToRedisArgs, T0: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(key: K0, trim: Option<T0>, field_value: &[(T2, T3)]) -> Self {
+    pub fn xadd<K0: ToRedisArgs>(key: K0, nomkstream: Option<crate::generated::types::Nomkstream>, trim: Option<crate::generated::types::Trim>, id_or_auto: crate::generated::types::IdOrAuto, field_value: &[crate::generated::types::FieldValue]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("XADD");
         rv.arg(key);
+        rv.arg(nomkstream);
         rv.arg(trim);
+        rv.arg(id_or_auto);
         rv.arg(field_value);
         rv
     }
@@ -7149,7 +7313,7 @@ impl Cmd {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xautoclaim<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(key: K0, group: T0, consumer: T1, min_idle_time: T2, start: T3) -> Self {
+    pub fn xautoclaim<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(key: K0, group: T0, consumer: T1, min_idle_time: T2, start: T3, count: Option<crate::generated::types::Count>, justid: Option<crate::generated::types::Justid>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("XAUTOCLAIM");
         rv.arg(key);
@@ -7157,6 +7321,8 @@ impl Cmd {
         rv.arg(consumer);
         rv.arg(min_idle_time);
         rv.arg(start);
+        rv.arg(count);
+        rv.arg(justid);
         rv
     }
 
@@ -7176,7 +7342,7 @@ impl Cmd {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xclaim<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(key: K0, group: T0, consumer: T1, min_idle_time: T2, id: &[T3]) -> Self {
+    pub fn xclaim<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, T2: ToRedisArgs, T3: ToRedisArgs>(key: K0, group: T0, consumer: T1, min_idle_time: T2, id: &[T3], ms: Option<crate::generated::types::Idle>, count: Option<crate::generated::types::Retrycount>, force: Option<crate::generated::types::Force>, justid: Option<crate::generated::types::Justid>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("XCLAIM");
         rv.arg(key);
@@ -7184,6 +7350,10 @@ impl Cmd {
         rv.arg(consumer);
         rv.arg(min_idle_time);
         rv.arg(id);
+        rv.arg(ms);
+        rv.arg(count);
+        rv.arg(force);
+        rv.arg(justid);
         rv
     }
 
@@ -7244,11 +7414,14 @@ impl Cmd {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xgroup_create<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, groupname: T0) -> Self {
+    pub fn xgroup_create<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, groupname: T0, id: crate::generated::types::xgroup_create::Id, mkstream: Option<crate::generated::types::Mkstream>, entries_read: Option<crate::generated::types::Entriesread>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("XGROUP CREATE");
         rv.arg(key);
         rv.arg(groupname);
+        rv.arg(id);
+        rv.arg(mkstream);
+        rv.arg(entries_read);
         rv
     }
 
@@ -7360,11 +7533,13 @@ impl Cmd {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xgroup_setid<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, groupname: T0) -> Self {
+    pub fn xgroup_setid<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, groupname: T0, id: crate::generated::types::xgroup_create::Id, entries_read: Option<crate::generated::types::Entriesread>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("XGROUP SETID");
         rv.arg(key);
         rv.arg(groupname);
+        rv.arg(id);
+        rv.arg(entries_read);
         rv
     }
 
@@ -7466,10 +7641,11 @@ impl Cmd {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xinfo_stream<K0: ToRedisArgs>(key: K0) -> Self {
+    pub fn xinfo_stream<K0: ToRedisArgs>(key: K0, full: Option<crate::generated::types::Full>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("XINFO STREAM");
         rv.arg(key);
+        rv.arg(full);
         rv
     }
 
@@ -7511,7 +7687,7 @@ impl Cmd {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xpending<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, group: T0, filters: Option<T1>) -> Self {
+    pub fn xpending<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, group: T0, filters: Option<crate::generated::types::Filters>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("XPENDING");
         rv.arg(key);
@@ -7535,12 +7711,13 @@ impl Cmd {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, start: T0, end: T1) -> Self {
+    pub fn xrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, start: T0, end: T1, count: Option<crate::generated::types::Count>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("XRANGE");
         rv.arg(key);
         rv.arg(start);
         rv.arg(end);
+        rv.arg(count);
         rv
     }
 
@@ -7562,9 +7739,12 @@ impl Cmd {
     /// * @blocking
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xread() -> Self {
+    pub fn xread(count: Option<crate::generated::types::Count>, milliseconds: Option<crate::generated::types::Block>, streams: crate::generated::types::Streams) -> Self {
         let mut rv = Cmd::new();
         rv.arg("XREAD");
+        rv.arg(count);
+        rv.arg(milliseconds);
+        rv.arg(streams);
         rv
     }
 
@@ -7586,9 +7766,14 @@ impl Cmd {
     /// * @blocking
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xreadgroup() -> Self {
+    pub fn xreadgroup(group_consumer: crate::generated::types::xreadgroup::Group, count: Option<crate::generated::types::Count>, milliseconds: Option<crate::generated::types::Block>, noack: Option<crate::generated::types::Noack>, streams: crate::generated::types::Streams) -> Self {
         let mut rv = Cmd::new();
         rv.arg("XREADGROUP");
+        rv.arg(group_consumer);
+        rv.arg(count);
+        rv.arg(milliseconds);
+        rv.arg(noack);
+        rv.arg(streams);
         rv
     }
 
@@ -7607,12 +7792,13 @@ impl Cmd {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xrevrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, end: T0, start: T1) -> Self {
+    pub fn xrevrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, end: T0, start: T1, count: Option<crate::generated::types::Count>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("XREVRANGE");
         rv.arg(key);
         rv.arg(end);
         rv.arg(start);
+        rv.arg(count);
         rv
     }
 
@@ -7633,11 +7819,13 @@ impl Cmd {
     /// * @fast
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xsetid<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, last_id: T0) -> Self {
+    pub fn xsetid<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, last_id: T0, entries_added: Option<crate::generated::types::Entriesadded>, max_deleted_entry_id: Option<crate::generated::types::Maxdeletedid>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("XSETID");
         rv.arg(key);
         rv.arg(last_id);
+        rv.arg(entries_added);
+        rv.arg(max_deleted_entry_id);
         rv
     }
 
@@ -7656,7 +7844,7 @@ impl Cmd {
     /// * @slow
     #[cfg(feature = "streams")]
     #[cfg_attr(docsrs, doc(cfg(feature = "streams")))]
-    pub fn xtrim<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, trim: T0) -> Self {
+    pub fn xtrim<K0: ToRedisArgs>(key: K0, trim: crate::generated::types::Trim) -> Self {
         let mut rv = Cmd::new();
         rv.arg("XTRIM");
         rv.arg(key);
@@ -7677,7 +7865,7 @@ impl Cmd {
     /// * @read
     /// * @bitmap
     /// * @slow
-    pub fn bitcount<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, index: Option<T0>) -> Self {
+    pub fn bitcount<K0: ToRedisArgs>(key: K0, index: Option<crate::generated::types::bitcount::Index>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("BITCOUNT");
         rv.arg(key);
@@ -7700,10 +7888,11 @@ impl Cmd {
     /// * @write
     /// * @bitmap
     /// * @slow
-    pub fn bitfield<K0: ToRedisArgs>(key: K0) -> Self {
+    pub fn bitfield<K0: ToRedisArgs>(key: K0, operation: &[crate::generated::types::bitfield::Operation]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("BITFIELD");
         rv.arg(key);
+        rv.arg(operation);
         rv
     }
 
@@ -7721,10 +7910,11 @@ impl Cmd {
     /// * @read
     /// * @bitmap
     /// * @fast
-    pub fn bitfield_ro<K0: ToRedisArgs>(key: K0) -> Self {
+    pub fn bitfield_ro<K0: ToRedisArgs>(key: K0, encoding_offset: &[crate::generated::types::bitfield_ro::Get]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("BITFIELD_RO");
         rv.arg(key);
+        rv.arg(encoding_offset);
         rv
     }
 
@@ -7764,7 +7954,7 @@ impl Cmd {
     /// * @read
     /// * @bitmap
     /// * @slow
-    pub fn bitpos<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, bit: i64, index: Option<T0>) -> Self {
+    pub fn bitpos<K0: ToRedisArgs>(key: K0, bit: i64, index: Option<crate::generated::types::bitpos::Index>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("BITPOS");
         rv.arg(key);

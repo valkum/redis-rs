@@ -6,17 +6,17 @@ use super::{
 };
 use crate::commands::CommandDefinition;
 use itertools::Itertools;
-pub(crate) struct CommandsTrait {
-    pub(crate) config: GenerationConfig,
+pub(crate) struct CommandsTrait<'a> {
+    pub(crate) config: &'a GenerationConfig<'a>,
 }
 
-impl CommandsTrait {
-    pub fn new(config: GenerationConfig) -> Self {
+impl<'a> CommandsTrait<'a> {
+    pub fn new(config: &'a GenerationConfig) -> Self {
         Self { config }
     }
 }
 
-impl Generator for CommandsTrait {
+impl Generator for CommandsTrait<'_> {
     fn generate(
         &self,
         generator: &mut super::CodeGenerator,
@@ -28,7 +28,7 @@ impl Generator for CommandsTrait {
 
         generator.depth += 1;
         for &(command_name, definition) in commands {
-            let command = Command::new(command_name.to_owned(), definition, &self.config);
+            let command = Command::new(command_name.to_owned(), definition, self.config);
             if !super::BLACKLIST.contains(&command_name) {
                 self.append_command(generator, &command);
                 generator.buf.push('\n')
@@ -47,7 +47,7 @@ impl Generator for CommandsTrait {
     }
 }
 
-impl CommandsTrait {
+impl CommandsTrait<'_> {
     fn append_imports(&self, generator: &mut super::CodeGenerator) {
         generator.push_line("#![cfg_attr(rustfmt, rustfmt_skip)]");
         generator.push_line("#[allow(deprecated)]");
