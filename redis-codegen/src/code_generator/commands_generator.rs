@@ -86,7 +86,7 @@ impl CommandsTrait<'_> {
 
         let doc_comment = Comment(alias_docs);
         // TODO: Insert redis-rs version when this gets merged
-        generator.push_line("#[deprecated(since = \"0.22.0\", note = \"With version 0.22.0 redis crate switched to a generated api. This is a deprecated old handwritten function that now aliases to the generated on and will be removed in a future update. \")]");
+        generator.push_line("#[deprecated(since = \"0.22.0\", note = \"With version 0.22.0 redis crate switched to a generated api. This is a deprecated old handwritten function that now aliases to the generated one and will be removed in a future update. \")]");
         doc_comment.append_with_indent(generator.depth, generator.buf, Default::default());
         self.append_fn_decl(generator, command, Some(alias));
 

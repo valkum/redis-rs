@@ -129,7 +129,7 @@ fn map_argument<'a>(
     }
 
     match arg.r#type {
-        ArgType::Key { key_spec_index: _ } => {
+        ArgType::Key => {
             let idx = *key_id;
             *key_id += 1;
 

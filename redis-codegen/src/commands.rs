@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::{hash_map, HashMap};
 use std::fmt;
 
@@ -10,36 +10,39 @@ impl CommandSet {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(dead_code)]
 pub struct CommandDefinition {
     pub(crate) summary: String,
     pub(crate) since: Version,
     pub(crate) group: CommandGroup,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) complexity: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) deprecated_since: Option<Version>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) replaced_by: Option<String>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub(crate) history: Vec<History>,
     #[serde(default)]
     pub(crate) acl_categories: Vec<AclCategory>,
     pub(crate) arity: Arity,
-    #[serde(default)]
-    pub(crate) key_specs: Vec<CommandKeySpec>,
-    #[serde(default)]
+    // The reference format contains the keyspec at this point. As we currently do not use this, this is ignored for now.
+    // pub(crate) key_specs: Vec<CommandKeySpec>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub(crate) arguments: Vec<CommandArgument>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub(crate) command_flags: Vec<CommandFlag>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub(crate) doc_flags: Vec<DocFlag>,
     #[serde(default)]
     pub(crate) hints: Vec<String>,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub(crate) struct Arity(i8);
 
-#[derive(Debug, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 #[serde(rename_all = "kebab-case")]
 pub(crate) enum CommandGroup {
     Generic,
@@ -85,7 +88,7 @@ impl fmt::Display for CommandGroup {
     }
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum CommandFlag {
     /// the command is an administrative command.
@@ -160,7 +163,7 @@ impl fmt::Display for CommandFlag {
     }
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum AclCategory {
     /// Administrative commands. Normal applications will never need to use these. Includes REPLICAOF, CONFIG, DEBUG, SAVE, MONITOR, ACL, SHUTDOWN, etc.
     #[serde(rename = "@admin")]
@@ -255,18 +258,17 @@ impl fmt::Display for AclCategory {
     }
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub(crate) enum DocFlag {
     Deprecated,
     Syscmd,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct History(Version, String);
 
-#[derive(Debug, Clone, Deserialize)]
-/// TODo split into Major.Minor.Patch
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct Version(String);
 
 impl fmt::Display for Version {
@@ -275,41 +277,38 @@ impl fmt::Display for Version {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
-pub(crate) struct CommandKeySpec {
-    // TODO type this
-    begin_search: serde_json::Value,
-    find_keys: serde_json::Value,
-    notes: Option<String>,
-    // TODO Flags (RW, RO, OW, RM, access, udpdate, instert, delete, not_key, incomplete, viriable_flags
-}
-
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct CommandArgument {
     pub(crate) name: String,
     #[serde(flatten)]
     pub(crate) r#type: ArgType,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) token: Option<String>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_false")]
     pub(crate) multiple: bool,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_false")]
     pub(crate) optional: bool,
 }
 
 /// The Argument Type
 ///
 /// Currently only String, Integer, Double, and Key are used to generate code
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case", tag = "type")]
 pub(crate) enum ArgType {
     String,
     Integer,
     Double,
-    Key { key_spec_index: u8 },
+    // This has key_spec_index in the reference, but we omit it, as we currently to not use it
+    Key,
     Pattern,
     UnixTime,
     PureToken,
     Oneof { arguments: Vec<CommandArgument> },
     Block { arguments: Vec<CommandArgument> },
+}
+
+// This is used only to avoid serializing false in this file
+fn is_false(b: impl std::borrow::Borrow<bool>) -> bool {
+    !b.borrow()
 }

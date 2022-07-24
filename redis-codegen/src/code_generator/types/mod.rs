@@ -294,7 +294,7 @@ impl Token {
                     variant_name,
                     VariantType::new_wrapper(redis_token, "f64".to_owned()),
                 )),
-                ArgType::Key { key_spec_index: _ } => variants.push((
+                ArgType::Key => variants.push((
                     variant_name,
                     VariantType::new_wrapper(redis_token, "String".to_owned()),
                 )),

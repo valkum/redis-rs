@@ -8,10 +8,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
+mod build_commands_json;
 mod code_generator;
 mod commands;
 mod feature_gates;
 mod ident;
+
+pub use build_commands_json::{built_commands_json, retrieve_json};
 
 pub fn generate_commands(
     spec: impl AsRef<Path>,

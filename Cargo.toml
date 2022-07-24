@@ -90,7 +90,7 @@ tokio = { version = "1", features = ["rt", "macros", "rt-multi-thread", "time"] 
 tempfile = "3.2"
 redis-codegen = { version = "0.1.0", path = "redis-codegen" }
 walkdir = "2.3.2"
-reqwest = "0.11.9"
+serde_json = "1.0.82"
 
 [[test]]
 name = "test_async"
