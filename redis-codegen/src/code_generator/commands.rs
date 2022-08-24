@@ -17,6 +17,7 @@ pub(crate) struct Command<'a> {
     docs: Vec<String>,
     group: CommandGroup,
     args: Vec<Argument<'a>>,
+    pub(crate) cursor: bool,
     pub(crate) deprecated: bool,
     pub(crate) deprecated_since: Option<String>,
 }
@@ -71,9 +72,10 @@ impl<'a> Command<'a> {
             args,
             deprecated: definition.doc_flags.contains(&DocFlag::Deprecated),
             deprecated_since: definition
-                .deprecated_since
-                .as_ref()
-                .map(ToString::to_string),
+            .deprecated_since
+            .as_ref()
+            .map(ToString::to_string),
+            cursor: definition.hints.contains(&"cursor".to_owned())
         }
     }
 

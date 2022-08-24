@@ -22,7 +22,7 @@ mod constants;
 mod pipeline_generator;
 mod types;
 
-pub static BLACKLIST: &[&str] = &["SCAN", "HSCAN", "SSCAN", "ZSCAN", "CLIENT KILL", "OBJECT"];
+pub static BLACKLIST: &[&str] = &["CLIENT KILL", "OBJECT"];
 pub static COMMAND_NAME_OVERWRITE: &[(&str, &str)] = &[("MOVE", "move_key")];
 pub static COMMAND_COMPATIBILITY: &[(&str, &str)] = &[
     ("GETDEL", "get_del"),

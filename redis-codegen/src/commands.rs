@@ -5,8 +5,14 @@ use std::fmt;
 #[derive(Debug, Clone, Deserialize)]
 pub struct CommandSet(HashMap<String, CommandDefinition>);
 impl CommandSet {
+    /// See `HashMap::iter`
     pub fn iter(&self) -> hash_map::Iter<String, CommandDefinition> {
         self.0.iter()
+    }
+
+    /// See `HashMap::get_mut`
+    pub fn get_mut(&mut self, key: &str) -> Option<&mut CommandDefinition> {
+        self.0.get_mut(key)
     }
 }
 
@@ -37,6 +43,25 @@ pub struct CommandDefinition {
     pub(crate) doc_flags: Vec<DocFlag>,
     #[serde(default)]
     pub(crate) hints: Vec<String>,
+}
+
+/// Type used to define overwrites to `CommandDefinition`
+#[derive(Debug, Clone, Deserialize)]
+#[allow(dead_code)]
+pub struct CommandDefinitionOverwrite {
+    pub(crate) summary: Option<String>,
+    pub(crate) since: Option<Version>,
+    pub(crate) group: Option<CommandGroup>,
+    pub(crate) complexity: Option<String>,
+    pub(crate) deprecated_since: Option<Version>,
+    pub(crate) replaced_by: Option<String>,
+    pub(crate) history: Option<Vec<History>>,
+    pub(crate) acl_categories: Option<Vec<AclCategory>>,
+    pub(crate) arity: Option<Arity>,
+    pub(crate) arguments: Option<Vec<CommandArgument>>,
+    pub(crate) command_flags: Option<Vec<CommandFlag>>,
+    pub(crate) doc_flags: Option<Vec<DocFlag>>,
+    pub(crate) hints: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]

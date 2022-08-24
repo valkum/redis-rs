@@ -133,10 +133,17 @@ impl CommandsTrait<'_> {
             format!("<{}>", trait_bounds.join(", "))
         };
 
-        generator.push_line(&format!(
-            "fn {command_name}{trait_bounds}({}) -> RedisResult<RV> {{",
-            args.join(", ")
-        ));
+        if command.cursor {
+            generator.push_line(&format!(
+                "fn {command_name}{trait_bounds}({}) -> RedisResult<Iter<'_, RV>> {{",
+                args.join(", ")
+            ));
+        } else {
+            generator.push_line(&format!(
+                "fn {command_name}{trait_bounds}({}) -> RedisResult<RV> {{",
+                args.join(", ")
+            ));
+        }
     }
 
     /// Appends the function body. Generates:
@@ -144,10 +151,18 @@ impl CommandsTrait<'_> {
     /// Cmd::$name($($argname),*).query(self)
     /// ```
     fn append_fn_body(&self, generator: &mut super::CodeGenerator, command: &Command) {
-        generator.push_line(&format!(
-            "Cmd::{}({}).query(self)",
-            command.fn_name(),
-            command.arguments().map(|arg| &arg.name).join(", ")
-        ));
+        if command.cursor {
+            generator.push_line(&format!(
+                "Cmd::{}({}).iter(self)",
+                command.fn_name(),
+                command.arguments().map(|arg| &arg.name).join(", ")
+            ));
+        } else {
+            generator.push_line(&format!(
+                "Cmd::{}({}).query(self)",
+                command.fn_name(),
+                command.arguments().map(|arg| &arg.name).join(", ")
+            ));
+        }
     }
 }

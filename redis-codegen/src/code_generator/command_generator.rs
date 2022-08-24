@@ -104,9 +104,14 @@ impl CommandImpl<'_> {
     fn append_fn_body(&self, generator: &mut super::CodeGenerator, command: &Command) {
         generator.push_line("let mut rv = Cmd::new();");
         generator.push_line(&format!("rv.arg(\"{}\");", command.command()));
+        if command.cursor {
+            generator.push_line(&format!("rv.cursor_arg(0);"));
+        }
+
         for arg in command.arguments() {
             generator.push_line(&format!("rv.arg({});", arg.name));
         }
+
         generator.push_line("rv");
     }
 }

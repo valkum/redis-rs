@@ -170,6 +170,18 @@ fn fold_to_token(mut acc: Vec<Token>, command_name: String, arg: &CommandArgumen
                 fqtn,
             )),
             ArgType::PureToken => acc.push(Token::new_pure(arg.name.clone(), token_name, fqtn)),
+            ArgType::Key => acc.push(Token::new_wrapper(
+                arg.name.clone(),
+                token_name,
+                "String".to_owned(),
+                fqtn,
+            )),
+            ArgType::Pattern => acc.push(Token::new_wrapper(
+                arg.name.clone(),
+                token_name,
+                "String".to_owned(),
+                fqtn,
+            )),
             // Wo do not support the other types for now
             _ => {}
         }
@@ -298,6 +310,10 @@ impl Token {
                     variant_name,
                     VariantType::new_wrapper(redis_token, "String".to_owned()),
                 )),
+                ArgType::Pattern => variants.push((
+                    variant_name,
+                    VariantType::new_wrapper(redis_token, "String".to_owned()),
+                )),
                 ArgType::PureToken => {
                     variants.push((variant_name, VariantType::Variant { redis_token }))
                 }
@@ -404,6 +420,8 @@ impl Token {
                 ArgType::String => "String".to_owned(),
                 ArgType::Integer => "i64".to_owned(),
                 ArgType::Double => "f64".to_owned(),
+                ArgType::Pattern => "String".to_owned(),
+                ArgType::Key => "String".to_owned(),
                 ArgType::Oneof { arguments: _ } => {
                     let mut sub_fqtn = fqtn.clone();
                     sub_fqtn.push(name.clone());
