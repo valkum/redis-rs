@@ -1,8 +1,8 @@
 #![allow(clippy::let_unit_value)]
 
 use redis::{
-    Commands, ConnectionInfo, ConnectionLike, ControlFlow, ErrorKind, Expiry, PubSubCommands,
-    RedisResult,
+    Commands, ConnectionInfo, ConnectionLike, ControlFlow, ErrorKind, Expiry, IteratorCommands,
+    PubSubCommands, RedisResult,
 };
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -274,7 +274,7 @@ fn test_filtered_scanning() {
 
     for x in 0..3000 {
         let _: () = con
-            .hset("foo", format!("key_{}_{}", x % 100, x), x)
+            .hset("foo", &[(format!("key_{}_{}", x % 100, x), x)])
             .unwrap();
         if x % 100 == 0 {
             unseen.insert(x);
@@ -338,7 +338,7 @@ fn test_pipeline_with_err() {
         .unwrap();
 
     let res = redis::pipe()
-        .set("x", "another-x-value")
+        .set("x", "another-x-value", None)
         .ignore()
         .get("y")
         .query::<()>(&mut con);
@@ -391,7 +391,7 @@ fn test_pipeline_transaction_with_errors() {
     let ctx = TestContext::new();
     let mut con = ctx.connection();
 
-    let _: () = con.set("x", 42).unwrap();
+    let _: () = con.set("x", 42, None).unwrap();
 
     // Make Redis a replica of a nonexistent master, thereby making it read-only.
     let _: () = redis::cmd("slaveof")
@@ -403,7 +403,7 @@ fn test_pipeline_transaction_with_errors() {
     // Ensure that a write command fails with a READONLY error
     let err: RedisResult<()> = redis::pipe()
         .atomic()
-        .set("x", 142)
+        .set("x", 142, None)
         .ignore()
         .get("x")
         .query(&mut con);
@@ -600,7 +600,7 @@ fn test_pubsub_unsubscribe() {
     }
 
     // Connection should be usable again for non-pubsub commands
-    let _: redis::Value = con.set("foo", "bar").unwrap();
+    let _: redis::Value = con.set("foo", "bar", None).unwrap();
     let value: String = con.get("foo").unwrap();
     assert_eq!(&value[..], "bar");
 }
@@ -615,7 +615,7 @@ fn test_pubsub_unsubscribe_no_subs() {
     }
 
     // Connection should be usable again for non-pubsub commands
-    let _: redis::Value = con.set("foo", "bar").unwrap();
+    let _: redis::Value = con.set("foo", "bar", None).unwrap();
     let value: String = con.get("foo").unwrap();
     assert_eq!(&value[..], "bar");
 }
@@ -631,7 +631,7 @@ fn test_pubsub_unsubscribe_one_sub() {
     }
 
     // Connection should be usable again for non-pubsub commands
-    let _: redis::Value = con.set("foo", "bar").unwrap();
+    let _: redis::Value = con.set("foo", "bar", None).unwrap();
     let value: String = con.get("foo").unwrap();
     assert_eq!(&value[..], "bar");
 }
@@ -648,7 +648,7 @@ fn test_pubsub_unsubscribe_one_sub_one_psub() {
     }
 
     // Connection should be usable again for non-pubsub commands
-    let _: redis::Value = con.set("foo", "bar").unwrap();
+    let _: redis::Value = con.set("foo", "bar", None).unwrap();
     let value: String = con.get("foo").unwrap();
     assert_eq!(&value[..], "bar");
 }
@@ -772,9 +772,9 @@ fn test_nice_api() {
 
     let (k1, k2): (i32, i32) = redis::pipe()
         .atomic()
-        .set("key_1", 42)
+        .set("key_1", 42, None)
         .ignore()
-        .set("key_2", 43)
+        .set("key_2", 43, None)
         .ignore()
         .get("key_1")
         .get("key_2")
@@ -880,9 +880,9 @@ fn test_tuple_decoding_regression() {
     let ctx = TestContext::new();
     let mut con = ctx.connection();
 
-    assert_eq!(con.del("my_zset"), Ok(()));
-    assert_eq!(con.zadd("my_zset", "one", 1), Ok(1));
-    assert_eq!(con.zadd("my_zset", "two", 2), Ok(1));
+    assert_eq!(con.del(&["my_zset"]), Ok(()));
+    assert_eq!(con.zadd("my_zset", &[(1.0, "one")]), Ok(1));
+    assert_eq!(con.zadd("my_zset", &[(2.0, "two")]), Ok(1));
 
     let vec: Vec<(String, u32)> = con.zrangebyscore_withscores("my_zset", 0, 10).unwrap();
     assert_eq!(vec.len(), 2);

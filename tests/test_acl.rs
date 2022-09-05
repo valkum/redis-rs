@@ -35,7 +35,7 @@ fn test_acl_getsetdel_users() {
     );
     assert_eq!(con.acl_users(), Ok(vec!["default".to_owned()]));
     // bob
-    assert_eq!(con.acl_setuser("bob"), Ok(()));
+    assert_eq!(con.acl_setuser("bob", None), Ok(()));
     assert_eq!(
         con.acl_users(),
         Ok(vec!["bob".to_owned(), "default".to_owned()])
@@ -43,16 +43,16 @@ fn test_acl_getsetdel_users() {
 
     // ACL SETUSER bob on ~redis:* +set
     assert_eq!(
-        con.acl_setuser_rules(
+        con.acl_setuser(
             "bob",
-            &[
+            Some(&[
                 Rule::On,
                 Rule::AddHashedPass(
                     "c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2".to_owned()
                 ),
                 Rule::Pattern("redis:*".to_owned()),
                 Rule::AddCommand("set".to_owned())
-            ],
+            ]),
         ),
         Ok(())
     );
@@ -80,7 +80,7 @@ fn test_acl_getsetdel_users() {
     );
 
     // ACL SETUSER eve
-    assert_eq!(con.acl_setuser("eve"), Ok(()));
+    assert_eq!(con.acl_setuser("eve", None), Ok(()));
     assert_eq!(
         con.acl_users(),
         Ok(vec![
@@ -97,7 +97,7 @@ fn test_acl_getsetdel_users() {
 fn test_acl_cat() {
     let ctx = TestContext::new();
     let mut con = ctx.connection();
-    let res: HashSet<String> = con.acl_cat().expect("Got categories");
+    let res: HashSet<String> = con.acl_cat(None).expect("Got categories");
     let expects = vec![
         "keyspace",
         "read",
@@ -127,7 +127,7 @@ fn test_acl_cat() {
 
     let expects = vec!["pfmerge", "pfcount", "pfselftest", "pfadd"];
     let res: HashSet<String> = con
-        .acl_cat_categoryname("hyperloglog")
+        .acl_cat(Some("hyperloglog"))
         .expect("Got commands of a category");
     for cmd in expects.iter() {
         assert!(res.contains(*cmd), "Command `{}` does not exist", cmd);
@@ -138,10 +138,10 @@ fn test_acl_cat() {
 fn test_acl_genpass() {
     let ctx = TestContext::new();
     let mut con = ctx.connection();
-    let pass: String = con.acl_genpass().expect("Got password");
+    let pass: String = con.acl_genpass(None).expect("Got password");
     assert_eq!(pass.len(), 64);
 
-    let pass: String = con.acl_genpass_bits(1024).expect("Got password");
+    let pass: String = con.acl_genpass(Some(1024)).expect("Got password");
     assert_eq!(pass.len(), 256);
 }
 
