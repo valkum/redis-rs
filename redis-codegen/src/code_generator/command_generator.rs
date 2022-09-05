@@ -17,6 +17,7 @@ impl Generator for CommandImpl<'_> {
         generator: &mut super::CodeGenerator,
         commands: &[(&str, &CommandDefinition)],
     ) {
+        generator.append_generated_file_header();
         self.append_imports(generator);
         generator.buf.push('\n');
         self.append_preface(generator);

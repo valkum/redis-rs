@@ -1,3 +1,5 @@
+use std::fmt::Write;
+
 use crate::commands::{CommandDefinition, CommandSet};
 use crate::feature_gates::FeatureGate;
 use crate::GenerationType;
@@ -139,14 +141,19 @@ impl<'a> CodeGenerator<'a> {
         let command = command.command();
 
         if let Some(feature) = group.to_feature().or_else(|| command.to_feature()) {
-            self.push_indent();
-            self.buf
-                .push_str(&format!("#[cfg(feature = \"{}\")]\n", feature));
-            self.push_indent();
-            self.buf.push_str(&format!(
-                "#[cfg_attr(docsrs, doc(cfg(feature = \"{}\")))]\n",
+            self.push_line(&format!("#[cfg(feature = \"{}\")]", feature));
+            self.push_line(&format!(
+                "#[cfg_attr(docsrs, doc(cfg(feature = \"{}\")))]",
                 feature
             ));
         }
+    }
+
+    fn append_generated_file_header(&mut self) {
+        writeln!(
+            self.buf,
+            "//! This file is generated. Do not modify it directly."
+        )
+        .unwrap();
     }
 }

@@ -22,6 +22,7 @@ impl Generator for CommandsTrait<'_> {
         generator: &mut super::CodeGenerator,
         commands: &[(&str, &CommandDefinition)],
     ) {
+        generator.append_generated_file_header();
         self.append_imports(generator);
         generator.buf.push('\n');
         self.append_preface(generator);
@@ -54,6 +55,7 @@ impl CommandsTrait<'_> {
         generator.push_line("use crate::connection::ConnectionLike;");
         generator.push_line("use crate::cmd::Cmd;");
         generator.push_line("use crate::types::{FromRedisValue, RedisResult, ToRedisArgs};");
+        generator.push_line("use crate::Iter;");
     }
 
     fn append_preface(&self, generator: &mut super::CodeGenerator) {
