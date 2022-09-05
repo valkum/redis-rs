@@ -1,3 +1,4 @@
+//! This file is generated. Do not modify it directly.
 #![cfg_attr(rustfmt, rustfmt_skip)]
 use crate::cmd::{cmd, Cmd};
 use crate::types::ToRedisArgs;
@@ -190,7 +191,7 @@ impl Cmd {
     /// * @write
     /// * @slow
     /// * @dangerous
-    pub fn migrate<T0: ToRedisArgs, K0: ToRedisArgs>(host: T0, port: i64, key_or_empty_string: crate::generated::types::KeyOrEmptyString, destination_db: i64, timeout: i64, copy: Option<crate::generated::types::CopyArg>, replace: Option<crate::generated::types::Replace>, authentication: Option<crate::generated::types::Authentication>, key: Option<&[K0]>) -> Self {
+    pub fn migrate<T0: ToRedisArgs>(host: T0, port: i64, key_or_empty_string: crate::generated::types::KeyOrEmptyString, destination_db: i64, timeout: i64, copy: Option<crate::generated::types::CopyArg>, replace: Option<crate::generated::types::Replace>, authentication: Option<crate::generated::types::Authentication>, key: Option<&[crate::generated::types::Keys]>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("MIGRATE");
         rv.arg(host);
@@ -524,6 +525,30 @@ impl Cmd {
         rv
     }
 
+    /// SCAN
+    ///
+    /// Incrementally iterate the keys space
+    ///
+    /// Since: Redis 2.8.0
+    /// Group: Generic
+    /// Complexity: O(1) for every call. O(N) for a complete iteration, including enough command calls for the cursor to return back to 0. N is the number of elements inside the collection.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @slow
+    pub fn scan(cursor: i64, pattern: Option<crate::generated::types::Match>, count: Option<crate::generated::types::Count>, r#type: Option<crate::generated::types::Type>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SCAN");
+        rv.cursor_arg(0);
+        rv.arg(cursor);
+        rv.arg(pattern);
+        rv.arg(count);
+        rv.arg(r#type);
+        rv
+    }
+
     /// SORT
     ///
     /// Sort the elements in a list, set or sorted set
@@ -542,7 +567,7 @@ impl Cmd {
     /// * @list
     /// * @slow
     /// * @dangerous
-    pub fn sort<K0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs, K3: ToRedisArgs>(key: K0, pattern: Option<K1>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[K2]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>, destination: Option<K3>) -> Self {
+    pub fn sort<K0: ToRedisArgs>(key: K0, pattern: Option<crate::generated::types::By>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[crate::generated::types::Get]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>, destination: Option<crate::generated::types::Store>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("SORT");
         rv.arg(key);
@@ -572,7 +597,7 @@ impl Cmd {
     /// * @list
     /// * @slow
     /// * @dangerous
-    pub fn sort_ro<K0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs>(key: K0, pattern: Option<K1>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[K2]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>) -> Self {
+    pub fn sort_ro<K0: ToRedisArgs>(key: K0, pattern: Option<crate::generated::types::By>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[crate::generated::types::Get]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("SORT_RO");
         rv.arg(key);
@@ -1057,12 +1082,11 @@ impl Cmd {
     /// CommandFlags:
     /// * Write: This command may modify data.
     /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
-    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
     /// ACL Categories:
     /// * @write
     /// * @string
     /// * @slow
-    pub fn set<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, value: T0, condition: Option<crate::generated::types::set::Condition>, get: Option<crate::generated::types::Get>, expiration: Option<crate::generated::types::set::Expiration>) -> Self {
+    pub fn set<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, value: T0, condition: Option<crate::generated::types::set::Condition>, get: Option<crate::generated::types::set::Get>, expiration: Option<crate::generated::types::set::Expiration>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("SET");
         rv.arg(key);
@@ -2011,6 +2035,30 @@ impl Cmd {
         rv
     }
 
+    /// SSCAN
+    ///
+    /// Incrementally iterate Set elements
+    ///
+    /// Since: Redis 2.8.0
+    /// Group: Set
+    /// Complexity: O(1) for every call. O(N) for a complete iteration, including enough command calls for the cursor to return back to 0. N is the number of elements inside the collection..
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @slow
+    pub fn sscan<K0: ToRedisArgs>(key: K0, cursor: i64, pattern: Option<crate::generated::types::Match>, count: Option<crate::generated::types::Count>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("SSCAN");
+        rv.cursor_arg(0);
+        rv.arg(key);
+        rv.arg(cursor);
+        rv.arg(pattern);
+        rv.arg(count);
+        rv
+    }
+
     /// SUNION
     ///
     /// Add multiple sets
@@ -2493,12 +2541,12 @@ impl Cmd {
     /// * @read
     /// * @sortedset
     /// * @slow
-    pub fn zrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, min: T0, max: T1, sortby: Option<crate::generated::types::Sortby>, rev: Option<crate::generated::types::Rev>, offset_count: Option<crate::generated::types::Limit>, withscores: Option<crate::generated::types::Withscores>) -> Self {
+    pub fn zrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(key: K0, start: T0, stop: T1, sortby: Option<crate::generated::types::Sortby>, rev: Option<crate::generated::types::Rev>, offset_count: Option<crate::generated::types::Limit>, withscores: Option<crate::generated::types::Withscores>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("ZRANGE");
         rv.arg(key);
-        rv.arg(min);
-        rv.arg(max);
+        rv.arg(start);
+        rv.arg(stop);
         rv.arg(sortby);
         rv.arg(rev);
         rv.arg(offset_count);
@@ -2794,6 +2842,30 @@ impl Cmd {
         rv.arg("ZREVRANK");
         rv.arg(key);
         rv.arg(member);
+        rv
+    }
+
+    /// ZSCAN
+    ///
+    /// Incrementally iterate sorted sets elements and associated scores
+    ///
+    /// Since: Redis 2.8.0
+    /// Group: SortedSet
+    /// Complexity: O(1) for every call. O(N) for a complete iteration, including enough command calls for the cursor to return back to 0. N is the number of elements inside the collection..
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
+    pub fn zscan<K0: ToRedisArgs>(key: K0, cursor: i64, pattern: Option<crate::generated::types::Match>, count: Option<crate::generated::types::Count>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("ZSCAN");
+        rv.cursor_arg(0);
+        rv.arg(key);
+        rv.arg(cursor);
+        rv.arg(pattern);
+        rv.arg(count);
         rv
     }
 
@@ -3114,6 +3186,30 @@ impl Cmd {
         rv
     }
 
+    /// HSCAN
+    ///
+    /// Incrementally iterate hash fields and associated values
+    ///
+    /// Since: Redis 2.8.0
+    /// Group: Hash
+    /// Complexity: O(1) for every call. O(N) for a complete iteration, including enough command calls for the cursor to return back to 0. N is the number of elements inside the collection..
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @hash
+    /// * @slow
+    pub fn hscan<K0: ToRedisArgs>(key: K0, cursor: i64, pattern: Option<crate::generated::types::Match>, count: Option<crate::generated::types::Count>) -> Self {
+        let mut rv = Cmd::new();
+        rv.arg("HSCAN");
+        rv.cursor_arg(0);
+        rv.arg(key);
+        rv.arg(cursor);
+        rv.arg(pattern);
+        rv.arg(count);
+        rv
+    }
+
     /// HSET
     ///
     /// Set the string value of a hash field
@@ -3218,7 +3314,7 @@ impl Cmd {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    pub fn psubscribe(pattern: &[crate::generated::types::Pattern]) -> Self {
+    pub fn psubscribe(pattern: &[crate::generated::types::psubscribe::Pattern]) -> Self {
         let mut rv = Cmd::new();
         rv.arg("PSUBSCRIBE");
         rv.arg(pattern);
@@ -4007,6 +4103,8 @@ impl Cmd {
     /// Group: Connection
     /// Complexity: O(1)
     /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
     /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
     /// ACL Categories:
     /// * @fast
@@ -6673,11 +6771,12 @@ impl Cmd {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn cluster_meet<T0: ToRedisArgs>(ip: T0, port: i64) -> Self {
+    pub fn cluster_meet<T0: ToRedisArgs>(ip: T0, port: i64, cluster_bus_port: Option<i64>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("CLUSTER MEET");
         rv.arg(ip);
         rv.arg(port);
+        rv.arg(cluster_bus_port);
         rv
     }
 
@@ -7064,7 +7163,7 @@ impl Cmd {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn georadius<K0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs>(key: K0, longitude: f64, latitude: f64, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<K1>, key2: Option<K2>) -> Self {
+    pub fn georadius<K0: ToRedisArgs>(key: K0, longitude: f64, latitude: f64, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<crate::generated::types::Store>, key2: Option<crate::generated::types::Storedist>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("GEORADIUS");
         rv.arg(key);
@@ -7102,7 +7201,7 @@ impl Cmd {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn georadiusbymember<K0: ToRedisArgs, T0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs>(key: K0, member: T0, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<K1>, key2: Option<K2>) -> Self {
+    pub fn georadiusbymember<K0: ToRedisArgs, T0: ToRedisArgs>(key: K0, member: T0, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<crate::generated::types::Store>, key2: Option<crate::generated::types::Storedist>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("GEORADIUSBYMEMBER");
         rv.arg(key);
@@ -7201,7 +7300,7 @@ impl Cmd {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    pub fn geosearch<K0: ToRedisArgs>(key: K0, from: crate::generated::types::From, by: crate::generated::types::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>) -> Self {
+    pub fn geosearch<K0: ToRedisArgs>(key: K0, from: crate::generated::types::From, by: crate::generated::types::geosearch::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("GEOSEARCH");
         rv.arg(key);
@@ -7231,7 +7330,7 @@ impl Cmd {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    pub fn geosearchstore<K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, source: K1, from: crate::generated::types::From, by: crate::generated::types::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, storedist: Option<crate::generated::types::Storedist>) -> Self {
+    pub fn geosearchstore<K0: ToRedisArgs, K1: ToRedisArgs>(destination: K0, source: K1, from: crate::generated::types::From, by: crate::generated::types::geosearch::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, storedist: Option<crate::generated::types::geosearchstore::Storedist>) -> Self {
         let mut rv = Cmd::new();
         rv.arg("GEOSEARCHSTORE");
         rv.arg(destination);
@@ -7883,7 +7982,6 @@ impl Cmd {
     /// CommandFlags:
     /// * Write: This command may modify data.
     /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
-    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
     /// ACL Categories:
     /// * @write
     /// * @bitmap
@@ -7900,7 +7998,7 @@ impl Cmd {
     ///
     /// Perform arbitrary bitfield integer operations on strings. Read-only variant of BITFIELD
     ///
-    /// Since: Redis 6.2.0
+    /// Since: Redis 6.0.0
     /// Group: Bitmap
     /// Complexity: O(1) for each subcommand specified
     /// CommandFlags:

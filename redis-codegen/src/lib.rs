@@ -1,6 +1,6 @@
 use anyhow::Result;
 use code_generator::CodeGenerator;
-use commands::{CommandSet, CommandDefinitionOverwrite};
+use commands::{CommandDefinitionOverwrite, CommandSet};
 use serde::Deserialize;
 use std::{
     collections::HashMap,
@@ -33,7 +33,10 @@ pub fn generate_commands(
     Ok(())
 }
 
-fn deserialize<'a, T>(path: &Path) -> Result<T> where T: Deserialize<'a> {
+fn deserialize<'a, T>(path: &Path) -> Result<T>
+where
+    T: Deserialize<'a>,
+{
     let f = File::open(path)?;
     let reader = BufReader::new(f);
 
@@ -48,19 +51,52 @@ fn deserialize<'a, T>(path: &Path) -> Result<T> where T: Deserialize<'a> {
 fn merge_overwrites(set: &mut CommandSet, overwrites: HashMap<String, CommandDefinitionOverwrite>) {
     for (name, overwrites) in overwrites.iter() {
         if let Some(command) = set.get_mut(name) {
-            command.summary = overwrites.summary.clone().unwrap_or_else(||command.summary.clone());
-            command.since = overwrites.since.clone().unwrap_or_else(||command.since.clone());
+            command.summary = overwrites
+                .summary
+                .clone()
+                .unwrap_or_else(|| command.summary.clone());
+            command.since = overwrites
+                .since
+                .clone()
+                .unwrap_or_else(|| command.since.clone());
             command.group = overwrites.group.unwrap_or(command.group);
-            command.complexity = overwrites.complexity.clone().or_else(|| command.complexity.clone());
-            command.deprecated_since = overwrites.deprecated_since.clone().or_else(|| command.deprecated_since.clone());
-            command.replaced_by = overwrites.replaced_by.clone().or_else(|| command.replaced_by.clone());
-            command.history = overwrites.history.clone().unwrap_or_else(||command.history.clone());
-            command.acl_categories = overwrites.acl_categories.clone().unwrap_or_else(||command.acl_categories.clone());
+            command.complexity = overwrites
+                .complexity
+                .clone()
+                .or_else(|| command.complexity.clone());
+            command.deprecated_since = overwrites
+                .deprecated_since
+                .clone()
+                .or_else(|| command.deprecated_since.clone());
+            command.replaced_by = overwrites
+                .replaced_by
+                .clone()
+                .or_else(|| command.replaced_by.clone());
+            command.history = overwrites
+                .history
+                .clone()
+                .unwrap_or_else(|| command.history.clone());
+            command.acl_categories = overwrites
+                .acl_categories
+                .clone()
+                .unwrap_or_else(|| command.acl_categories.clone());
             command.arity = overwrites.arity.unwrap_or(command.arity);
-            command.arguments = overwrites.arguments.clone().unwrap_or_else(||command.arguments.clone());
-            command.command_flags = overwrites.command_flags.clone().unwrap_or_else(||command.command_flags.clone());
-            command.doc_flags = overwrites.doc_flags.clone().unwrap_or_else(||command.doc_flags.clone());
-            command.hints = overwrites.hints.clone().unwrap_or_else(|| command.hints.clone());
+            command.arguments = overwrites
+                .arguments
+                .clone()
+                .unwrap_or_else(|| command.arguments.clone());
+            command.command_flags = overwrites
+                .command_flags
+                .clone()
+                .unwrap_or_else(|| command.command_flags.clone());
+            command.doc_flags = overwrites
+                .doc_flags
+                .clone()
+                .unwrap_or_else(|| command.doc_flags.clone());
+            command.hints = overwrites
+                .hints
+                .clone()
+                .unwrap_or_else(|| command.hints.clone());
         }
     }
 }
@@ -71,9 +107,9 @@ fn compile(
     out_dir: PathBuf,
     fully_qualified_mount_path: String,
 ) -> Result<()> {
-
     let mut command_set: CommandSet = deserialize(spec.as_ref())?;
-    let command_overwrites: HashMap<String, CommandDefinitionOverwrite> = deserialize(overwrite_spec.as_ref())?;
+    let command_overwrites: HashMap<String, CommandDefinitionOverwrite> =
+        deserialize(overwrite_spec.as_ref())?;
 
     merge_overwrites(&mut command_set, command_overwrites);
 

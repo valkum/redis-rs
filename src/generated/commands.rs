@@ -1,8 +1,10 @@
+//! This file is generated. Do not modify it directly.
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #[allow(deprecated)]
 use crate::connection::ConnectionLike;
 use crate::cmd::Cmd;
 use crate::types::{FromRedisValue, RedisResult, ToRedisArgs};
+use crate::Iter;
 
 /// Implements common redis commands for connection like objects.  This
 /// allows you to send commands straight to a connection or client.  It
@@ -190,7 +192,7 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @write
     /// * @slow
     /// * @dangerous
-    fn migrate<T0: ToRedisArgs, K0: ToRedisArgs, RV: FromRedisValue>(&mut self, host: T0, port: i64, key_or_empty_string: crate::generated::types::KeyOrEmptyString, destination_db: i64, timeout: i64, copy: Option<crate::generated::types::CopyArg>, replace: Option<crate::generated::types::Replace>, authentication: Option<crate::generated::types::Authentication>, key: Option<&[K0]>) -> RedisResult<RV> {
+    fn migrate<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, host: T0, port: i64, key_or_empty_string: crate::generated::types::KeyOrEmptyString, destination_db: i64, timeout: i64, copy: Option<crate::generated::types::CopyArg>, replace: Option<crate::generated::types::Replace>, authentication: Option<crate::generated::types::Authentication>, key: Option<&[crate::generated::types::Keys]>) -> RedisResult<RV> {
         Cmd::migrate(host, port, key_or_empty_string, destination_db, timeout, copy, replace, authentication, key).query(self)
     }
 
@@ -458,6 +460,23 @@ pub trait Commands : ConnectionLike + Sized {
         Cmd::restore(key, ttl, serialized_value, replace, absttl, seconds, frequency).query(self)
     }
 
+    /// SCAN
+    ///
+    /// Incrementally iterate the keys space
+    ///
+    /// Since: Redis 2.8.0
+    /// Group: Generic
+    /// Complexity: O(1) for every call. O(N) for a complete iteration, including enough command calls for the cursor to return back to 0. N is the number of elements inside the collection.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @slow
+    fn scan<RV: FromRedisValue>(&mut self, cursor: i64, pattern: Option<crate::generated::types::Match>, count: Option<crate::generated::types::Count>, r#type: Option<crate::generated::types::Type>) -> RedisResult<Iter<'_, RV>> {
+        Cmd::scan(cursor, pattern, count, r#type).iter(self)
+    }
+
     /// SORT
     ///
     /// Sort the elements in a list, set or sorted set
@@ -476,7 +495,7 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @list
     /// * @slow
     /// * @dangerous
-    fn sort<K0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs, K3: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, pattern: Option<K1>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[K2]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>, destination: Option<K3>) -> RedisResult<RV> {
+    fn sort<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, pattern: Option<crate::generated::types::By>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[crate::generated::types::Get]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>, destination: Option<crate::generated::types::Store>) -> RedisResult<RV> {
         Cmd::sort(key, pattern, offset_count, pattern1, order, sorting, destination).query(self)
     }
 
@@ -497,7 +516,7 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @list
     /// * @slow
     /// * @dangerous
-    fn sort_ro<K0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, pattern: Option<K1>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[K2]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>) -> RedisResult<RV> {
+    fn sort_ro<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, pattern: Option<crate::generated::types::By>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[crate::generated::types::Get]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>) -> RedisResult<RV> {
         Cmd::sort_ro(key, pattern, offset_count, pattern1, order, sorting).query(self)
     }
 
@@ -682,7 +701,7 @@ pub trait Commands : ConnectionLike + Sized {
         Cmd::getdel(key).query(self)
     }
 
-    #[deprecated(since = "0.22.0", note = "With version 0.22.0 redis crate switched to a generated api. This is a deprecated old handwritten function that now aliases to the generated on and will be removed in a future update. ")]
+    #[deprecated(since = "0.22.0", note = "With version 0.22.0 redis crate switched to a generated api. This is a deprecated old handwritten function that now aliases to the generated one and will be removed in a future update. ")]
     /// This is an alias for [`getdel`]
     fn get_del<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0) -> RedisResult<RV> {
         self.getdel(key)
@@ -706,7 +725,7 @@ pub trait Commands : ConnectionLike + Sized {
         Cmd::getex(key, expiration).query(self)
     }
 
-    #[deprecated(since = "0.22.0", note = "With version 0.22.0 redis crate switched to a generated api. This is a deprecated old handwritten function that now aliases to the generated on and will be removed in a future update. ")]
+    #[deprecated(since = "0.22.0", note = "With version 0.22.0 redis crate switched to a generated api. This is a deprecated old handwritten function that now aliases to the generated one and will be removed in a future update. ")]
     /// This is an alias for [`getex`]
     fn get_ex<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, expiration: Option<crate::generated::types::Expiration>) -> RedisResult<RV> {
         self.getex(key, expiration)
@@ -907,12 +926,11 @@ pub trait Commands : ConnectionLike + Sized {
     /// CommandFlags:
     /// * Write: This command may modify data.
     /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
-    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
     /// ACL Categories:
     /// * @write
     /// * @string
     /// * @slow
-    fn set<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, value: T0, condition: Option<crate::generated::types::set::Condition>, get: Option<crate::generated::types::Get>, expiration: Option<crate::generated::types::set::Expiration>) -> RedisResult<RV> {
+    fn set<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, value: T0, condition: Option<crate::generated::types::set::Condition>, get: Option<crate::generated::types::set::Get>, expiration: Option<crate::generated::types::set::Expiration>) -> RedisResult<RV> {
         Cmd::set(key, value, condition, get, expiration).query(self)
     }
 
@@ -1671,6 +1689,23 @@ pub trait Commands : ConnectionLike + Sized {
         Cmd::srem(key, member).query(self)
     }
 
+    /// SSCAN
+    ///
+    /// Incrementally iterate Set elements
+    ///
+    /// Since: Redis 2.8.0
+    /// Group: Set
+    /// Complexity: O(1) for every call. O(N) for a complete iteration, including enough command calls for the cursor to return back to 0. N is the number of elements inside the collection..
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @slow
+    fn sscan<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, cursor: i64, pattern: Option<crate::generated::types::Match>, count: Option<crate::generated::types::Count>) -> RedisResult<Iter<'_, RV>> {
+        Cmd::sscan(key, cursor, pattern, count).iter(self)
+    }
+
     /// SUNION
     ///
     /// Add multiple sets
@@ -2054,8 +2089,8 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @read
     /// * @sortedset
     /// * @slow
-    fn zrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, min: T0, max: T1, sortby: Option<crate::generated::types::Sortby>, rev: Option<crate::generated::types::Rev>, offset_count: Option<crate::generated::types::Limit>, withscores: Option<crate::generated::types::Withscores>) -> RedisResult<RV> {
-        Cmd::zrange(key, min, max, sortby, rev, offset_count, withscores).query(self)
+    fn zrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, start: T0, stop: T1, sortby: Option<crate::generated::types::Sortby>, rev: Option<crate::generated::types::Rev>, offset_count: Option<crate::generated::types::Limit>, withscores: Option<crate::generated::types::Withscores>) -> RedisResult<RV> {
+        Cmd::zrange(key, start, stop, sortby, rev, offset_count, withscores).query(self)
     }
 
     /// ZRANGEBYLEX
@@ -2169,7 +2204,7 @@ pub trait Commands : ConnectionLike + Sized {
         Cmd::zremrangebylex(key, min, max).query(self)
     }
 
-    #[deprecated(since = "0.22.0", note = "With version 0.22.0 redis crate switched to a generated api. This is a deprecated old handwritten function that now aliases to the generated on and will be removed in a future update. ")]
+    #[deprecated(since = "0.22.0", note = "With version 0.22.0 redis crate switched to a generated api. This is a deprecated old handwritten function that now aliases to the generated one and will be removed in a future update. ")]
     /// This is an alias for [`zremrangebylex`]
     fn zrembylex<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, min: T0, max: T1) -> RedisResult<RV> {
         self.zremrangebylex(key, min, max)
@@ -2285,6 +2320,23 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @fast
     fn zrevrank<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: T0) -> RedisResult<RV> {
         Cmd::zrevrank(key, member).query(self)
+    }
+
+    /// ZSCAN
+    ///
+    /// Incrementally iterate sorted sets elements and associated scores
+    ///
+    /// Since: Redis 2.8.0
+    /// Group: SortedSet
+    /// Complexity: O(1) for every call. O(N) for a complete iteration, including enough command calls for the cursor to return back to 0. N is the number of elements inside the collection..
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
+    fn zscan<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, cursor: i64, pattern: Option<crate::generated::types::Match>, count: Option<crate::generated::types::Count>) -> RedisResult<Iter<'_, RV>> {
+        Cmd::zscan(key, cursor, pattern, count).iter(self)
     }
 
     /// ZSCORE
@@ -2543,6 +2595,23 @@ pub trait Commands : ConnectionLike + Sized {
         Cmd::hrandfield(key, options).query(self)
     }
 
+    /// HSCAN
+    ///
+    /// Incrementally iterate hash fields and associated values
+    ///
+    /// Since: Redis 2.8.0
+    /// Group: Hash
+    /// Complexity: O(1) for every call. O(N) for a complete iteration, including enough command calls for the cursor to return back to 0. N is the number of elements inside the collection..
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @hash
+    /// * @slow
+    fn hscan<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, cursor: i64, pattern: Option<crate::generated::types::Match>, count: Option<crate::generated::types::Count>) -> RedisResult<Iter<'_, RV>> {
+        Cmd::hscan(key, cursor, pattern, count).iter(self)
+    }
+
     /// HSET
     ///
     /// Set the string value of a hash field
@@ -2631,7 +2700,7 @@ pub trait Commands : ConnectionLike + Sized {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    fn psubscribe<RV: FromRedisValue>(&mut self, pattern: &[crate::generated::types::Pattern]) -> RedisResult<RV> {
+    fn psubscribe<RV: FromRedisValue>(&mut self, pattern: &[crate::generated::types::psubscribe::Pattern]) -> RedisResult<RV> {
         Cmd::psubscribe(pattern).query(self)
     }
 
@@ -3312,6 +3381,8 @@ pub trait Commands : ConnectionLike + Sized {
     /// Group: Connection
     /// Complexity: O(1)
     /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
     /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
     /// ACL Categories:
     /// * @fast
@@ -5611,8 +5682,8 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    fn cluster_meet<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, ip: T0, port: i64) -> RedisResult<RV> {
-        Cmd::cluster_meet(ip, port).query(self)
+    fn cluster_meet<T0: ToRedisArgs, RV: FromRedisValue>(&mut self, ip: T0, port: i64, cluster_bus_port: Option<i64>) -> RedisResult<RV> {
+        Cmd::cluster_meet(ip, port, cluster_bus_port).query(self)
     }
 
     /// CLUSTER MYID
@@ -5945,7 +6016,7 @@ pub trait Commands : ConnectionLike + Sized {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    fn georadius<K0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, longitude: f64, latitude: f64, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<K1>, key2: Option<K2>) -> RedisResult<RV> {
+    fn georadius<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, longitude: f64, latitude: f64, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<crate::generated::types::Store>, key2: Option<crate::generated::types::Storedist>) -> RedisResult<RV> {
         Cmd::georadius(key, longitude, latitude, radius, unit, withcoord, withdist, withhash, count, order, key1, key2).query(self)
     }
 
@@ -5969,7 +6040,7 @@ pub trait Commands : ConnectionLike + Sized {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    fn georadiusbymember<K0: ToRedisArgs, T0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: T0, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<K1>, key2: Option<K2>) -> RedisResult<RV> {
+    fn georadiusbymember<K0: ToRedisArgs, T0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, member: T0, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<crate::generated::types::Store>, key2: Option<crate::generated::types::Storedist>) -> RedisResult<RV> {
         Cmd::georadiusbymember(key, member, radius, unit, withcoord, withdist, withhash, count, order, key1, key2).query(self)
     }
 
@@ -6032,7 +6103,7 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geosearch<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, from: crate::generated::types::From, by: crate::generated::types::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>) -> RedisResult<RV> {
+    fn geosearch<K0: ToRedisArgs, RV: FromRedisValue>(&mut self, key: K0, from: crate::generated::types::From, by: crate::generated::types::geosearch::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>) -> RedisResult<RV> {
         Cmd::geosearch(key, from, by, order, count, withcoord, withdist, withhash).query(self)
     }
 
@@ -6052,7 +6123,7 @@ pub trait Commands : ConnectionLike + Sized {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    fn geosearchstore<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, source: K1, from: crate::generated::types::From, by: crate::generated::types::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, storedist: Option<crate::generated::types::Storedist>) -> RedisResult<RV> {
+    fn geosearchstore<K0: ToRedisArgs, K1: ToRedisArgs, RV: FromRedisValue>(&mut self, destination: K0, source: K1, from: crate::generated::types::From, by: crate::generated::types::geosearch::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, storedist: Option<crate::generated::types::geosearchstore::Storedist>) -> RedisResult<RV> {
         Cmd::geosearchstore(destination, source, from, by, order, count, storedist).query(self)
     }
 
@@ -6567,7 +6638,6 @@ pub trait Commands : ConnectionLike + Sized {
     /// CommandFlags:
     /// * Write: This command may modify data.
     /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
-    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
     /// ACL Categories:
     /// * @write
     /// * @bitmap
@@ -6580,7 +6650,7 @@ pub trait Commands : ConnectionLike + Sized {
     ///
     /// Perform arbitrary bitfield integer operations on strings. Read-only variant of BITFIELD
     ///
-    /// Since: Redis 6.2.0
+    /// Since: Redis 6.0.0
     /// Group: Bitmap
     /// Complexity: O(1) for each subcommand specified
     /// CommandFlags:

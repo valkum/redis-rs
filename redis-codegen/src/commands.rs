@@ -1,6 +1,8 @@
+use anyhow::bail;
 use serde::{Deserialize, Serialize};
 use std::collections::{hash_map, HashMap};
 use std::fmt;
+use std::str::FromStr;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct CommandSet(HashMap<String, CommandDefinition>);
@@ -17,6 +19,7 @@ impl CommandSet {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[allow(dead_code)]
 pub struct CommandDefinition {
     pub(crate) summary: String,
@@ -30,7 +33,7 @@ pub struct CommandDefinition {
     pub(crate) replaced_by: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub(crate) history: Vec<History>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub(crate) acl_categories: Vec<AclCategory>,
     pub(crate) arity: Arity,
     // The reference format contains the keyspec at this point. As we currently do not use this, this is ignored for now.
@@ -41,12 +44,13 @@ pub struct CommandDefinition {
     pub(crate) command_flags: Vec<CommandFlag>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub(crate) doc_flags: Vec<DocFlag>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub(crate) hints: Vec<String>,
 }
 
 /// Type used to define overwrites to `CommandDefinition`
 #[derive(Debug, Clone, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[allow(dead_code)]
 pub struct CommandDefinitionOverwrite {
     pub(crate) summary: Option<String>,
@@ -65,7 +69,14 @@ pub struct CommandDefinitionOverwrite {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 pub(crate) struct Arity(i8);
+
+impl From<i8> for Arity {
+    fn from(value: i8) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 #[serde(rename_all = "kebab-case")]
@@ -110,6 +121,34 @@ impl fmt::Display for CommandGroup {
             CommandGroup::Stream => write!(f, "Stream"),
             CommandGroup::Bitmap => write!(f, "Bitmap"),
         }
+    }
+}
+
+impl FromStr for CommandGroup {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let res = match s {
+            "generic" => Self::Generic,
+            "string" => Self::String,
+            "list" => Self::List,
+            "set" => Self::Set,
+            "sorted-set" => Self::SortedSet,
+            "hash" => Self::Hash,
+            "pubsub" => Self::Pubsub,
+            "transactions" => Self::Transactions,
+            "connection" => Self::Connection,
+            "server" => Self::Server,
+            "scripting" => Self::Scripting,
+            "hyperloglog" => Self::Hyperloglog,
+            "cluster" => Self::Cluster,
+            "sentinel" => Self::Sentinel,
+            "geo" => Self::Geo,
+            "stream" => Self::Stream,
+            "bitmap" => Self::Bitmap,
+            _ => bail!("Non supported value for group"),
+        };
+        Ok(res)
     }
 }
 
@@ -164,7 +203,7 @@ impl fmt::Display for CommandFlag {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             CommandFlag::Admin => write!(f, "Admin: This command is an administrative command."),
-            CommandFlag::AllowBusy => write!(f, "AllowBusy: From https://redis.io/docs/reference/modules/modules-api-ref/: Permit the command while the server is blocked either by a script or by a slow module command, see RM_Yield."), 
+            CommandFlag::AllowBusy => write!(f, "AllowBusy: From https://redis.io/docs/reference/modules/modules-api-ref/: Permit the command while the server is blocked either by a script or by a slow module command, see RM_Yield."),
             CommandFlag::Asking => write!(f, "Asking: This command is allowed even during hash slot migration. This flag is relevant in Redis Cluster deployments."), 
             CommandFlag::Blocking => write!(f, "Blocking: This command may block the requesting client."), 
             CommandFlag::Denyoom => write!(f, "Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive)."), 
@@ -179,12 +218,44 @@ impl fmt::Display for CommandFlag {
             CommandFlag::Pubsub => write!(f, "Pubsub: This command is related to Redis Pub/Sub."), 
             CommandFlag::Random => write!(f, "Random: This command returns random results, which is a concern with verbatim script replication. As of Redis 7.0, this flag is a command tip."), 
             CommandFlag::Readonly => write!(f, "Readonly: This command doesn't modify data."), 
-            CommandFlag::SortForScript => write!(f, "SortForScript: This command's output is sorted when called from a script."), 
+            CommandFlag::SortForScript => write!(f, "SortForScript: This command's output is sorted when called from a script."),
             CommandFlag::SkipMonitor => write!(f, "SkipMonitor: This command is not shown in MONITOR's output."), 
-            CommandFlag::SkipSlowlog => write!(f, "SkipSlowlog: This command is not shown in SLOWLOG's output. As of Redis 7.0, this flag is a command tip."), 
+            CommandFlag::SkipSlowlog => write!(f, "SkipSlowlog: This command is not shown in SLOWLOG's output. As of Redis 7.0, this flag is a command tip."),
             CommandFlag::Stale => write!(f, "Stale: This command is allowed while a replica has stale data."), 
             CommandFlag::Write => write!(f, "Write: This command may modify data."),
         }
+    }
+}
+
+impl FromStr for CommandFlag {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let res = match s {
+            "admin" => Self::Admin,
+            "allow_busy" => Self::AllowBusy,
+            "asking" => Self::Asking,
+            "blocking" => Self::Blocking,
+            "denyoom" => Self::Denyoom,
+            "fast" => Self::Fast,
+            "loading" => Self::Loading,
+            "movablekeys" => Self::Movablekeys,
+            "no_auth" => Self::NoAuth,
+            "no_async_loading" => Self::NoAsyncLoading,
+            "no_mandatory_keys" => Self::NoMandatoryKeys,
+            "no_multi" => Self::NoMulti,
+            "noscript" => Self::Noscript,
+            "pubsub" => Self::Pubsub,
+            "random" => Self::Random,
+            "readonly" => Self::Readonly,
+            "sort_for_script" => Self::SortForScript,
+            "skip_monitor" => Self::SkipMonitor,
+            "skip_slowlog" => Self::SkipSlowlog,
+            "stale" => Self::Stale,
+            "write" => Self::Write,
+            _ => bail!("Non supported value for command flag"),
+        };
+        Ok(res)
     }
 }
 
@@ -283,6 +354,38 @@ impl fmt::Display for AclCategory {
     }
 }
 
+impl FromStr for AclCategory {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let res = match s {
+            "admin" => Self::Admin,
+            "bitmap" => Self::Bitmap,
+            "blocking" => Self::Blocking,
+            "connection" => Self::Connection,
+            "dangerous" => Self::Dangerous,
+            "geo" => Self::Geo,
+            "hash" => Self::Hash,
+            "hyperloglog" => Self::Hyperloglog,
+            "fast" => Self::Fast,
+            "keyspace" => Self::Keyspace,
+            "list" => Self::List,
+            "pubsub" => Self::Pubsub,
+            "read" => Self::Read,
+            "scripting" => Self::Scripting,
+            "set" => Self::Set,
+            "sortedset" => Self::Sortedset,
+            "slow" => Self::Slow,
+            "stream" => Self::Stream,
+            "string" => Self::String,
+            "transaction" => Self::Transaction,
+            "write" => Self::Write,
+            _ => bail!("Non supported value for command flag"),
+        };
+        Ok(res)
+    }
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub(crate) enum DocFlag {
@@ -290,10 +393,29 @@ pub(crate) enum DocFlag {
     Syscmd,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub(crate) struct History(Version, String);
+impl FromStr for DocFlag {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "deprecated" => Ok(Self::Deprecated),
+            "syscmd" => Ok(Self::Syscmd),
+            _ => bail!("Non supported value for doc flag"),
+        }
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
+pub(crate) struct History(Version, String);
+impl From<(String, String)> for History {
+    fn from((version, info): (String, String)) -> Self {
+        Self(version.into(), info)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 pub(crate) struct Version(String);
 
 impl fmt::Display for Version {
@@ -302,7 +424,14 @@ impl fmt::Display for Version {
     }
 }
 
+impl From<String> for Version {
+    fn from(version: String) -> Self {
+        Self(version)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 pub(crate) struct CommandArgument {
     pub(crate) name: String,
     #[serde(flatten)]
@@ -319,6 +448,7 @@ pub(crate) struct CommandArgument {
 ///
 /// Currently only String, Integer, Double, and Key are used to generate code
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[serde(rename_all = "kebab-case", tag = "type")]
 pub(crate) enum ArgType {
     String,

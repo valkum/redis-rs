@@ -1,0 +1,26 @@
+{
+    "SCAN": {
+        "hints": [
+            "cursor",
+            "nondeterministic_output"
+        ]
+    },
+    "SSCAN": {
+        "hints": [
+            "cursor",
+            "nondeterministic_output"
+        ]
+    },
+    "HSCAN": {
+        "hints": [
+            "cursor",
+            "nondeterministic_output"
+        ]
+    },
+    "ZSCAN": {
+        "hints": [
+            "cursor",
+            "nondeterministic_output"
+        ]
+    }
+}

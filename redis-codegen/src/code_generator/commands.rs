@@ -72,10 +72,10 @@ impl<'a> Command<'a> {
             args,
             deprecated: definition.doc_flags.contains(&DocFlag::Deprecated),
             deprecated_since: definition
-            .deprecated_since
-            .as_ref()
-            .map(ToString::to_string),
-            cursor: definition.hints.contains(&"cursor".to_owned())
+                .deprecated_since
+                .as_ref()
+                .map(ToString::to_string),
+            cursor: definition.hints.contains(&"cursor".to_owned()),
         }
     }
 

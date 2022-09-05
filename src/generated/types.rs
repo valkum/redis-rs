@@ -6,6 +6,28 @@
 //! Also included are wrapper types for arguments that have token.
 //! ```
 use crate::types::{ToRedisArgs, RedisWrite};
+/// Redis Type: Source COPY::Source
+pub struct Source(String);
+
+impl crate::types::ToRedisArgs for Source {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        self.0.write_redis_args(out);
+    }
+}
+/// Redis Type: Destination COPY::Destination
+pub struct Destination(String);
+
+impl crate::types::ToRedisArgs for Destination {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        self.0.write_redis_args(out);
+    }
+}
 /// Redis Type: DB COPY::Db
 pub struct Db(i64);
 
@@ -28,6 +50,17 @@ impl crate::types::ToRedisArgs for Replace {
         W: ?Sized + crate::types::RedisWrite,
     {
         "REPLACE".write_redis_args(out);
+    }
+}
+/// Redis Type: Key DEL::Key
+pub struct Key(String);
+
+impl crate::types::ToRedisArgs for Key {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        self.0.write_redis_args(out);
     }
 }
 /// Redis Type: Seconds EXPIRE::Seconds
@@ -64,6 +97,17 @@ impl crate::types::ToRedisArgs for Condition {
             Condition::Gt => "GT".write_redis_args(out),
             Condition::Lt => "LT".write_redis_args(out),
         }
+    }
+}
+/// Redis Type: Pattern KEYS::Pattern
+pub struct Pattern(String);
+
+impl crate::types::ToRedisArgs for Pattern {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        self.0.write_redis_args(out);
     }
 }
 /// Redis Type: Host MIGRATE::Host
@@ -169,10 +213,33 @@ impl crate::types::ToRedisArgs for Authentication {
         }
     }
 }
+/// Redis Type: KEYS MIGRATE::Keys
+pub struct Keys(String);
+
+impl crate::types::ToRedisArgs for Keys {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        "KEYS".write_redis_args(out);
+        self.0.write_redis_args(out);
+    }
+}
 /// Redis Type: Milliseconds PEXPIRE::Milliseconds
 pub struct Milliseconds(i64);
 
 impl crate::types::ToRedisArgs for Milliseconds {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        self.0.write_redis_args(out);
+    }
+}
+/// Redis Type: Newkey RENAME::Newkey
+pub struct Newkey(String);
+
+impl crate::types::ToRedisArgs for Newkey {
     fn write_redis_args<W>(&self, out: &mut W)
     where
         W: ?Sized + crate::types::RedisWrite,
@@ -249,6 +316,18 @@ impl crate::types::ToRedisArgs for Cursor {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: MATCH SCAN::Match
+pub struct Match(String);
+
+impl crate::types::ToRedisArgs for Match {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        "MATCH".write_redis_args(out);
+        self.0.write_redis_args(out);
+    }
+}
 /// Redis Type: COUNT SCAN::Count
 pub struct Count(i64);
 
@@ -273,6 +352,18 @@ impl crate::types::ToRedisArgs for Type {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: BY SORT::By
+pub struct By(String);
+
+impl crate::types::ToRedisArgs for By {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        "BY".write_redis_args(out);
+        self.0.write_redis_args(out);
+    }
+}
 /// Redis Block: Limit
 pub struct Limit {
     /// offset
@@ -289,6 +380,18 @@ impl crate::types::ToRedisArgs for Limit {
         "LIMIT".write_redis_args(out);
         self.offset.write_redis_args(out);
         self.count.write_redis_args(out);
+    }
+}
+/// Redis Type: GET SORT::Get
+pub struct Get(String);
+
+impl crate::types::ToRedisArgs for Get {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        "GET".write_redis_args(out);
+        self.0.write_redis_args(out);
     }
 }
 /// Redis Type: Order
@@ -320,6 +423,18 @@ impl crate::types::ToRedisArgs for Alpha {
         W: ?Sized + crate::types::RedisWrite,
     {
         "ALPHA".write_redis_args(out);
+    }
+}
+/// Redis Type: STORE SORT::Store
+pub struct Store(String);
+
+impl crate::types::ToRedisArgs for Store {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        "STORE".write_redis_args(out);
+        self.0.write_redis_args(out);
     }
 }
 /// Redis Type: Numreplicas WAIT::Numreplicas
@@ -416,6 +531,28 @@ impl crate::types::ToRedisArgs for Increment {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: Key1 LCS::Key1
+pub struct Key1(String);
+
+impl crate::types::ToRedisArgs for Key1 {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        self.0.write_redis_args(out);
+    }
+}
+/// Redis Type: Key2 LCS::Key2
+pub struct Key2(String);
+
+impl crate::types::ToRedisArgs for Key2 {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        self.0.write_redis_args(out);
+    }
+}
 /// Redis Block: Len
 pub struct Len {
 }
@@ -466,6 +603,8 @@ impl crate::types::ToRedisArgs for Withmatchlen {
 }
 /// Redis Block: KeyValue
 pub struct KeyValue {
+    /// key
+    pub key: String,
     /// value
     pub value: String,
 }
@@ -475,19 +614,8 @@ impl crate::types::ToRedisArgs for KeyValue {
     where
         W: ?Sized + crate::types::RedisWrite,
     {
+        self.key.write_redis_args(out);
         self.value.write_redis_args(out);
-    }
-}
-/// Redis Block: Get
-pub struct Get {
-}
-
-impl crate::types::ToRedisArgs for Get {
-    fn write_redis_args<W>(&self, out: &mut W)
-    where
-        W: ?Sized + crate::types::RedisWrite,
-    {
-        "GET".write_redis_args(out);
     }
 }
 /// Redis Type: Offset SETRANGE::Offset
@@ -827,6 +955,28 @@ impl crate::types::ToRedisArgs for Rev {
         "REV".write_redis_args(out);
     }
 }
+/// Redis Type: Dst ZRANGESTORE::Dst
+pub struct Dst(String);
+
+impl crate::types::ToRedisArgs for Dst {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        self.0.write_redis_args(out);
+    }
+}
+/// Redis Type: Src ZRANGESTORE::Src
+pub struct Src(String);
+
+impl crate::types::ToRedisArgs for Src {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        self.0.write_redis_args(out);
+    }
+}
 /// Redis Type: Field HDEL::Field
 pub struct Field(String);
 
@@ -853,17 +1003,6 @@ impl crate::types::ToRedisArgs for FieldValue {
     {
         self.field.write_redis_args(out);
         self.value.write_redis_args(out);
-    }
-}
-/// Redis Block: Pattern
-pub struct Pattern {
-}
-
-impl crate::types::ToRedisArgs for Pattern {
-    fn write_redis_args<W>(&self, out: &mut W)
-    where
-        W: ?Sized + crate::types::RedisWrite,
-    {
     }
 }
 /// Redis Type: Channel PUBLISH::Channel
@@ -1339,6 +1478,8 @@ pub enum Filterby {
     Module(String),
     /// ACLCAT
     Aclcat(String),
+    /// PATTERN
+    Pattern(String),
 }
 
 impl crate::types::ToRedisArgs for Filterby {
@@ -1354,6 +1495,10 @@ impl crate::types::ToRedisArgs for Filterby {
             },
             Filterby::Aclcat(inner) => {
                 "ACLCAT".write_redis_args(out);
+                inner.write_redis_args(out);
+            },
+            Filterby::Pattern(inner) => {
+                "PATTERN".write_redis_args(out);
                 inner.write_redis_args(out);
             },
         }
@@ -1733,6 +1878,28 @@ impl crate::types::ToRedisArgs for Subcommand {
         self.0.write_redis_args(out);
     }
 }
+/// Redis Type: Destkey PFMERGE::Destkey
+pub struct Destkey(String);
+
+impl crate::types::ToRedisArgs for Destkey {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        self.0.write_redis_args(out);
+    }
+}
+/// Redis Type: Sourcekey PFMERGE::Sourcekey
+pub struct Sourcekey(String);
+
+impl crate::types::ToRedisArgs for Sourcekey {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        self.0.write_redis_args(out);
+    }
+}
 /// Redis Type: Slot CLUSTER ADDSLOTS::Slot
 pub struct Slot(i64);
 
@@ -1772,10 +1939,10 @@ impl crate::types::ToRedisArgs for NodeId {
         self.0.write_redis_args(out);
     }
 }
-/// Redis Type: Key CLUSTER KEYSLOT::Key
-pub struct Key(String);
+/// Redis Type: Ip CLUSTER MEET::Ip
+pub struct Ip(String);
 
-impl crate::types::ToRedisArgs for Key {
+impl crate::types::ToRedisArgs for Ip {
     fn write_redis_args<W>(&self, out: &mut W)
     where
         W: ?Sized + crate::types::RedisWrite,
@@ -1783,10 +1950,10 @@ impl crate::types::ToRedisArgs for Key {
         self.0.write_redis_args(out);
     }
 }
-/// Redis Type: Ip CLUSTER MEET::Ip
-pub struct Ip(String);
+/// Redis Type: ClusterBusPort CLUSTER MEET::ClusterBusPort
+pub struct ClusterBusPort(i64);
 
-impl crate::types::ToRedisArgs for Ip {
+impl crate::types::ToRedisArgs for ClusterBusPort {
     fn write_redis_args<W>(&self, out: &mut W)
     where
         W: ?Sized + crate::types::RedisWrite,
@@ -1960,6 +2127,18 @@ impl crate::types::ToRedisArgs for Withhash {
         "WITHHASH".write_redis_args(out);
     }
 }
+/// Redis Type: STOREDIST GEORADIUS::Storedist
+pub struct Storedist(String);
+
+impl crate::types::ToRedisArgs for Storedist {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + crate::types::RedisWrite,
+    {
+        "STOREDIST".write_redis_args(out);
+        self.0.write_redis_args(out);
+    }
+}
 /// Redis Type: From
 pub enum From {
     /// FROMMEMBER
@@ -1984,44 +2163,6 @@ impl crate::types::ToRedisArgs for From {
                 latitude.write_redis_args(out);
             },
         }
-    }
-}
-/// Redis Type: By
-pub enum By {
-    /// Unknown
-    Circle {radius: f64, unit: crate::generated::types::Unit},
-    /// Unknown
-    Box {width: f64, height: f64, unit: crate::generated::types::Unit},
-}
-
-impl crate::types::ToRedisArgs for By {
-    fn write_redis_args<W>(&self, out: &mut W)
-    where
-        W: ?Sized + crate::types::RedisWrite,
-    {
-        match self {
-            By::Circle{radius, unit} => {
-                radius.write_redis_args(out);
-                unit.write_redis_args(out);
-            },
-            By::Box{width, height, unit} => {
-                width.write_redis_args(out);
-                height.write_redis_args(out);
-                unit.write_redis_args(out);
-            },
-        }
-    }
-}
-/// Redis Block: Storedist
-pub struct Storedist {
-}
-
-impl crate::types::ToRedisArgs for Storedist {
-    fn write_redis_args<W>(&self, out: &mut W)
-    where
-        W: ?Sized + crate::types::RedisWrite,
-    {
-        "STOREDIST".write_redis_args(out);
     }
 }
 /// Redis Type: Group XACK::Group
@@ -2288,6 +2429,8 @@ impl crate::types::ToRedisArgs for Block {
 }
 /// Redis Block: Streams
 pub struct Streams {
+    /// key
+    pub key: String,
     /// id
     pub id: String,
 }
@@ -2298,6 +2441,7 @@ impl crate::types::ToRedisArgs for Streams {
         W: ?Sized + crate::types::RedisWrite,
     {
         "STREAMS".write_redis_args(out);
+        self.key.write_redis_args(out);
         self.id.write_redis_args(out);
     }
 }
@@ -2447,210 +2591,28 @@ impl crate::types::ToRedisArgs for EndIndex {
         self.index_unit.write_redis_args(out);
     }
 }
-pub mod bitfield {
-    /// Redis Type: Operation
-    pub enum Operation {
-        /// GET
-        Get {encoding: String, offset: i64},
-        /// Unknown
-        Write {wrap_sat_fail: crate::generated::types::Overflow, write_operation: crate::generated::types::WriteOperation},
+pub mod set {
+    /// Redis Type: Condition
+    pub enum Condition {
+        /// NX
+        Nx,
+        /// XX
+        Xx,
     }
 
-    impl crate::types::ToRedisArgs for Operation {
+    impl crate::types::ToRedisArgs for Condition {
         fn write_redis_args<W>(&self, out: &mut W)
         where
             W: ?Sized + crate::types::RedisWrite,
         {
             match self {
-                Operation::Get{encoding, offset} => {
-                    "GET".write_redis_args(out);
-                    encoding.write_redis_args(out);
-                    offset.write_redis_args(out);
-                },
-                Operation::Write{wrap_sat_fail, write_operation} => {
-                    wrap_sat_fail.write_redis_args(out);
-                    write_operation.write_redis_args(out);
-                },
+                Condition::Nx => "NX".write_redis_args(out),
+                Condition::Xx => "XX".write_redis_args(out),
             }
         }
     }
-}
-pub mod script_debug {
-    /// Redis Type: Mode
-    pub enum Mode {
-        /// YES
-        Yes,
-        /// SYNC
-        Sync,
-        /// NO
-        No,
-    }
-
-    impl crate::types::ToRedisArgs for Mode {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            match self {
-                Mode::Yes => "YES".write_redis_args(out),
-                Mode::Sync => "SYNC".write_redis_args(out),
-                Mode::No => "NO".write_redis_args(out),
-            }
-        }
-    }
-}
-pub mod bzmpop {
-    /// Redis Type: Where
-    pub enum Where {
-        /// MIN
-        Min,
-        /// MAX
-        Max,
-    }
-
-    impl crate::types::ToRedisArgs for Where {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            match self {
-                Where::Min => "MIN".write_redis_args(out),
-                Where::Max => "MAX".write_redis_args(out),
-            }
-        }
-    }
-}
-pub mod georadius {
-    /// Redis Block: Count
-    pub struct Count {
-        /// count
-        pub count: crate::generated::types::Count,
-        /// any
-        pub any: bool,
-    }
-
-    impl crate::types::ToRedisArgs for Count {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            self.count.write_redis_args(out);
-            if self.any {
-                "ANY".write_redis_args(out);
-            }
-        }
-    }
-}
-pub mod xautoclaim {
-    /// Redis Type: Start XAUTOCLAIM::Start
-    pub struct Start(String);
-
-    impl crate::types::ToRedisArgs for Start {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            self.0.write_redis_args(out);
-        }
-    }
-}
-pub mod xrange {
-    /// Redis Type: End XRANGE::End
-    pub struct End(String);
-
-    impl crate::types::ToRedisArgs for End {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            self.0.write_redis_args(out);
-        }
-    }
-}
-pub mod xreadgroup {
-    /// Redis Block: Group
-    pub struct Group {
-        /// group
-        pub group: String,
-        /// consumer
-        pub consumer: String,
-    }
-
-    impl crate::types::ToRedisArgs for Group {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            "GROUP".write_redis_args(out);
-            self.group.write_redis_args(out);
-            self.consumer.write_redis_args(out);
-        }
-    }
-}
-pub mod linsert {
-    /// Redis Type: Where
-    pub enum Where {
-        /// BEFORE
-        Before,
-        /// AFTER
-        After,
-    }
-
-    impl crate::types::ToRedisArgs for Where {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            match self {
-                Where::Before => "BEFORE".write_redis_args(out),
-                Where::After => "AFTER".write_redis_args(out),
-            }
-        }
-    }
-}
-pub mod cluster_setslot {
-    /// Redis Type: Subcommand
-    pub enum Subcommand {
-        /// IMPORTING
-        Importing(String),
-        /// MIGRATING
-        Migrating(String),
-        /// NODE
-        Node(String),
-        /// STABLE
-        Stable,
-    }
-
-    impl crate::types::ToRedisArgs for Subcommand {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            match self {
-                Subcommand::Importing(inner) => {
-                    "IMPORTING".write_redis_args(out);
-                    inner.write_redis_args(out);
-                },
-                Subcommand::Migrating(inner) => {
-                    "MIGRATING".write_redis_args(out);
-                    inner.write_redis_args(out);
-                },
-                Subcommand::Node(inner) => {
-                    "NODE".write_redis_args(out);
-                    inner.write_redis_args(out);
-                },
-                Subcommand::Stable => "STABLE".write_redis_args(out),
-            }
-        }
-    }
-}
-pub mod bitfield_ro {
     /// Redis Block: Get
     pub struct Get {
-        /// encoding
-        pub encoding: String,
-        /// offset
-        pub offset: i64,
     }
 
     impl crate::types::ToRedisArgs for Get {
@@ -2659,21 +2621,96 @@ pub mod bitfield_ro {
             W: ?Sized + crate::types::RedisWrite,
         {
             "GET".write_redis_args(out);
-            self.encoding.write_redis_args(out);
-            self.offset.write_redis_args(out);
+        }
+    }
+    /// Redis Type: Expiration
+    pub enum Expiration {
+        /// EX
+        Ex(i64),
+        /// PX
+        Px(i64),
+        /// KEEPTTL
+        Keepttl,
+    }
+
+    impl crate::types::ToRedisArgs for Expiration {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            match self {
+                Expiration::Ex(inner) => {
+                    "EX".write_redis_args(out);
+                    inner.write_redis_args(out);
+                },
+                Expiration::Px(inner) => {
+                    "PX".write_redis_args(out);
+                    inner.write_redis_args(out);
+                },
+                Expiration::Keepttl => "KEEPTTL".write_redis_args(out),
+            }
         }
     }
 }
-pub mod lpop {
-    /// Redis Type: Count LPOP::Count
-    pub struct Count(i64);
+pub mod r#move {
+    /// Redis Type: Db MOVE::Db
+    pub struct Db(i64);
 
-    impl crate::types::ToRedisArgs for Count {
+    impl crate::types::ToRedisArgs for Db {
         fn write_redis_args<W>(&self, out: &mut W)
         where
             W: ?Sized + crate::types::RedisWrite,
         {
             self.0.write_redis_args(out);
+        }
+    }
+}
+pub mod client_pause {
+    /// Redis Type: Mode
+    pub enum Mode {
+        /// WRITE
+        Write,
+        /// ALL
+        All,
+    }
+
+    impl crate::types::ToRedisArgs for Mode {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            match self {
+                Mode::Write => "WRITE".write_redis_args(out),
+                Mode::All => "ALL".write_redis_args(out),
+            }
+        }
+    }
+}
+pub mod geosearch {
+    /// Redis Type: By
+    pub enum By {
+        /// Unknown
+        Circle {radius: f64, unit: crate::generated::types::Unit},
+        /// Unknown
+        Box {width: f64, height: f64, unit: crate::generated::types::Unit},
+    }
+
+    impl crate::types::ToRedisArgs for By {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            match self {
+                By::Circle{radius, unit} => {
+                    radius.write_redis_args(out);
+                    unit.write_redis_args(out);
+                },
+                By::Box{width, height, unit} => {
+                    width.write_redis_args(out);
+                    height.write_redis_args(out);
+                    unit.write_redis_args(out);
+                },
+            }
         }
     }
 }
@@ -2708,6 +2745,19 @@ pub mod client_kill {
         }
     }
 }
+pub mod lpop {
+    /// Redis Type: Count LPOP::Count
+    pub struct Count(i64);
+
+    impl crate::types::ToRedisArgs for Count {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            self.0.write_redis_args(out);
+        }
+    }
+}
 pub mod xgroup_create {
     /// Redis Type: Id
     pub enum Id {
@@ -2731,103 +2781,27 @@ pub mod xgroup_create {
         }
     }
 }
-pub mod bitcount {
-    /// Redis Block: Index
-    pub struct Index {
-        /// start
-        pub start: i64,
-        /// end
-        pub end: i64,
-        /// index_unit
-        pub index_unit: crate::generated::types::IndexUnit,
+pub mod script_debug {
+    /// Redis Type: Mode
+    pub enum Mode {
+        /// YES
+        Yes,
+        /// SYNC
+        Sync,
+        /// NO
+        No,
     }
 
-    impl crate::types::ToRedisArgs for Index {
+    impl crate::types::ToRedisArgs for Mode {
         fn write_redis_args<W>(&self, out: &mut W)
         where
             W: ?Sized + crate::types::RedisWrite,
         {
-            self.start.write_redis_args(out);
-            self.end.write_redis_args(out);
-            self.index_unit.write_redis_args(out);
-        }
-    }
-}
-pub mod incrbyfloat {
-    /// Redis Type: Increment INCRBYFLOAT::Increment
-    pub struct Increment(f64);
-
-    impl crate::types::ToRedisArgs for Increment {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            self.0.write_redis_args(out);
-        }
-    }
-}
-pub mod failover {
-    /// Redis Type: TIMEOUT FAILOVER::Timeout
-    pub struct Timeout(i64);
-
-    impl crate::types::ToRedisArgs for Timeout {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            "TIMEOUT".write_redis_args(out);
-            self.0.write_redis_args(out);
-        }
-    }
-}
-pub mod zlexcount {
-    /// Redis Type: Min ZLEXCOUNT::Min
-    pub struct Min(String);
-
-    impl crate::types::ToRedisArgs for Min {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            self.0.write_redis_args(out);
-        }
-    }
-    /// Redis Type: Max ZLEXCOUNT::Max
-    pub struct Max(String);
-
-    impl crate::types::ToRedisArgs for Max {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            self.0.write_redis_args(out);
-        }
-    }
-}
-pub mod sintercard {
-    /// Redis Type: LIMIT SINTERCARD::Limit
-    pub struct Limit(i64);
-
-    impl crate::types::ToRedisArgs for Limit {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            "LIMIT".write_redis_args(out);
-            self.0.write_redis_args(out);
-        }
-    }
-}
-pub mod xack {
-    /// Redis Type: Id XACK::Id
-    pub struct Id(String);
-
-    impl crate::types::ToRedisArgs for Id {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            self.0.write_redis_args(out);
+            match self {
+                Mode::Yes => "YES".write_redis_args(out),
+                Mode::Sync => "SYNC".write_redis_args(out),
+                Mode::No => "NO".write_redis_args(out),
+            }
         }
     }
 }
@@ -2874,6 +2848,32 @@ pub mod client_list {
         }
     }
 }
+pub mod bitop {
+    /// Redis Type: Operation BITOP::Operation
+    pub struct Operation(String);
+
+    impl crate::types::ToRedisArgs for Operation {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            self.0.write_redis_args(out);
+        }
+    }
+}
+pub mod blmove {
+    /// Redis Type: Timeout BLMOVE::Timeout
+    pub struct Timeout(f64);
+
+    impl crate::types::ToRedisArgs for Timeout {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            self.0.write_redis_args(out);
+        }
+    }
+}
 pub mod hrandfield {
     /// Redis Block: Options
     pub struct Options {
@@ -2895,52 +2895,217 @@ pub mod hrandfield {
         }
     }
 }
-pub mod set {
-    /// Redis Type: Condition
-    pub enum Condition {
-        /// NX
-        Nx,
-        /// XX
-        Xx,
+pub mod zrange {
+    /// Redis Type: Start ZRANGE::Start
+    pub struct Start(String);
+
+    impl crate::types::ToRedisArgs for Start {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            self.0.write_redis_args(out);
+        }
+    }
+    /// Redis Type: Stop ZRANGE::Stop
+    pub struct Stop(String);
+
+    impl crate::types::ToRedisArgs for Stop {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            self.0.write_redis_args(out);
+        }
+    }
+}
+pub mod incrbyfloat {
+    /// Redis Type: Increment INCRBYFLOAT::Increment
+    pub struct Increment(f64);
+
+    impl crate::types::ToRedisArgs for Increment {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            self.0.write_redis_args(out);
+        }
+    }
+}
+pub mod psubscribe {
+    /// Redis Block: Pattern
+    pub struct Pattern {
+        /// pattern
+        pub pattern: String,
     }
 
-    impl crate::types::ToRedisArgs for Condition {
+    impl crate::types::ToRedisArgs for Pattern {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            self.pattern.write_redis_args(out);
+        }
+    }
+}
+pub mod bitfield {
+    /// Redis Type: Operation
+    pub enum Operation {
+        /// GET
+        Get {encoding: String, offset: i64},
+        /// Unknown
+        Write {wrap_sat_fail: crate::generated::types::Overflow, write_operation: crate::generated::types::WriteOperation},
+    }
+
+    impl crate::types::ToRedisArgs for Operation {
         fn write_redis_args<W>(&self, out: &mut W)
         where
             W: ?Sized + crate::types::RedisWrite,
         {
             match self {
-                Condition::Nx => "NX".write_redis_args(out),
-                Condition::Xx => "XX".write_redis_args(out),
+                Operation::Get{encoding, offset} => {
+                    "GET".write_redis_args(out);
+                    encoding.write_redis_args(out);
+                    offset.write_redis_args(out);
+                },
+                Operation::Write{wrap_sat_fail, write_operation} => {
+                    wrap_sat_fail.write_redis_args(out);
+                    write_operation.write_redis_args(out);
+                },
             }
         }
     }
-    /// Redis Type: Expiration
-    pub enum Expiration {
-        /// EX
-        Ex(i64),
-        /// PX
-        Px(i64),
-        /// KEEPTTL
-        Keepttl,
+}
+pub mod xack {
+    /// Redis Type: Id XACK::Id
+    pub struct Id(String);
+
+    impl crate::types::ToRedisArgs for Id {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            self.0.write_redis_args(out);
+        }
+    }
+}
+pub mod xreadgroup {
+    /// Redis Block: Group
+    pub struct Group {
+        /// group
+        pub group: String,
+        /// consumer
+        pub consumer: String,
     }
 
-    impl crate::types::ToRedisArgs for Expiration {
+    impl crate::types::ToRedisArgs for Group {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            "GROUP".write_redis_args(out);
+            self.group.write_redis_args(out);
+            self.consumer.write_redis_args(out);
+        }
+    }
+}
+pub mod bitfield_ro {
+    /// Redis Block: Get
+    pub struct Get {
+        /// encoding
+        pub encoding: String,
+        /// offset
+        pub offset: i64,
+    }
+
+    impl crate::types::ToRedisArgs for Get {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            "GET".write_redis_args(out);
+            self.encoding.write_redis_args(out);
+            self.offset.write_redis_args(out);
+        }
+    }
+}
+pub mod zlexcount {
+    /// Redis Type: Min ZLEXCOUNT::Min
+    pub struct Min(String);
+
+    impl crate::types::ToRedisArgs for Min {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            self.0.write_redis_args(out);
+        }
+    }
+    /// Redis Type: Max ZLEXCOUNT::Max
+    pub struct Max(String);
+
+    impl crate::types::ToRedisArgs for Max {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            self.0.write_redis_args(out);
+        }
+    }
+}
+pub mod bitcount {
+    /// Redis Block: Index
+    pub struct Index {
+        /// start
+        pub start: i64,
+        /// end
+        pub end: i64,
+        /// index_unit
+        pub index_unit: crate::generated::types::IndexUnit,
+    }
+
+    impl crate::types::ToRedisArgs for Index {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            self.start.write_redis_args(out);
+            self.end.write_redis_args(out);
+            self.index_unit.write_redis_args(out);
+        }
+    }
+}
+pub mod cluster_failover {
+    /// Redis Type: Options
+    pub enum Options {
+        /// FORCE
+        Force,
+        /// TAKEOVER
+        Takeover,
+    }
+
+    impl crate::types::ToRedisArgs for Options {
         fn write_redis_args<W>(&self, out: &mut W)
         where
             W: ?Sized + crate::types::RedisWrite,
         {
             match self {
-                Expiration::Ex(inner) => {
-                    "EX".write_redis_args(out);
-                    inner.write_redis_args(out);
-                },
-                Expiration::Px(inner) => {
-                    "PX".write_redis_args(out);
-                    inner.write_redis_args(out);
-                },
-                Expiration::Keepttl => "KEEPTTL".write_redis_args(out),
+                Options::Force => "FORCE".write_redis_args(out),
+                Options::Takeover => "TAKEOVER".write_redis_args(out),
             }
+        }
+    }
+}
+pub mod setbit {
+    /// Redis Type: Value SETBIT::Value
+    pub struct Value(i64);
+
+    impl crate::types::ToRedisArgs for Value {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            self.0.write_redis_args(out);
         }
     }
 }
@@ -2963,96 +3128,156 @@ pub mod bitpos {
         }
     }
 }
-pub mod bitop {
-    /// Redis Type: Operation BITOP::Operation
-    pub struct Operation(String);
-
-    impl crate::types::ToRedisArgs for Operation {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            self.0.write_redis_args(out);
-        }
-    }
-}
-pub mod r#move {
-    /// Redis Type: Db MOVE::Db
-    pub struct Db(i64);
-
-    impl crate::types::ToRedisArgs for Db {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            self.0.write_redis_args(out);
-        }
-    }
-}
-pub mod setbit {
-    /// Redis Type: Value SETBIT::Value
-    pub struct Value(i64);
-
-    impl crate::types::ToRedisArgs for Value {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            self.0.write_redis_args(out);
-        }
-    }
-}
-pub mod client_pause {
-    /// Redis Type: Mode
-    pub enum Mode {
-        /// WRITE
-        Write,
-        /// ALL
-        All,
-    }
-
-    impl crate::types::ToRedisArgs for Mode {
-        fn write_redis_args<W>(&self, out: &mut W)
-        where
-            W: ?Sized + crate::types::RedisWrite,
-        {
-            match self {
-                Mode::Write => "WRITE".write_redis_args(out),
-                Mode::All => "ALL".write_redis_args(out),
-            }
-        }
-    }
-}
-pub mod blmove {
-    /// Redis Type: Timeout BLMOVE::Timeout
-    pub struct Timeout(f64);
+pub mod failover {
+    /// Redis Type: TIMEOUT FAILOVER::Timeout
+    pub struct Timeout(i64);
 
     impl crate::types::ToRedisArgs for Timeout {
         fn write_redis_args<W>(&self, out: &mut W)
         where
             W: ?Sized + crate::types::RedisWrite,
         {
+            "TIMEOUT".write_redis_args(out);
             self.0.write_redis_args(out);
         }
     }
 }
-pub mod cluster_failover {
-    /// Redis Type: Options
-    pub enum Options {
-        /// FORCE
-        Force,
-        /// TAKEOVER
-        Takeover,
+pub mod georadius {
+    /// Redis Block: Count
+    pub struct Count {
+        /// count
+        pub count: crate::generated::types::Count,
+        /// any
+        pub any: bool,
     }
 
-    impl crate::types::ToRedisArgs for Options {
+    impl crate::types::ToRedisArgs for Count {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            self.count.write_redis_args(out);
+            if self.any {
+                "ANY".write_redis_args(out);
+            }
+        }
+    }
+}
+pub mod sintercard {
+    /// Redis Type: LIMIT SINTERCARD::Limit
+    pub struct Limit(i64);
+
+    impl crate::types::ToRedisArgs for Limit {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            "LIMIT".write_redis_args(out);
+            self.0.write_redis_args(out);
+        }
+    }
+}
+pub mod geosearchstore {
+    /// Redis Block: Storedist
+    pub struct Storedist {
+    }
+
+    impl crate::types::ToRedisArgs for Storedist {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            "STOREDIST".write_redis_args(out);
+        }
+    }
+}
+pub mod linsert {
+    /// Redis Type: Where
+    pub enum Where {
+        /// BEFORE
+        Before,
+        /// AFTER
+        After,
+    }
+
+    impl crate::types::ToRedisArgs for Where {
         fn write_redis_args<W>(&self, out: &mut W)
         where
             W: ?Sized + crate::types::RedisWrite,
         {
             match self {
-                Options::Force => "FORCE".write_redis_args(out),
-                Options::Takeover => "TAKEOVER".write_redis_args(out),
+                Where::Before => "BEFORE".write_redis_args(out),
+                Where::After => "AFTER".write_redis_args(out),
+            }
+        }
+    }
+}
+pub mod xrange {
+    /// Redis Type: End XRANGE::End
+    pub struct End(String);
+
+    impl crate::types::ToRedisArgs for End {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            self.0.write_redis_args(out);
+        }
+    }
+}
+pub mod bzmpop {
+    /// Redis Type: Where
+    pub enum Where {
+        /// MIN
+        Min,
+        /// MAX
+        Max,
+    }
+
+    impl crate::types::ToRedisArgs for Where {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            match self {
+                Where::Min => "MIN".write_redis_args(out),
+                Where::Max => "MAX".write_redis_args(out),
+            }
+        }
+    }
+}
+pub mod cluster_setslot {
+    /// Redis Type: Subcommand
+    pub enum Subcommand {
+        /// IMPORTING
+        Importing(String),
+        /// MIGRATING
+        Migrating(String),
+        /// NODE
+        Node(String),
+        /// STABLE
+        Stable,
+    }
+
+    impl crate::types::ToRedisArgs for Subcommand {
+        fn write_redis_args<W>(&self, out: &mut W)
+        where
+            W: ?Sized + crate::types::RedisWrite,
+        {
+            match self {
+                Subcommand::Importing(inner) => {
+                    "IMPORTING".write_redis_args(out);
+                    inner.write_redis_args(out);
+                },
+                Subcommand::Migrating(inner) => {
+                    "MIGRATING".write_redis_args(out);
+                    inner.write_redis_args(out);
+                },
+                Subcommand::Node(inner) => {
+                    "NODE".write_redis_args(out);
+                    inner.write_redis_args(out);
+                },
+                Subcommand::Stable => "STABLE".write_redis_args(out),
             }
         }
     }

@@ -1,5 +1,10 @@
-use std::{collections::HashMap, ffi::OsStr, fs, path::PathBuf};
-use redis_codegen::{retrieve_json, built_commands_json};
+use redis_codegen::{built_commands_json, retrieve_json};
+use std::{
+    collections::{BTreeMap, HashMap},
+    ffi::OsStr,
+    fs,
+    path::PathBuf,
+};
 use walkdir::WalkDir;
 
 /// Download the latest command.sjon from the redis GitHub repository.
@@ -14,16 +19,22 @@ fn sync_command_json() {
 
     let filename = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs/commands.json");
 
-    let (commands, docs) = retrieve_json(cli, host, port).unwrap_or_else(|e|{
+    let (commands, docs) = retrieve_json(cli, host, port).unwrap_or_else(|e| {
         eprintln!("{:?}", e);
         panic!()
     });
-    let commands_json = built_commands_json(commands, docs).unwrap_or_else(|e|{
+    let commands_json = built_commands_json(commands, docs).unwrap_or_else(|e| {
         eprintln!("{:?}", e);
         panic!()
     });
+    // Store in BTreeMap to allow serde to serialize the commands in alphabetical order to have something deterministic in our repo
+    let sorted_commands_json = commands_json.iter().collect::<BTreeMap<_, _>>();
 
-    fs::write(filename, serde_json::to_string_pretty(&commands_json).expect("could not pretty print json")).unwrap();
+    fs::write(
+        filename,
+        serde_json::to_string_pretty(&sorted_commands_json).expect("could not pretty print json"),
+    )
+    .unwrap();
 }
 
 #[test]
@@ -32,6 +43,7 @@ fn generated_code_is_fresh() {
     fs::create_dir_all(&tmp_dir).unwrap();
     redis_codegen::generate_commands(
         &"docs/commands.json",
+        &"docs/overwrite.json",
         Some(&tmp_dir),
         "crate::generated::types".to_owned(),
     )
@@ -44,6 +56,9 @@ fn generated_code_is_fresh() {
         let module_name = file_name_str.rsplit_once('.').expect(".rs file");
         modules.push(module_name.0.to_owned());
     }
+
+    // We need to sort the modules, as different filesystems can report them in a different order.
+    modules.sort();
 
     let mut root = String::new();
     for module in modules {

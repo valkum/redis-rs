@@ -1,3 +1,4 @@
+//! This file is generated. Do not modify it directly.
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #[cfg(feature = "cluster")]
 use crate::cluster_pipeline::ClusterPipeline;
@@ -166,7 +167,7 @@ impl ClusterPipeline {
     /// * @write
     /// * @slow
     /// * @dangerous
-    pub fn migrate<T0: ToRedisArgs, K0: ToRedisArgs>(&mut self, host: T0, port: i64, key_or_empty_string: crate::generated::types::KeyOrEmptyString, destination_db: i64, timeout: i64, copy: Option<crate::generated::types::CopyArg>, replace: Option<crate::generated::types::Replace>, authentication: Option<crate::generated::types::Authentication>, key: Option<&[K0]>) -> &mut Self {
+    pub fn migrate<T0: ToRedisArgs>(&mut self, host: T0, port: i64, key_or_empty_string: crate::generated::types::KeyOrEmptyString, destination_db: i64, timeout: i64, copy: Option<crate::generated::types::CopyArg>, replace: Option<crate::generated::types::Replace>, authentication: Option<crate::generated::types::Authentication>, key: Option<&[crate::generated::types::Keys]>) -> &mut Self {
         self.add_command(Cmd::migrate(host, port, key_or_empty_string, destination_db, timeout, copy, replace, authentication, key))
     }
 
@@ -434,6 +435,23 @@ impl ClusterPipeline {
         self.add_command(Cmd::restore(key, ttl, serialized_value, replace, absttl, seconds, frequency))
     }
 
+    /// SCAN
+    ///
+    /// Incrementally iterate the keys space
+    ///
+    /// Since: Redis 2.8.0
+    /// Group: Generic
+    /// Complexity: O(1) for every call. O(N) for a complete iteration, including enough command calls for the cursor to return back to 0. N is the number of elements inside the collection.
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @keyspace
+    /// * @read
+    /// * @slow
+    pub fn scan(&mut self, cursor: i64, pattern: Option<crate::generated::types::Match>, count: Option<crate::generated::types::Count>, r#type: Option<crate::generated::types::Type>) -> &mut Self {
+        self.add_command(Cmd::scan(cursor, pattern, count, r#type))
+    }
+
     /// SORT
     ///
     /// Sort the elements in a list, set or sorted set
@@ -452,7 +470,7 @@ impl ClusterPipeline {
     /// * @list
     /// * @slow
     /// * @dangerous
-    pub fn sort<K0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs, K3: ToRedisArgs>(&mut self, key: K0, pattern: Option<K1>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[K2]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>, destination: Option<K3>) -> &mut Self {
+    pub fn sort<K0: ToRedisArgs>(&mut self, key: K0, pattern: Option<crate::generated::types::By>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[crate::generated::types::Get]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>, destination: Option<crate::generated::types::Store>) -> &mut Self {
         self.add_command(Cmd::sort(key, pattern, offset_count, pattern1, order, sorting, destination))
     }
 
@@ -473,7 +491,7 @@ impl ClusterPipeline {
     /// * @list
     /// * @slow
     /// * @dangerous
-    pub fn sort_ro<K0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs>(&mut self, key: K0, pattern: Option<K1>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[K2]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>) -> &mut Self {
+    pub fn sort_ro<K0: ToRedisArgs>(&mut self, key: K0, pattern: Option<crate::generated::types::By>, offset_count: Option<crate::generated::types::Limit>, pattern1: Option<&[crate::generated::types::Get]>, order: Option<crate::generated::types::Order>, sorting: Option<crate::generated::types::Alpha>) -> &mut Self {
         self.add_command(Cmd::sort_ro(key, pattern, offset_count, pattern1, order, sorting))
     }
 
@@ -871,12 +889,11 @@ impl ClusterPipeline {
     /// CommandFlags:
     /// * Write: This command may modify data.
     /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
-    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
     /// ACL Categories:
     /// * @write
     /// * @string
     /// * @slow
-    pub fn set<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, value: T0, condition: Option<crate::generated::types::set::Condition>, get: Option<crate::generated::types::Get>, expiration: Option<crate::generated::types::set::Expiration>) -> &mut Self {
+    pub fn set<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, value: T0, condition: Option<crate::generated::types::set::Condition>, get: Option<crate::generated::types::set::Get>, expiration: Option<crate::generated::types::set::Expiration>) -> &mut Self {
         self.add_command(Cmd::set(key, value, condition, get, expiration))
     }
 
@@ -1635,6 +1652,23 @@ impl ClusterPipeline {
         self.add_command(Cmd::srem(key, member))
     }
 
+    /// SSCAN
+    ///
+    /// Incrementally iterate Set elements
+    ///
+    /// Since: Redis 2.8.0
+    /// Group: Set
+    /// Complexity: O(1) for every call. O(N) for a complete iteration, including enough command calls for the cursor to return back to 0. N is the number of elements inside the collection..
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @set
+    /// * @slow
+    pub fn sscan<K0: ToRedisArgs>(&mut self, key: K0, cursor: i64, pattern: Option<crate::generated::types::Match>, count: Option<crate::generated::types::Count>) -> &mut Self {
+        self.add_command(Cmd::sscan(key, cursor, pattern, count))
+    }
+
     /// SUNION
     ///
     /// Add multiple sets
@@ -2018,8 +2052,8 @@ impl ClusterPipeline {
     /// * @read
     /// * @sortedset
     /// * @slow
-    pub fn zrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, min: T0, max: T1, sortby: Option<crate::generated::types::Sortby>, rev: Option<crate::generated::types::Rev>, offset_count: Option<crate::generated::types::Limit>, withscores: Option<crate::generated::types::Withscores>) -> &mut Self {
-        self.add_command(Cmd::zrange(key, min, max, sortby, rev, offset_count, withscores))
+    pub fn zrange<K0: ToRedisArgs, T0: ToRedisArgs, T1: ToRedisArgs>(&mut self, key: K0, start: T0, stop: T1, sortby: Option<crate::generated::types::Sortby>, rev: Option<crate::generated::types::Rev>, offset_count: Option<crate::generated::types::Limit>, withscores: Option<crate::generated::types::Withscores>) -> &mut Self {
+        self.add_command(Cmd::zrange(key, start, stop, sortby, rev, offset_count, withscores))
     }
 
     /// ZRANGEBYLEX
@@ -2243,6 +2277,23 @@ impl ClusterPipeline {
     /// * @fast
     pub fn zrevrank<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, member: T0) -> &mut Self {
         self.add_command(Cmd::zrevrank(key, member))
+    }
+
+    /// ZSCAN
+    ///
+    /// Incrementally iterate sorted sets elements and associated scores
+    ///
+    /// Since: Redis 2.8.0
+    /// Group: SortedSet
+    /// Complexity: O(1) for every call. O(N) for a complete iteration, including enough command calls for the cursor to return back to 0. N is the number of elements inside the collection..
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @sortedset
+    /// * @slow
+    pub fn zscan<K0: ToRedisArgs>(&mut self, key: K0, cursor: i64, pattern: Option<crate::generated::types::Match>, count: Option<crate::generated::types::Count>) -> &mut Self {
+        self.add_command(Cmd::zscan(key, cursor, pattern, count))
     }
 
     /// ZSCORE
@@ -2501,6 +2552,23 @@ impl ClusterPipeline {
         self.add_command(Cmd::hrandfield(key, options))
     }
 
+    /// HSCAN
+    ///
+    /// Incrementally iterate hash fields and associated values
+    ///
+    /// Since: Redis 2.8.0
+    /// Group: Hash
+    /// Complexity: O(1) for every call. O(N) for a complete iteration, including enough command calls for the cursor to return back to 0. N is the number of elements inside the collection..
+    /// CommandFlags:
+    /// * Readonly: This command doesn't modify data.
+    /// ACL Categories:
+    /// * @read
+    /// * @hash
+    /// * @slow
+    pub fn hscan<K0: ToRedisArgs>(&mut self, key: K0, cursor: i64, pattern: Option<crate::generated::types::Match>, count: Option<crate::generated::types::Count>) -> &mut Self {
+        self.add_command(Cmd::hscan(key, cursor, pattern, count))
+    }
+
     /// HSET
     ///
     /// Set the string value of a hash field
@@ -2589,7 +2657,7 @@ impl ClusterPipeline {
     /// ACL Categories:
     /// * @pubsub
     /// * @slow
-    pub fn psubscribe(&mut self, pattern: &[crate::generated::types::Pattern]) -> &mut Self {
+    pub fn psubscribe(&mut self, pattern: &[crate::generated::types::psubscribe::Pattern]) -> &mut Self {
         self.add_command(Cmd::psubscribe(pattern))
     }
 
@@ -3270,6 +3338,8 @@ impl ClusterPipeline {
     /// Group: Connection
     /// Complexity: O(1)
     /// CommandFlags:
+    /// * Loading: This command is allowed while the database is loading.
+    /// * Stale: This command is allowed while a replica has stale data.
     /// * Fast: This command operates in constant or log(N) time. This flag is used for monitoring latency with the LATENCY command.
     /// ACL Categories:
     /// * @fast
@@ -5569,8 +5639,8 @@ impl ClusterPipeline {
     /// * @admin
     /// * @slow
     /// * @dangerous
-    pub fn cluster_meet<T0: ToRedisArgs>(&mut self, ip: T0, port: i64) -> &mut Self {
-        self.add_command(Cmd::cluster_meet(ip, port))
+    pub fn cluster_meet<T0: ToRedisArgs>(&mut self, ip: T0, port: i64, cluster_bus_port: Option<i64>) -> &mut Self {
+        self.add_command(Cmd::cluster_meet(ip, port, cluster_bus_port))
     }
 
     /// CLUSTER MYID
@@ -5903,7 +5973,7 @@ impl ClusterPipeline {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn georadius<K0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs>(&mut self, key: K0, longitude: f64, latitude: f64, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<K1>, key2: Option<K2>) -> &mut Self {
+    pub fn georadius<K0: ToRedisArgs>(&mut self, key: K0, longitude: f64, latitude: f64, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<crate::generated::types::Store>, key2: Option<crate::generated::types::Storedist>) -> &mut Self {
         self.add_command(Cmd::georadius(key, longitude, latitude, radius, unit, withcoord, withdist, withhash, count, order, key1, key2))
     }
 
@@ -5927,7 +5997,7 @@ impl ClusterPipeline {
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
     #[deprecated = "Deprecated in redis since redis version 6.2.0."]
-    pub fn georadiusbymember<K0: ToRedisArgs, T0: ToRedisArgs, K1: ToRedisArgs, K2: ToRedisArgs>(&mut self, key: K0, member: T0, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<K1>, key2: Option<K2>) -> &mut Self {
+    pub fn georadiusbymember<K0: ToRedisArgs, T0: ToRedisArgs>(&mut self, key: K0, member: T0, radius: f64, unit: crate::generated::types::Unit, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>, count: Option<crate::generated::types::georadius::Count>, order: Option<crate::generated::types::Order>, key1: Option<crate::generated::types::Store>, key2: Option<crate::generated::types::Storedist>) -> &mut Self {
         self.add_command(Cmd::georadiusbymember(key, member, radius, unit, withcoord, withdist, withhash, count, order, key1, key2))
     }
 
@@ -5990,7 +6060,7 @@ impl ClusterPipeline {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    pub fn geosearch<K0: ToRedisArgs>(&mut self, key: K0, from: crate::generated::types::From, by: crate::generated::types::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>) -> &mut Self {
+    pub fn geosearch<K0: ToRedisArgs>(&mut self, key: K0, from: crate::generated::types::From, by: crate::generated::types::geosearch::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, withcoord: Option<crate::generated::types::Withcoord>, withdist: Option<crate::generated::types::Withdist>, withhash: Option<crate::generated::types::Withhash>) -> &mut Self {
         self.add_command(Cmd::geosearch(key, from, by, order, count, withcoord, withdist, withhash))
     }
 
@@ -6010,7 +6080,7 @@ impl ClusterPipeline {
     /// * @slow
     #[cfg(feature = "geospatial")]
     #[cfg_attr(docsrs, doc(cfg(feature = "geospatial")))]
-    pub fn geosearchstore<K0: ToRedisArgs, K1: ToRedisArgs>(&mut self, destination: K0, source: K1, from: crate::generated::types::From, by: crate::generated::types::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, storedist: Option<crate::generated::types::Storedist>) -> &mut Self {
+    pub fn geosearchstore<K0: ToRedisArgs, K1: ToRedisArgs>(&mut self, destination: K0, source: K1, from: crate::generated::types::From, by: crate::generated::types::geosearch::By, order: Option<crate::generated::types::Order>, count: Option<crate::generated::types::georadius::Count>, storedist: Option<crate::generated::types::geosearchstore::Storedist>) -> &mut Self {
         self.add_command(Cmd::geosearchstore(destination, source, from, by, order, count, storedist))
     }
 
@@ -6525,7 +6595,6 @@ impl ClusterPipeline {
     /// CommandFlags:
     /// * Write: This command may modify data.
     /// * Denyoom: This command is rejected if the server's memory usage is too high (see the maxmemory configuration directive).
-    /// * Movablekeys: This first key, last key, and step values don't determine all key positions. Clients need to use COMMAND GETKEYS or key specifications in this case. See below for more details.
     /// ACL Categories:
     /// * @write
     /// * @bitmap
@@ -6538,7 +6607,7 @@ impl ClusterPipeline {
     ///
     /// Perform arbitrary bitfield integer operations on strings. Read-only variant of BITFIELD
     ///
-    /// Since: Redis 6.2.0
+    /// Since: Redis 6.0.0
     /// Group: Bitmap
     /// Complexity: O(1) for each subcommand specified
     /// CommandFlags:
